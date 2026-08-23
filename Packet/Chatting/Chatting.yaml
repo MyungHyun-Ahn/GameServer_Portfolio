@@ -1,0 +1,48 @@
+content: Chatting
+
+messages:
+  - name: RoomList
+    rq:
+      opcode: 3100
+      fields: []
+    rp:
+      opcode: 3101
+      fields:
+        - { name: roomIds, type: vector<uint32> }
+        - { name: roomNames, type: vector<string> }
+        - { name: participantCounts, type: vector<uint32> }
+        - { name: capacities, type: vector<uint32> }
+        - { name: joinableFlags, type: vector<uint8> }
+  - name: RoomChange
+    rq:
+      opcode: 3102
+      fields:
+        - { name: targetRoomId, type: uint32 }
+    rp:
+      opcode: 3103
+      fields:
+        - { name: previousRoomId, type: uint32 }
+        - { name: currentRoomId, type: uint32 }
+        - { name: success, type: bool }
+        - { name: resultCode, type: uint16 }
+  - name: Chatting
+    rq:
+      opcode: 3104
+      fields:
+        - { name: roomId, type: uint32 }
+        - { name: clientMessageId, type: uint64 }
+        - { name: sentTick, type: uint64 }
+        - { name: payload, type: bytes }
+    rp:
+      opcode: 3105
+      fields:
+        - { name: success, type: bool }
+  - name: Broadcast
+    broadcast:
+      opcode: 3106
+      fields:
+        - { name: roomId, type: uint32 }
+        - { name: senderUserId, type: uint64 }
+        - { name: messageId, type: uint64 }
+        - { name: sentTick, type: uint64 }
+        - { name: payload, type: bytes }

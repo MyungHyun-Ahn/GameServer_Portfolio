@@ -1,0 +1,54 @@
+# Generated from ConfigSchema/Server/EchoServer.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+EchoServer:
+  # Allowed: Iocp, Rio, BoostAsio
+  Backend: Iocp
+  # Allowed: Direct, OwnerThread
+  RioSendDispatchMode: Direct
+  BindIp: 127.0.0.1
+  Port: 19000
+  WorkerThreadCount: 2
+  MaxSessionCount: 512
+  RecvBufferSize: 1024
+  SocketSendBufferBytes: -1
+  # Allowed: Debug, Info, Warn, Error
+  LogMinimumLevel: Info
+  LogOutputDirectory: ""
+  LogConsoleEnabled: true
+  LogFileEnabled: true
+  LogIncludeThreadId: true
+  PacketKey: 55
+  EnablePagePool: true
+  PageSize: 4096
+  ContentsWorkerThreadCount: 4
+  SendThreadCount: 1
+  ResponsesPerThread: 1
+  RoomCount: 50
+  RoomCapacity: 4
+
+Debug:
+  ManualDump: false
+  Headless: false
+  BootstrapTrace: false
+  TraceUserId: 0
+  LogPackets: false
+  TransitionRaceInjectionEnabled: false
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  TransitionRaceInjectionMode: None
+  PostRoomChangeRaceInjectionEnabled: false
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  PostRoomChangeRaceInjectionMode: None
+  FirstEchoRaceInjectionEnabled: false
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  FirstEchoRaceInjectionMode: None
+  ContentsRaceInjectionEnabled: false
+  ContentsRaceInjectionPeriod: 100
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  ContentsRaceInjectionMode: None
+  ContentsFailFast: false
+  DelegateTestEnabled: false
+  DelegateTestTargetRoomId: 0
+  DelegateTestSleepMs: 0
+  DelegateTestSleepEveryNFrames: 1
+

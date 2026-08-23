@@ -1,0 +1,46 @@
+﻿Scenario: Chatting
+OutputRoot: Out/bench
+ContinueOnError: false
+
+Defaults:
+  Timing:
+    WarmupSeconds: 0
+    MeasureSeconds: 5
+    CooldownSeconds: 0
+    StartupTimeoutSeconds: 10
+    RunTimeoutSeconds: 20
+  Server:
+    Executable: Out/ChattingServer/Release/ChattingServer.exe
+    ConfigTemplate: Config/Server/ChattingServer.yaml
+    Overrides:
+      ChattingServer.Port: 19100
+      Debug.Headless: true
+  Client:
+    Executable: Out/ChattingDummyClient/Release/ChattingDummyClient.exe
+    ConfigTemplate: Config/Client/ChattingDummy.yaml
+    Overrides:
+      ChattingDummy.ServerIp: 127.0.0.1
+      ChattingDummy.Port: 19100
+      ChattingDummy.PacketKey: 55
+      ChattingDummy.WorkerThreadCount: 4
+      ChattingDummy.SessionCount: 8
+      ChattingDummy.ConnectsPerSecond: 8
+      ChattingDummy.SendIntervalMs: 250
+      ChattingDummy.PayloadSizeBytes: 256
+      ChattingDummy.RoomSelectionMode: Random
+      ChattingDummy.HotspotRoomIds: "77"
+      ChattingDummy.HotspotBiasPercent: 80
+      ChattingDummy.RoomChangeProbabilityPercent: 10
+      ChattingDummy.ReconnectProbabilityPercent: 0
+      ChattingDummy.ReconnectDelayMs: 100
+      ChattingDummy.ResponseTimeoutMs: 5000
+      ChattingDummy.ConsoleSummaryIntervalSeconds: 2
+
+Runs:
+  - Name: iocp_chatting_smoke
+    Server:
+      Overrides:
+        ChattingServer.Backend: Iocp
+        ChattingServer.RioSendDispatchMode: Direct
+        ChattingServer.MaxChatPayloadBytes: 8000
+

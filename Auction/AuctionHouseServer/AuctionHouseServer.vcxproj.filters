@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{02198C69-497E-E92F-F546-F0430463AD66}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{0B4386B3-FD31-2EBB-36A5-AADF3BD23064}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Auth">
+      <UniqueIdentifier>{AD708FFF-92CB-6AC3-B1CB-226EDFCA9BDB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Command">
+      <UniqueIdentifier>{7610EE0A-876C-C02E-1836-4CC9E19057FF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Expiration">
+      <UniqueIdentifier>{F389D949-8BCA-734C-D87C-C98C59946389}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Session">
+      <UniqueIdentifier>{1C125360-2B9F-5C90-9FA0-3128B42C739A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database">
+      <UniqueIdentifier>{EA6106AF-573A-5ABA-2E07-4261C0828AD0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics">
+      <UniqueIdentifier>{0D08C907-D059-C0FF-65F7-3B9B30AEBF44}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain">
+      <UniqueIdentifier>{DAA9687F-C8D4-BB6B-848E-EB97D01E686F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Service">
+      <UniqueIdentifier>{E71D227D-383E-04A3-070B-AD241CA994CF}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Application\FAuctionHouseServerBootstrap.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="AuctionHouseServerPch.cpp" />
+    <ClCompile Include="Contents\Auth\FAuctionAuthContent.cpp">
+      <Filter>Contents\Auth</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Command\FAuctionCommandContent.cpp">
+      <Filter>Contents\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Expiration\FAuctionExpirationContent.cpp">
+      <Filter>Contents\Expiration</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\FAuctionContentRouter.cpp">
+      <Filter>Contents</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Session\FAuctionUserRegistry.cpp">
+      <Filter>Contents\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\FAuctionRepository.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\FContentThreadDbContext.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\FGameRepository.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\FAuctionTimingSetup.cpp">
+      <Filter>Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Service\FBidRefundService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FBidService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FBuyoutService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FExpirationService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FInventoryGrantService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FListingCancelService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FListingRegistrationService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FMailClaimService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Application\FAuctionHouseServerBootstrap.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="AuctionHouseServerPch.h" />
+    <ClInclude Include="Contents\Auth\FAuctionAuthContent.h">
+      <Filter>Contents\Auth</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Command\FAuctionCommandContent.h">
+      <Filter>Contents\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\ContentTypes.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Expiration\FAuctionExpirationContent.h">
+      <Filter>Contents\Expiration</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\FAuctionContentRouter.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Session\FAuctionUserRegistry.h">
+      <Filter>Contents\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\AuctionDatabaseTypes.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FAuctionRepository.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FContentThreadDbContext.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FGameRepository.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\FAuctionTimingSetup.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Domain\AuctionResultCode.h">
+      <Filter>Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="Domain\AuctionSearchSortType.h">
+      <Filter>Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="Domain\AuctionState.h">
+      <Filter>Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FBidRefundService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FBidService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FBuyoutService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FExpirationService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FInventoryGrantService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FListingCancelService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FListingRegistrationService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FMailClaimService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

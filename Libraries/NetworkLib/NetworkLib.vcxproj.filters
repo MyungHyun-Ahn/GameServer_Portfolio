@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Containers">
+      <UniqueIdentifier>{3BCF861A-2D5A-C6EA-54F2-828268E858C3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Crypto">
+      <UniqueIdentifier>{2BDEE186-99D9-8902-5FA8-4093842C53E7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics">
+      <UniqueIdentifier>{E7744254-DFE0-8E78-C05B-3BBC7C9214C1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics\Rio">
+      <UniqueIdentifier>{41AA0A73-DF0D-1D97-15E1-9FCD55102515}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Memory">
+      <UniqueIdentifier>{B4D90BBA-8AFE-91E9-4EA6-42036E60598C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet">
+      <UniqueIdentifier>{6619393E-4FDE-85D4-D497-D0E8ECDFD156}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet\Buffer">
+      <UniqueIdentifier>{16BF0A03-C47C-21A2-3E4A-2CF2C06BB331}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet\Framing">
+      <UniqueIdentifier>{9AABF84A-DDAD-90A1-40D5-68F49039347F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet\Serialization">
+      <UniqueIdentifier>{BA4672A0-74B2-5B90-CBDF-54A7911833D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Packet\View">
+      <UniqueIdentifier>{F11CBCE5-E913-D4B4-3490-B5981989D48B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Servers">
+      <UniqueIdentifier>{216E723C-7215-DF27-FED6-5EDC84A985C1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Servers\Core">
+      <UniqueIdentifier>{6DC78CFC-DD90-9384-B66D-2A0E8B49FD2B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Servers\Session">
+      <UniqueIdentifier>{C0A046F9-7A7F-C137-7AC1-3F2A3F43258F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Containers\LockFreeSmoke.cpp">
+      <Filter>Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="Crypto\FDefaultPacketCipher.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Crypto\FNullPacketCipher.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\FServerMonitoringRuntime.cpp">
+      <Filter>Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Rio\FRioSendMetricsRuntime.cpp">
+      <Filter>Diagnostics\Rio</Filter>
+    </ClCompile>
+    <ClCompile Include="NetLibPch.cpp" />
+    <ClCompile Include="Packet\Buffer\FPacketBuffer.cpp">
+      <Filter>Packet\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet\Buffer\FSendBuffer.cpp">
+      <Filter>Packet\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet\Buffer\FSendSegmentPool.cpp">
+      <Filter>Packet\Buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="Packet\Framing\FDefaultPacketFramer.cpp">
+      <Filter>Packet\Framing</Filter>
+    </ClCompile>
+    <ClCompile Include="Servers\Core\FIocpServer.cpp">
+      <Filter>Servers\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Servers\Core\FRioServer.cpp">
+      <Filter>Servers\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Servers\Core\FServerFactory.cpp">
+      <Filter>Servers\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Servers\Core\FStubServer.cpp">
+      <Filter>Servers\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Servers\Session\FIocpSession.cpp">
+      <Filter>Servers\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Servers\Session\FRioSession.cpp">
+      <Filter>Servers\Session</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Containers\FLockFreeQueue.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\FLockFreeStack.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Containers\LockFreeCommon.h">
+      <Filter>Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypto\FDefaultPacketCipher.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypto\FNullPacketCipher.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypto\IPacketCipher.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Crypto\PacketCipherTypes.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\FServerMonitoringRuntime.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Rio\FRioSendMetricsRuntime.h">
+      <Filter>Diagnostics\Rio</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\ServerMonitoringTypes.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\FLockFreeMemoryPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\FTlsMemoryPool.h">
+      <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="NetLibPch.h" />
+    <ClInclude Include="Packet\Buffer\FPacketBuffer.h">
+      <Filter>Packet\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Buffer\FRecvBuffer.h">
+      <Filter>Packet\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Buffer\FSendBuffer.h">
+      <Filter>Packet\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Buffer\FSendSegmentPool.h">
+      <Filter>Packet\Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Framing\ContentHeader.h">
+      <Filter>Packet\Framing</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Framing\FDefaultPacketFramer.h">
+      <Filter>Packet\Framing</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Framing\IPacketFramer.h">
+      <Filter>Packet\Framing</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Framing\PacketTypes.h">
+      <Filter>Packet\Framing</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Serialization\FPacketReader.h">
+      <Filter>Packet\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Serialization\FPacketSerialization.h">
+      <Filter>Packet\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Serialization\FPacketWriter.h">
+      <Filter>Packet\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\Serialization\IContentPacket.h">
+      <Filter>Packet\Serialization</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\View\FBorrowedViewGuard.h">
+      <Filter>Packet\View</Filter>
+    </ClInclude>
+    <ClInclude Include="Packet\View\FPacketView.h">
+      <Filter>Packet\View</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Core\BackendTypes.h">
+      <Filter>Servers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Core\FIocpServer.h">
+      <Filter>Servers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Core\FRioServer.h">
+      <Filter>Servers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Core\FServerFactory.h">
+      <Filter>Servers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Core\FStubServer.h">
+      <Filter>Servers\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\IApplicationHandler.h">
+      <Filter>Servers</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\IServer.h">
+      <Filter>Servers</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Session\FIocpSession.h">
+      <Filter>Servers\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Session\FRioSession.h">
+      <Filter>Servers\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Servers\Session\ISession.h">
+      <Filter>Servers\Session</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

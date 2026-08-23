@@ -1,0 +1,68 @@
+﻿Scenario: Chatting
+OutputRoot: Out/bench
+ContinueOnError: true
+
+Defaults:
+  Timing:
+    WarmupSeconds: 0
+    MeasureSeconds: 3600
+    CooldownSeconds: 0
+    StartupTimeoutSeconds: 15
+    RunTimeoutSeconds: 3660
+  Server:
+    Executable: Out/ChattingServer/Release/ChattingServer.exe
+    ConfigTemplate: Config/Server/ChattingServer.yaml
+    Overrides:
+      ChattingServer.Port: 19100
+      ChattingServer.MaxSessionCount: 256
+      ChattingServer.WorkerThreadCount: 2
+      ChattingServer.ContentsWorkerThreadCount: 4
+      ChattingServer.RoomCount: 50
+      ChattingServer.RoomCapacity: 256
+      ChattingServer.MaxChatPayloadBytes: 256
+      ChattingServer.RioSendRingSizeBytes: 65536
+      Debug.Headless: true
+  Client:
+    Executable: Out/ChattingDummyClient/Release/ChattingDummyClient.exe
+    ConfigTemplate: Config/Client/ChattingDummy.yaml
+    Overrides:
+      ChattingDummy.ServerIp: 127.0.0.1
+      ChattingDummy.Port: 19100
+      ChattingDummy.PacketKey: 55
+      ChattingDummy.WorkerThreadCount: 4
+      ChattingDummy.SessionCount: 250
+      ChattingDummy.ConnectsPerSecond: 50
+      ChattingDummy.SendIntervalMs: 0
+      ChattingDummy.PayloadSizeBytes: 128
+      ChattingDummy.RoomSelectionMode: Random
+      ChattingDummy.RoomChangeProbabilityPercent: 0
+      ChattingDummy.ReconnectProbabilityPercent: 0
+      ChattingDummy.ReconnectDelayMs: 100
+      ChattingDummy.ResponseTimeoutMs: 10000
+      ChattingDummy.ConsoleSummaryIntervalSeconds: 60
+
+Runs:
+  - Name: iocp_default_128b_250_random_1h
+    Tags: [iocp, default, random-room, payload-128b, one-hour]
+    Server:
+      Overrides:
+        ChattingServer.Backend: Iocp
+        ChattingServer.RioSendDispatchMode: Direct
+        ChattingServer.SocketSendBufferBytes: -1
+
+  - Name: rio_direct_128b_250_random_1h
+    Tags: [rio, direct, random-room, payload-128b, one-hour]
+    Server:
+      Overrides:
+        ChattingServer.Backend: Rio
+        ChattingServer.RioSendDispatchMode: Direct
+        ChattingServer.SocketSendBufferBytes: -1
+
+  - Name: rio_owner_128b_250_random_1h
+    Tags: [rio, owner-thread, random-room, payload-128b, one-hour]
+    Server:
+      Overrides:
+        ChattingServer.Backend: Rio
+        ChattingServer.RioSendDispatchMode: OwnerThread
+        ChattingServer.SocketSendBufferBytes: -1
+

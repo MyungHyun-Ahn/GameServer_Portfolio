@@ -1,0 +1,27 @@
+# Generated from ConfigSchema/Client/ChattingDummy.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+ChattingDummy:
+  ServerIp: 127.0.0.1
+  Port: 19100
+  PacketKey: 55
+  WorkerThreadCount: 4
+  SessionCount: 100
+  ConnectsPerSecond: 50
+  LoginUserIdBase: 100000
+  RunSeconds: 60
+  SendIntervalMs: 1000
+  PayloadSizeBytes: 1024
+  HiMode: false
+  # Allowed: Random, RoundRobin, Hotspot
+  RoomSelectionMode: Random
+  HotspotRoomIds: 77
+  HotspotBiasPercent: 80
+  RoomChangeProbabilityPercent: 0
+  ReconnectProbabilityPercent: 0
+  ReconnectDelayMs: 100
+  ResponseTimeoutMs: 5000
+  ConsoleSummaryIntervalSeconds: 5
+  EventPollMaxCount: 256
+  RttCsvPath: ""
+

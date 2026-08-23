@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{1E3B65A5-5AE3-4AA0-9471-88AB92F756D4}</ProjectGuid>
+    <RootNamespace>Foundation</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>FoundationPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>FoundationPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="FoundationPch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Config\FConfigFileLoader.cpp" />
+    <ClCompile Include="Config\FConfigValueReader.cpp" />
+    <ClCompile Include="Diagnostics\FCrashDump.cpp" />
+    <ClCompile Include="Diagnostics\Rtt\FRttCsvLogger.cpp" />
+    <ClCompile Include="Diagnostics\Rtt\FRttMetricsRuntime.cpp" />
+    <ClCompile Include="Diagnostics\Rtt\FRttThreadLocalCollector.cpp" />
+    <ClCompile Include="Diagnostics\Timing\FTimingCsvLogger.cpp" />
+    <ClCompile Include="Diagnostics\Timing\FTimingMetricsRuntime.cpp" />
+    <ClCompile Include="Diagnostics\Timing\FTimingScope.cpp" />
+    <ClCompile Include="Diagnostics\Timing\FTimingThreadLocalCollector.cpp" />
+    <ClCompile Include="Ids\FDefaultIncrementIdAllocator.cpp" />
+    <ClCompile Include="Logging\FCompositeLogger.cpp" />
+    <ClCompile Include="Logging\FConsoleLogger.cpp" />
+    <ClCompile Include="Logging\FFileLogger.cpp" />
+    <ClCompile Include="Logging\LogFormatting.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Config\ConfigTypes.h" />
+    <ClInclude Include="Config\FConfigFileLoader.h" />
+    <ClInclude Include="Config\FConfigValueReader.h" />
+    <ClInclude Include="Diagnostics\CrashDumpTypes.h" />
+    <ClInclude Include="Diagnostics\FCrashDump.h" />
+    <ClInclude Include="Diagnostics\Tls\FTlsCollectorRuntime.h" />
+    <ClInclude Include="Diagnostics\Rtt\FRttCsvLogger.h" />
+    <ClInclude Include="Diagnostics\Rtt\FRttMetricsRuntime.h" />
+    <ClInclude Include="Diagnostics\Rtt\FRttThreadLocalCollector.h" />
+    <ClInclude Include="Diagnostics\Rtt\RttTypes.h" />
+    <ClInclude Include="Diagnostics\Timing\FTimingCsvLogger.h" />
+    <ClInclude Include="Diagnostics\Timing\FTimingMetricsRuntime.h" />
+    <ClInclude Include="Diagnostics\Timing\FTimingScope.h" />
+    <ClInclude Include="Diagnostics\Timing\FTimingThreadLocalCollector.h" />
+    <ClInclude Include="Diagnostics\Timing\TimingTypes.h" />
+    <ClInclude Include="Ids\FDefaultIncrementIdAllocator.h" />
+    <ClInclude Include="Ids\IIdAllocator.h" />
+    <ClInclude Include="FoundationPch.h" />
+    <ClInclude Include="Logging\FCompositeLogger.h" />
+    <ClInclude Include="Logging\FConsoleLogger.h" />
+    <ClInclude Include="Logging\FFileLogger.h" />
+    <ClInclude Include="Logging\ILogger.h" />
+    <ClInclude Include="Logging\LoggingTypes.h" />
+    <ClInclude Include="Logging\LogFormatting.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
+
+

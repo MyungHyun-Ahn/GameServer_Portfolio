@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{4C95AD3B-6399-48B6-B9C9-62714E37B650}</ProjectGuid>
+    <RootNamespace>NetworkLib</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>NetLibPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>NetLibPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(ProjectDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="NetLibPch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Containers\LockFreeSmoke.cpp" />
+    <ClCompile Include="Crypto\FDefaultPacketCipher.cpp" />
+    <ClCompile Include="Crypto\FNullPacketCipher.cpp" />
+		<ClCompile Include="Diagnostics\FServerMonitoringRuntime.cpp" />
+		<ClCompile Include="Diagnostics\Rio\FRioSendMetricsRuntime.cpp" />
+		<ClCompile Include="Packet\Buffer\FPacketBuffer.cpp" />
+		<ClCompile Include="Packet\Buffer\FSendBuffer.cpp" />
+    <ClCompile Include="Packet\Buffer\FSendSegmentPool.cpp" />
+    <ClCompile Include="Packet\Framing\FDefaultPacketFramer.cpp" />
+    <ClCompile Include="Servers\Core\FServerFactory.cpp" />
+    <ClCompile Include="Servers\Core\FIocpServer.cpp" />
+    <ClCompile Include="Servers\Core\FRioServer.cpp" />
+    <ClCompile Include="Servers\Core\FStubServer.cpp" />
+    <ClCompile Include="Servers\Session\FIocpSession.cpp" />
+    <ClCompile Include="Servers\Session\FRioSession.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="NetLibPch.h" />
+    <ClInclude Include="Containers\LockFreeCommon.h" />
+    <ClInclude Include="Containers\FLockFreeQueue.h" />
+    <ClInclude Include="Containers\FLockFreeStack.h" />
+    <ClInclude Include="Crypto\FDefaultPacketCipher.h" />
+    <ClInclude Include="Crypto\FNullPacketCipher.h" />
+    <ClInclude Include="Crypto\IPacketCipher.h" />
+    <ClInclude Include="Crypto\PacketCipherTypes.h" />
+    <ClInclude Include="Diagnostics\FServerMonitoringRuntime.h" />
+    <ClInclude Include="Diagnostics\Rio\FRioSendMetricsRuntime.h" />
+    <ClInclude Include="Diagnostics\ServerMonitoringTypes.h" />
+    <ClInclude Include="Packet\Buffer\FPacketBuffer.h" />
+    <ClInclude Include="Packet\Buffer\FRecvBuffer.h" />
+    <ClInclude Include="Packet\Buffer\FSendBuffer.h" />
+    <ClInclude Include="Packet\Buffer\FSendSegmentPool.h" />
+    <ClInclude Include="Packet\Framing\ContentHeader.h" />
+    <ClInclude Include="Packet\Framing\FDefaultPacketFramer.h" />
+    <ClInclude Include="Packet\Framing\IPacketFramer.h" />
+    <ClInclude Include="Packet\Framing\PacketTypes.h" />
+    <ClInclude Include="Packet\Serialization\FPacketReader.h" />
+    <ClInclude Include="Packet\Serialization\FPacketSerialization.h" />
+    <ClInclude Include="Packet\Serialization\FPacketWriter.h" />
+    <ClInclude Include="Packet\Serialization\IContentPacket.h" />
+    <ClInclude Include="Packet\View\FBorrowedViewGuard.h" />
+    <ClInclude Include="Packet\View\FPacketView.h" />
+    <ClInclude Include="Memory\FLockFreeMemoryPool.h" />
+    <ClInclude Include="Memory\FTlsMemoryPool.h" />
+    <ClInclude Include="Servers\Core\BackendTypes.h" />
+    <ClInclude Include="Servers\Core\FServerFactory.h" />
+    <ClInclude Include="Servers\IApplicationHandler.h" />
+    <ClInclude Include="Servers\IServer.h" />
+    <ClInclude Include="Servers\Core\FIocpServer.h" />
+    <ClInclude Include="Servers\Core\FRioServer.h" />
+    <ClInclude Include="Servers\Core\FStubServer.h" />
+    <ClInclude Include="Servers\Session\FIocpSession.h" />
+    <ClInclude Include="Servers\Session\FRioSession.h" />
+    <ClInclude Include="Servers\Session\ISession.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Foundation\Foundation.vcxproj">
+      <Project>{1E3B65A5-5AE3-4AA0-9471-88AB92F756D4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>
+
+
+
+

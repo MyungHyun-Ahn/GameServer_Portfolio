@@ -1,0 +1,30 @@
+AuctionDummy:
+  ServerIp: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19100, required: true }
+  PacketKey: { type: uint32, default: 55 }
+  WorkerThreadCount: { type: int32, default: 4 }
+  VirtualUserCount: { type: int32, default: 100 }
+  ConnectsPerSecond: { type: int32, default: 20 }
+  RunSeconds: { type: int32, default: 60 }
+  SearchIntervalMinMs: { type: int32, default: 500 }
+  SearchIntervalMaxMs: { type: int32, default: 1500 }
+  ResponseTimeoutMs: { type: int32, default: 5000 }
+  ConsoleSummaryIntervalSeconds: { type: int32, default: 5 }
+  EventPollMaxCount: { type: int32, default: 512 }
+  RandomStatMaximum: { type: int32, default: 20 }
+  SearchWeight: { type: int32, default: 50 }
+  RegisterWeight: { type: int32, default: 20 }
+  BidWeight: { type: int32, default: 30 }
+  InitialGoldAmount: { type: uint64, default: 1000000 }
+  BidIncrementMinimum: { type: uint32, default: 10 }
+  BidIncrementMaximum: { type: uint32, default: 100 }
+  BidHotspotPercent: { type: int32, default: 80 }
+  OutbidRefundPercent: { type: int32, default: 50 }
+  InventoryListLimit: { type: int32, default: 100 }
+  CheatItemDataIds: { type: string, default: "1001,1002,1003,1004,2001,2002,3001,3002" }
+  ListingStartPriceMinimum: { type: uint32, default: 100 }
+  ListingStartPriceMaximum: { type: uint32, default: 1000 }
+  ListingBuyoutMarkupMinimum: { type: uint32, default: 100 }
+  ListingBuyoutMarkupMaximum: { type: uint32, default: 1000 }
+  RandomSeed: { type: uint32, default: 20260817 }
+  TicketFilePath: { type: string, default: Tickets.txt, required: true }

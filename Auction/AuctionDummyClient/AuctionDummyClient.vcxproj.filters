@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Config">
+      <UniqueIdentifier>{C2BE557F-10FA-FEEE-69D2-6ED114C3F723}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config\LoadTest">
+      <UniqueIdentifier>{3D65073F-9C58-DBC4-75C3-0C8347024B3F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{56864E3B-B777-AC1C-BB7A-2FF37134DA8B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{4CFF7262-5E7F-7590-4C3A-79944567E35D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\AuctionDummyClient">
+      <UniqueIdentifier>{68E3CAF5-A684-462A-D367-A4089D7BC76D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LoadTest">
+      <UniqueIdentifier>{5CCFD688-6760-73B6-8926-9B5E34532295}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Generated\Config\AuctionDummyClient\AuctionDummyClientConfig.cpp">
+      <Filter>Generated\Config\AuctionDummyClient</Filter>
+    </ClCompile>
+    <ClCompile Include="AuctionDummyClientPch.cpp" />
+    <ClCompile Include="LoadTest\FAuctionLoadTestRunner.cpp">
+      <Filter>LoadTest</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadTest\FLoadTestMetrics.cpp">
+      <Filter>LoadTest</Filter>
+    </ClCompile>
+    <ClCompile Include="LoadTest\FVirtualAuctionUser.cpp">
+      <Filter>LoadTest</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\AuctionDummyClient\AuctionDummyClientConfig.h">
+      <Filter>Generated\Config\AuctionDummyClient</Filter>
+    </ClInclude>
+    <ClInclude Include="AuctionDummyClientPch.h" />
+    <ClInclude Include="LoadTest\AuctionLoadTestTypes.h">
+      <Filter>LoadTest</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadTest\FAuctionLoadTestRunner.h">
+      <Filter>LoadTest</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadTest\FLoadTestMetrics.h">
+      <Filter>LoadTest</Filter>
+    </ClInclude>
+    <ClInclude Include="LoadTest\FVirtualAuctionUser.h">
+      <Filter>LoadTest</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Config\LoadTest\AuctionDummyClient.yaml">
+      <Filter>Config\LoadTest</Filter>
+    </None>
+  </ItemGroup>
+</Project>

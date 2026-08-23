@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Auction">
+      <UniqueIdentifier>{09DA48F5-2EA6-08C8-2FA2-DCCA5AAB7E88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Item">
+      <UniqueIdentifier>{6F505AF4-675C-2E83-A38A-7E52DB9ACE32}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Auction\FAuctionPolicyTable.cpp">
+      <Filter>Auction</Filter>
+    </ClCompile>
+    <ClCompile Include="GameDataPch.cpp" />
+    <ClCompile Include="Item\FItemDataTable.cpp">
+      <Filter>Item</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Auction\AuctionPolicyTypes.h">
+      <Filter>Auction</Filter>
+    </ClInclude>
+    <ClInclude Include="Auction\FAuctionPolicyTable.h">
+      <Filter>Auction</Filter>
+    </ClInclude>
+    <ClInclude Include="GameDataPch.h" />
+    <ClInclude Include="Item\FItemDataTable.h">
+      <Filter>Item</Filter>
+    </ClInclude>
+    <ClInclude Include="Item\ItemTypes.h">
+      <Filter>Item</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

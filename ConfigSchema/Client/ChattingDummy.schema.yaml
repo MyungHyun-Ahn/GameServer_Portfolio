@@ -1,0 +1,25 @@
+ChattingDummy:
+  ServerIp: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19100, required: true }
+  PacketKey: { type: uint32, default: 55 }
+  WorkerThreadCount: { type: int32, default: 4 }
+  SessionCount: { type: int32, default: 100 }
+  ConnectsPerSecond: { type: int32, default: 50 }
+  LoginUserIdBase: { type: uint32, default: 100000 }
+  RunSeconds: { type: int32, default: 60 }
+  SendIntervalMs: { type: int32, default: 1000 }
+  PayloadSizeBytes: { type: int32, default: 1024 }
+  HiMode: { type: bool, default: false }
+  RoomSelectionMode:
+    type: enum
+    default: Random
+    values: [Random, RoundRobin, Hotspot]
+  HotspotRoomIds: { type: string, default: "77" }
+  HotspotBiasPercent: { type: int32, default: 80 }
+  RoomChangeProbabilityPercent: { type: int32, default: 0 }
+  ReconnectProbabilityPercent: { type: int32, default: 0 }
+  ReconnectDelayMs: { type: int32, default: 100 }
+  ResponseTimeoutMs: { type: int32, default: 5000 }
+  ConsoleSummaryIntervalSeconds: { type: int32, default: 5 }
+  EventPollMaxCount: { type: int32, default: 256 }
+  RttCsvPath: { type: string, default: "" }

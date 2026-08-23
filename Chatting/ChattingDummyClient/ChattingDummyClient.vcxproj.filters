@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{17E0E7CA-CC86-4EB7-1A8B-DE11DEA67961}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{FFFBFD85-81E3-9FC7-0053-CE35485EBA84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\ChattingDummy">
+      <UniqueIdentifier>{AA5CDC9B-FFEB-B3A6-CDC9-768B238501F1}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Generated\Config\ChattingDummy\ChattingDummyConfig.cpp">
+      <Filter>Generated\Config\ChattingDummy</Filter>
+    </ClCompile>
+    <ClCompile Include="ChattingDummyClientPch.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\ChattingDummy\ChattingDummyConfig.h">
+      <Filter>Generated\Config\ChattingDummy</Filter>
+    </ClInclude>
+    <ClInclude Include="ChattingDummyClientPch.h" />
+  </ItemGroup>
+</Project>

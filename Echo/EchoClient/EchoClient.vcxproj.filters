@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{1620502B-63FE-4B9E-EE9B-D2B75DD2EA86}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{3FC2F1D1-EAEC-DD44-E9D0-B4C9F0E5BAE5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\EchoClient">
+      <UniqueIdentifier>{1EC5A7CF-C703-C7D4-BF79-B0707357F83A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Generated\Config\EchoClient\EchoClientConfig.cpp">
+      <Filter>Generated\Config\EchoClient</Filter>
+    </ClCompile>
+    <ClCompile Include="EchoClientPch.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\EchoClient\EchoClientConfig.h">
+      <Filter>Generated\Config\EchoClient</Filter>
+    </ClInclude>
+    <ClInclude Include="EchoClientPch.h" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,67 @@
+ChattingServer:
+  Backend:
+    type: enum
+    default: Iocp
+    values: [Iocp, Rio, BoostAsio]
+  RioSendDispatchMode:
+    type: enum
+    default: Direct
+    values: [Direct, OwnerThread]
+  BindIp: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19100, required: true }
+  WorkerThreadCount: { type: int32, default: 2 }
+  MaxSessionCount: { type: int32, default: 512 }
+  RecvBufferSize: { type: int32, default: 1024 }
+  SocketSendBufferBytes: { type: int32, default: -1 }
+  RioSendRingSizeBytes: { type: uint32, default: 65536 }
+  LogMinimumLevel:
+    type: enum
+    default: Info
+    values: [Debug, Info, Warn, Error]
+  LogOutputDirectory: { type: string, default: "" }
+  LogConsoleEnabled: { type: bool, default: true }
+  LogFileEnabled: { type: bool, default: true }
+  LogIncludeThreadId: { type: bool, default: true }
+  PacketKey: { type: uint32, default: 55 }
+  EnablePagePool: { type: bool, default: true }
+  PageSize: { type: uint32, default: 4096 }
+  ContentsWorkerThreadCount: { type: int32, default: 4 }
+  RoomCount: { type: int32, default: 50 }
+  RoomCapacity: { type: int32, default: 8 }
+  MaxChatPayloadBytes: { type: int32, default: 8000 }
+
+Debug:
+  ManualDump: { type: bool, default: false }
+  Headless: { type: bool, default: false }
+  BootstrapTrace: { type: bool, default: false }
+  TraceUserId: { type: uint32, default: 0 }
+  LogPackets: { type: bool, default: false }
+  TransitionRaceInjectionEnabled: { type: bool, default: false }
+  TransitionRaceInjectionMode:
+    type: enum
+    default: None
+    values: [None, SwitchToThread, Sleep0, Yield]
+  PostRoomChangeRaceInjectionEnabled: { type: bool, default: false }
+  PostRoomChangeRaceInjectionMode:
+    type: enum
+    default: None
+    values: [None, SwitchToThread, Sleep0, Yield]
+  ContentsRaceInjectionEnabled: { type: bool, default: false }
+  ContentsRaceInjectionPeriod: { type: uint32, default: 100 }
+  ContentsRaceInjectionMode:
+    type: enum
+    default: None
+    values: [None, SwitchToThread, Sleep0, Yield]
+  ContentsFailFast: { type: bool, default: false }
+
+LoginAuth:
+  Mode:
+    type: enum
+    default: Redis
+    values: [Disabled, Redis]
+  RedisHost: { type: string, default: 127.0.0.1 }
+  RedisPort: { type: uint16, default: 6379 }
+  RedisPassword: { type: string, default: "" }
+  RedisDatabase: { type: int32, default: 0 }
+  RedisConnectTimeoutMs: { type: uint32, default: 3000 }
+  RedisKeyPrefix: { type: string, default: "chat:ticket:" }

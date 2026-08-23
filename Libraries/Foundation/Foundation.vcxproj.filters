@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Config">
+      <UniqueIdentifier>{A352A633-7493-6025-9CEC-D289F3BAE264}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics">
+      <UniqueIdentifier>{496A4D1B-553F-78D9-3A8B-ABA1789BAB96}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics\Rtt">
+      <UniqueIdentifier>{3D279AD7-3B7E-7B11-ED5B-04693CB5EC6F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics\Timing">
+      <UniqueIdentifier>{F652F1BF-CB0D-27F8-633F-E7748E07404B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Diagnostics\Tls">
+      <UniqueIdentifier>{0B4EE1BA-FB19-46E2-A55A-CD328B0E16B8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Ids">
+      <UniqueIdentifier>{296C9235-1681-3DA6-F24F-20050661E6FF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{2A258547-A111-6B4F-A357-BDF1E1B39334}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Config\FConfigFileLoader.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Config\FConfigValueReader.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\FCrashDump.cpp">
+      <Filter>Diagnostics</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Rtt\FRttCsvLogger.cpp">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Rtt\FRttMetricsRuntime.cpp">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Rtt\FRttThreadLocalCollector.cpp">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Timing\FTimingCsvLogger.cpp">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Timing\FTimingMetricsRuntime.cpp">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Timing\FTimingScope.cpp">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClCompile>
+    <ClCompile Include="Diagnostics\Timing\FTimingThreadLocalCollector.cpp">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClCompile>
+    <ClCompile Include="FoundationPch.cpp" />
+    <ClCompile Include="Ids\FDefaultIncrementIdAllocator.cpp">
+      <Filter>Ids</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\FCompositeLogger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\FConsoleLogger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\FFileLogger.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+    <ClCompile Include="Logging\LogFormatting.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Config\ConfigTypes.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\FConfigFileLoader.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Config\FConfigValueReader.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\CrashDumpTypes.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\FCrashDump.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Rtt\FRttCsvLogger.h">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Rtt\FRttMetricsRuntime.h">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Rtt\FRttThreadLocalCollector.h">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Rtt\RttTypes.h">
+      <Filter>Diagnostics\Rtt</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Timing\FTimingCsvLogger.h">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Timing\FTimingMetricsRuntime.h">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Timing\FTimingScope.h">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Timing\FTimingThreadLocalCollector.h">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Timing\TimingTypes.h">
+      <Filter>Diagnostics\Timing</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\Tls\FTlsCollectorRuntime.h">
+      <Filter>Diagnostics\Tls</Filter>
+    </ClInclude>
+    <ClInclude Include="FoundationPch.h" />
+    <ClInclude Include="Ids\FDefaultIncrementIdAllocator.h">
+      <Filter>Ids</Filter>
+    </ClInclude>
+    <ClInclude Include="Ids\IIdAllocator.h">
+      <Filter>Ids</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\FCompositeLogger.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\FConsoleLogger.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\FFileLogger.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\ILogger.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\LogFormatting.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+    <ClInclude Include="Logging\LoggingTypes.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

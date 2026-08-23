@@ -1,0 +1,34 @@
+# Generated from ConfigSchema/LoadTest/AuctionDummyClient.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+AuctionDummy:
+  ServerIp: 127.0.0.1
+  Port: 19100
+  PacketKey: 55
+  WorkerThreadCount: 4
+  VirtualUserCount: 100
+  ConnectsPerSecond: 20
+  RunSeconds: 60
+  SearchIntervalMinMs: 500
+  SearchIntervalMaxMs: 1500
+  ResponseTimeoutMs: 5000
+  ConsoleSummaryIntervalSeconds: 5
+  EventPollMaxCount: 512
+  RandomStatMaximum: 20
+  SearchWeight: 50
+  RegisterWeight: 20
+  BidWeight: 30
+  InitialGoldAmount: 1000000
+  BidIncrementMinimum: 10
+  BidIncrementMaximum: 100
+  BidHotspotPercent: 80
+  OutbidRefundPercent: 50
+  InventoryListLimit: 100
+  CheatItemDataIds: 1001,1002,1003,1004,2001,2002,3001,3002
+  ListingStartPriceMinimum: 100
+  ListingStartPriceMaximum: 1000
+  ListingBuyoutMarkupMinimum: 100
+  ListingBuyoutMarkupMaximum: 1000
+  RandomSeed: 20260817
+  TicketFilePath: Tickets.txt
+

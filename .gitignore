@@ -1,0 +1,94 @@
+# Visual Studio / MSBuild
+.vs/
+**/Intermediate/
+Out/
+*.user
+*.suo
+*.obj
+*.pch
+*.idb
+*.ipdb
+*.iobj
+*.pdb
+*.ilk
+*.exp
+*.tlog
+*.lastbuildstate
+*.VC.db
+*.VC.opendb
+*.exe
+*.dll
+*.lib
+
+# .NET
+**/bin/
+**/obj/
+*.deps.json
+*.runtimeconfig.json
+
+# Required prebuilt third-party binaries
+!ThirdParty/
+!ThirdParty/**/
+!ThirdParty/**/*.dll
+!ThirdParty/**/*.lib
+
+# Node.js
+**/node_modules/
+LoginServer/dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local package and dependency trees
+vcpkg_installed/
+.packages/
+
+# Runtime output
+**/logs/
+**/dumps/
+TestResults/
+coverage/
+*.log
+*.dmp
+*.stackdump
+*.csv
+*.ndjson
+*.trace
+Tickets.txt
+
+# Secrets and machine-local configuration
+.env
+.env.*
+!.env.example
+!**/.env.example
+*.local.yaml
+*.local.yml
+appsettings.*.local.json
+docker-compose.override.yml
+docker-compose.override.yaml
+
+# Temporary files and archives
+tmp/
+temp/
+.tmp/
+.cache/
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.zip
+*.7z
+*.rar
+
+# Editors / OS
+.idea/
+.vscode/
+*.code-workspace
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Private documentation and generated benchmark results
+docs/private/
+docs/results/

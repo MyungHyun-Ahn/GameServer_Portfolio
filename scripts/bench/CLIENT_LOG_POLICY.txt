@@ -1,0 +1,5 @@
+Benchmark runner client log policy
+
+- Successful chatting runs delete `client.stdout.log` and `client.stderr.log` after parsing the final summary.
+- Failed runs keep client logs for troubleshooting.
+- `run-summary.json`, `sequence-summary.csv`, `rtt.csv`, and server logs remain.

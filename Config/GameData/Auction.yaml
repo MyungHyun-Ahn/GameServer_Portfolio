@@ -1,0 +1,9 @@
+# Auction design policy. The server is the single source of truth and sends
+# client-visible values in AuctionAuthRp.
+
+Auction:
+  MaxActiveListings: 5
+  SearchPageSize: 20
+  MinimumListingDurationSeconds: 3600
+  MaximumListingDurationSeconds: 604800
+  DefaultListingDurationSeconds: 86400

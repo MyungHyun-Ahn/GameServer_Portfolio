@@ -1,0 +1,38 @@
+content: Chat
+
+messages:
+  - name: RoomList
+    rq:
+      opcode: 3000
+      fields: []
+    rp:
+      opcode: 3001
+      fields:
+        - { name: roomIds, type: vector<uint32> }
+        - { name: roomNames, type: vector<string> }
+        - { name: participantCounts, type: vector<uint32> }
+        - { name: capacities, type: vector<uint32> }
+        - { name: joinableFlags, type: vector<uint8> }
+  - name: RoomEnter
+    rq:
+      opcode: 3002
+      fields:
+        - { name: roomId, type: uint32 }
+    rp:
+      opcode: 3003
+      fields:
+        - { name: roomId, type: uint32 }
+        - { name: success, type: bool }
+        - { name: resultCode, type: uint16 }
+  - name: RoomChange
+    rq:
+      opcode: 3004
+      fields:
+        - { name: targetRoomId, type: uint32 }
+    rp:
+      opcode: 3005
+      fields:
+        - { name: previousRoomId, type: uint32 }
+        - { name: currentRoomId, type: uint32 }
+        - { name: success, type: bool }
+        - { name: resultCode, type: uint16 }

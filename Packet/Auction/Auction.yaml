@@ -1,0 +1,398 @@
+content: Auction
+
+messages:
+  - name: AuctionAuth
+    rq:
+      opcode: 3998
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: ticket, type: string }
+    rp:
+      opcode: 3999
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: userId, type: uint64 }
+        - { name: maxActiveListings, type: uint32 }
+        - { name: searchPageSize, type: uint32 }
+        - { name: minimumListingDurationSeconds, type: uint32 }
+        - { name: maximumListingDurationSeconds, type: uint32 }
+        - { name: defaultListingDurationSeconds, type: uint32 }
+  - name: Ping
+    rq:
+      opcode: 4000
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: routingKey, type: uint64 }
+        - { name: clientTimeUnixMs, type: uint64 }
+    rp:
+      opcode: 4001
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: routingKey, type: uint64 }
+        - { name: clientTimeUnixMs, type: uint64 }
+        - { name: serverTimeUnixMs, type: uint64 }
+        - { name: shardIndex, type: uint32 }
+        - { name: shardCount, type: uint32 }
+        - { name: contentInstanceId, type: uint64 }
+        - { name: contentThreadId, type: uint32 }
+  - name: MyBidList
+    rq:
+      opcode: 4010
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: cursorBidId, type: uint64 }
+        - { name: limit, type: uint32 }
+    rp:
+      opcode: 4011
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: bidIds, type: vector<uint64> }
+        - { name: listingIds, type: vector<uint64> }
+        - { name: currencyIds, type: vector<uint16> }
+        - { name: bidAmounts, type: vector<uint64> }
+        - { name: bidStates, type: vector<uint8> }
+        - { name: bidVersions, type: vector<uint64> }
+        - { name: currentBidPrices, type: vector<uint64> }
+        - { name: listingStates, type: vector<uint8> }
+  - name: InventoryList
+    rq:
+      opcode: 4014
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: cursorItemInstanceId, type: uint64 }
+        - { name: limit, type: uint32 }
+    rp:
+      opcode: 4015
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: itemInstanceIds, type: vector<uint64> }
+        - { name: itemDataIds, type: vector<uint32> }
+        - { name: quantities, type: vector<uint32> }
+        - { name: equippedStates, type: vector<uint8> }
+        - { name: tradableStates, type: vector<uint8> }
+        - { name: itemData, type: vector<string> }
+        - { name: versions, type: vector<uint64> }
+  - name: ListingRegister
+    rq:
+      opcode: 4016
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+        - { name: currencyId, type: uint16 }
+        - { name: startPrice, type: uint64 }
+        - { name: buyoutPrice, type: uint64 }
+        - { name: durationSeconds, type: uint32 }
+    rp:
+      opcode: 4017
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+  - name: ListingSearch
+    rq:
+      opcode: 4018
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: itemCategory, type: uint8 }
+        - { name: itemDataIds, type: vector<uint32> }
+        - { name: minStr, type: uint32 }
+        - { name: minDex, type: uint32 }
+        - { name: minInt, type: uint32 }
+        - { name: minLuk, type: uint32 }
+        - { name: sellerOnly, type: uint8 }
+        - { name: sortType, type: uint8 }
+        - { name: cursorSortValue, type: uint64 }
+        - { name: cursorListingId, type: uint64 }
+        - { name: limit, type: uint32 }
+    rp:
+      opcode: 4019
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingIds, type: vector<uint64> }
+        - { name: sellerUserIds, type: vector<uint64> }
+        - { name: sellerLoginIds, type: vector<string> }
+        - { name: itemDataIds, type: vector<uint32> }
+        - { name: itemCategories, type: vector<uint8> }
+        - { name: quantities, type: vector<uint32> }
+        - { name: names, type: vector<string> }
+        - { name: strStats, type: vector<uint32> }
+        - { name: dexStats, type: vector<uint32> }
+        - { name: intStats, type: vector<uint32> }
+        - { name: lukStats, type: vector<uint32> }
+        - { name: currencyIds, type: vector<uint16> }
+        - { name: startPrices, type: vector<uint64> }
+        - { name: currentBidPrices, type: vector<uint64> }
+        - { name: buyoutPrices, type: vector<uint64> }
+        - { name: expiresAtUnixMs, type: vector<uint64> }
+        - { name: versions, type: vector<uint64> }
+  - name: ListingDetail
+    rq:
+      opcode: 4020
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+    rp:
+      opcode: 4021
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: sellerUserId, type: uint64 }
+        - { name: sellerLoginId, type: string }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: itemCategory, type: uint8 }
+        - { name: quantity, type: uint32 }
+        - { name: itemData, type: string }
+        - { name: name, type: string }
+        - { name: strStat, type: uint32 }
+        - { name: dexStat, type: uint32 }
+        - { name: intStat, type: uint32 }
+        - { name: lukStat, type: uint32 }
+        - { name: currencyId, type: uint16 }
+        - { name: startPrice, type: uint64 }
+        - { name: currentBidPrice, type: uint64 }
+        - { name: buyoutPrice, type: uint64 }
+        - { name: highestBidderUserId, type: uint64 }
+        - { name: expiresAtUnixMs, type: uint64 }
+        - { name: version, type: uint64 }
+  - name: Bid
+    rq:
+      opcode: 4022
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: bidAmount, type: uint64 }
+        - { name: expectedListingVersion, type: uint64 }
+    rp:
+      opcode: 4023
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: bidId, type: uint64 }
+        - { name: bidAmount, type: uint64 }
+        - { name: additionalDebit, type: uint64 }
+        - { name: currencyBalance, type: uint64 }
+        - { name: listingVersion, type: uint64 }
+  - name: AuctionOutbid
+    noti:
+      opcode: 4024
+      fields:
+        - { name: listingId, type: uint64 }
+        - { name: bidId, type: uint64 }
+        - { name: heldAmount, type: uint64 }
+        - { name: newHighestAmount, type: uint64 }
+  - name: Buyout
+    rq:
+      opcode: 4025
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: expectedListingVersion, type: uint64 }
+    rp:
+      opcode: 4026
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: buyoutPrice, type: uint64 }
+        - { name: additionalDebit, type: uint64 }
+        - { name: currencyBalance, type: uint64 }
+        - { name: itemMailId, type: uint64 }
+        - { name: sellerMailId, type: uint64 }
+        - { name: listingVersion, type: uint64 }
+  - name: MailList
+    rq:
+      opcode: 4027
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: cursorMailId, type: uint64 }
+        - { name: limit, type: uint32 }
+    rp:
+      opcode: 4028
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: mailIds, type: vector<uint64> }
+        - { name: mailTypes, type: vector<uint8> }
+        - { name: subjects, type: vector<string> }
+        - { name: states, type: vector<uint8> }
+        - { name: expiresAtUnixMs, type: vector<uint64> }
+        - { name: createdAtUnixMs, type: vector<uint64> }
+  - name: MailDetail
+    rq:
+      opcode: 4029
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: mailId, type: uint64 }
+    rp:
+      opcode: 4030
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: mailId, type: uint64 }
+        - { name: mailType, type: uint8 }
+        - { name: subject, type: string }
+        - { name: body, type: string }
+        - { name: state, type: uint8 }
+        - { name: expiresAtUnixMs, type: uint64 }
+        - { name: attachmentIds, type: vector<uint64> }
+        - { name: attachmentTypes, type: vector<uint8> }
+        - { name: itemInstanceIds, type: vector<uint64> }
+        - { name: itemDataIds, type: vector<uint32> }
+        - { name: quantities, type: vector<uint32> }
+        - { name: itemData, type: vector<string> }
+        - { name: currencyIds, type: vector<uint16> }
+        - { name: currencyAmounts, type: vector<uint64> }
+        - { name: attachmentStates, type: vector<uint8> }
+  - name: MailClaim
+    rq:
+      opcode: 4031
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: mailId, type: uint64 }
+        - { name: attachmentId, type: uint64 }
+    rp:
+      opcode: 4032
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: mailId, type: uint64 }
+        - { name: attachmentId, type: uint64 }
+        - { name: attachmentType, type: uint8 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: quantity, type: uint32 }
+        - { name: currencyId, type: uint16 }
+        - { name: currencyAmount, type: uint64 }
+        - { name: currencyBalance, type: uint64 }
+        - { name: mailState, type: uint8 }
+  - name: ListingCancel
+    rq:
+      opcode: 4033
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: expectedListingVersion, type: uint64 }
+    rp:
+      opcode: 4034
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: returnMailId, type: uint64 }
+        - { name: listingVersion, type: uint64 }
+  - name: AuctionWon
+    noti:
+      opcode: 4035
+      fields:
+        - { name: listingId, type: uint64 }
+        - { name: bidId, type: uint64 }
+        - { name: finalPrice, type: uint64 }
+        - { name: itemMailId, type: uint64 }
+  - name: DebugCheat
+    rq:
+      opcode: 4036
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: cheatType, type: uint8 }
+        - { name: amount, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: strStat, type: uint32 }
+        - { name: dexStat, type: uint32 }
+        - { name: intStat, type: uint32 }
+        - { name: lukStat, type: uint32 }
+    rp:
+      opcode: 4037
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: cheatType, type: uint8 }
+        - { name: currencyBalance, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: message, type: string }
+  - name: SaleHistorySearch
+    rq:
+      opcode: 4038
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: itemCategory, type: uint8 }
+        - { name: itemDataIds, type: vector<uint32> }
+        - { name: minStr, type: uint32 }
+        - { name: minDex, type: uint32 }
+        - { name: minInt, type: uint32 }
+        - { name: minLuk, type: uint32 }
+        - { name: sortType, type: uint8 }
+        - { name: cursorSortValue, type: uint64 }
+        - { name: cursorListingId, type: uint64 }
+        - { name: limit, type: uint32 }
+    rp:
+      opcode: 4039
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingIds, type: vector<uint64> }
+        - { name: itemDataIds, type: vector<uint32> }
+        - { name: itemCategories, type: vector<uint8> }
+        - { name: quantities, type: vector<uint32> }
+        - { name: names, type: vector<string> }
+        - { name: strStats, type: vector<uint32> }
+        - { name: dexStats, type: vector<uint32> }
+        - { name: intStats, type: vector<uint32> }
+        - { name: lukStats, type: vector<uint32> }
+        - { name: currencyIds, type: vector<uint16> }
+        - { name: finalPrices, type: vector<uint64> }
+        - { name: saleTypes, type: vector<uint8> }
+        - { name: soldAtUnixMs, type: vector<uint64> }
+  - name: SaleHistoryDetail
+    rq:
+      opcode: 4040
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+    rp:
+      opcode: 4041
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: sellerLoginId, type: string }
+        - { name: itemDataId, type: uint32 }
+        - { name: itemCategory, type: uint8 }
+        - { name: quantity, type: uint32 }
+        - { name: itemData, type: string }
+        - { name: name, type: string }
+        - { name: strStat, type: uint32 }
+        - { name: dexStat, type: uint32 }
+        - { name: intStat, type: uint32 }
+        - { name: lukStat, type: uint32 }
+        - { name: currencyId, type: uint16 }
+        - { name: startPrice, type: uint64 }
+        - { name: finalPrice, type: uint64 }
+        - { name: saleType, type: uint8 }
+        - { name: soldAtUnixMs, type: uint64 }
+  - name: BidRefund
+    rq:
+      opcode: 4012
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: listingId, type: uint64 }
+        - { name: bidId, type: uint64 }
+        - { name: expectedBidVersion, type: uint64 }
+    rp:
+      opcode: 4013
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: bidId, type: uint64 }
+        - { name: refundedAmount, type: uint64 }
+        - { name: currencyBalance, type: uint64 }
+        - { name: bidState, type: uint8 }
+        - { name: bidVersion, type: uint64 }

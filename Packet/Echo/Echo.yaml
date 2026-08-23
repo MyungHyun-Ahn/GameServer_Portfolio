@@ -1,0 +1,16 @@
+content: Echo
+
+messages:
+  - name: Echo
+    rq:
+      opcode: 1000
+      fields:
+        - { name: message, type: string_view }
+    rp:
+      opcode: 1001
+      fields:
+        - { name: message, type: string_view }
+    noti:
+      opcode: 1002
+      fields:
+        - { name: message, type: string_view }

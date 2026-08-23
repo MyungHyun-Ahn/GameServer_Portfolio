@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{F5DD5B62-FD9A-332D-2A1E-1F59E2EB64D6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{BDEA4009-17BE-BDA5-3B2B-9D6555B8CFDF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Auth">
+      <UniqueIdentifier>{B78DD4B2-9080-0F63-43E5-2EF1F618D2AE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Lobby">
+      <UniqueIdentifier>{C8B34732-244C-5A04-1BC2-09C8B4C3F996}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Room">
+      <UniqueIdentifier>{01C1E4C8-3E64-99DA-D476-E477182AABB3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Session">
+      <UniqueIdentifier>{BD47944C-6691-6F01-C09A-A130C7CED5F4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{E324C4A4-D64C-0236-71AE-A470FEA70982}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{94CDECEE-7E3C-B893-115A-CD1635DC339F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\ChattingServer">
+      <UniqueIdentifier>{8D99240A-6351-E5E7-9EF9-475A0763CB12}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Generated\Config\ChattingServer\ChattingServerConfig.cpp">
+      <Filter>Generated\Config\ChattingServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\FChattingServerBootstrap.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="ChattingServerPch.cpp" />
+    <ClCompile Include="Contents\Auth\FAuthContent.cpp">
+      <Filter>Contents\Auth</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Lobby\FLobbyContent.cpp">
+      <Filter>Contents\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Room\FChatRoomContent.cpp">
+      <Filter>Contents\Room</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Room\FRoomRegistry.cpp">
+      <Filter>Contents\Room</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Session\FUserRegistry.cpp">
+      <Filter>Contents\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\ChattingServer\ChattingServerConfig.h">
+      <Filter>Generated\Config\ChattingServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\FChattingServerBootstrap.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="ChattingServerPch.h" />
+    <ClInclude Include="Contents\Auth\FAuthContent.h">
+      <Filter>Contents\Auth</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\ContentTypes.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Lobby\FLobbyContent.h">
+      <Filter>Contents\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Room\FChatRoomContent.h">
+      <Filter>Contents\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Room\FRoomRegistry.h">
+      <Filter>Contents\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Room\RoomFlowTypes.h">
+      <Filter>Contents\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Session\FUserRegistry.h">
+      <Filter>Contents\Session</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

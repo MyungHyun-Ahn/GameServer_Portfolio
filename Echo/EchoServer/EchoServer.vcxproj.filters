@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{B2974E2F-4113-4520-DC4C-1F36C30135EB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{51398356-570A-B67F-01A0-A83F1A78ACE8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Auth">
+      <UniqueIdentifier>{96FA050B-0358-B65E-5495-9F8BD4D25ED8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Echo">
+      <UniqueIdentifier>{245D0691-89D6-8C46-92EF-8C7AE6CC4D2B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Lobby">
+      <UniqueIdentifier>{EC89094F-A4CA-3412-98B4-01FE7994B8F8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Room">
+      <UniqueIdentifier>{8B5FBEDA-BAC6-C7B8-8390-A4AF77795CE8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{97B24475-EB29-44F0-7749-041C395E991A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{2DA4352B-88FD-FBB9-5FCF-9D1027A2F8B2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\EchoServer">
+      <UniqueIdentifier>{02357BBB-788D-8C2E-F958-531F5F204A7F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Generated\Config\EchoServer\EchoServerConfig.cpp">
+      <Filter>Generated\Config\EchoServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\FEchoServerBootstrap.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Auth\FAuthContent.cpp">
+      <Filter>Contents\Auth</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Echo\FEchoContent.cpp">
+      <Filter>Contents\Echo</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Lobby\FLobbyContent.cpp">
+      <Filter>Contents\Lobby</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Room\FRoomRegistry.cpp">
+      <Filter>Contents\Room</Filter>
+    </ClCompile>
+    <ClCompile Include="EchoServerPch.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\EchoServer\EchoServerConfig.h">
+      <Filter>Generated\Config\EchoServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\FEchoServerBootstrap.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Auth\FAuthContent.h">
+      <Filter>Contents\Auth</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\ContentTypes.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Echo\FEchoContent.h">
+      <Filter>Contents\Echo</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Lobby\FLobbyContent.h">
+      <Filter>Contents\Lobby</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Room\FRoomRegistry.h">
+      <Filter>Contents\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Room\RoomFlowTypes.h">
+      <Filter>Contents\Room</Filter>
+    </ClInclude>
+    <ClInclude Include="EchoServerPch.h" />
+  </ItemGroup>
+</Project>

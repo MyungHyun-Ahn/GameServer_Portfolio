@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{A1C7E8F2-2D5B-4C90-8A7E-3F1B6D9C2041}</ProjectGuid>
+    <RootNamespace>AuctionHouseServer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>AuctionHouseServerPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\..\Libraries\NetworkLib;$(ProjectDir)..\..\Libraries;$(ProjectDir)..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\lib;$(ProjectDir)..\..\ThirdParty\lib\cpp_redis\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;cpp_redis.lib;tacopie.lib;Ws2_32.lib;Secur32.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>AuctionHouseServerPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\..\Libraries\NetworkLib;$(ProjectDir)..\..\Libraries;$(ProjectDir)..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\lib;$(ProjectDir)..\..\ThirdParty\lib\cpp_redis\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;cpp_redis.lib;tacopie.lib;Ws2_32.lib;Secur32.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="AuctionHouseServerPch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Contents\Command\FAuctionCommandContent.cpp" />
+    <ClCompile Include="Contents\Auth\FAuctionAuthContent.cpp" />
+    <ClCompile Include="Contents\FAuctionContentRouter.cpp" />
+    <ClCompile Include="Contents\Expiration\FAuctionExpirationContent.cpp" />
+    <ClCompile Include="Contents\Session\FAuctionUserRegistry.cpp" />
+    <ClCompile Include="Database\FAuctionRepository.cpp" />
+    <ClCompile Include="Database\FContentThreadDbContext.cpp" />
+    <ClCompile Include="Database\FGameRepository.cpp" />
+    <ClCompile Include="Diagnostics\FAuctionTimingSetup.cpp" />
+    <ClCompile Include="Service\FBidRefundService.cpp" />
+    <ClCompile Include="Service\FInventoryGrantService.cpp" />
+    <ClCompile Include="Service\FListingRegistrationService.cpp" />
+    <ClCompile Include="Service\FBidService.cpp" />
+    <ClCompile Include="Service\FBuyoutService.cpp" />
+    <ClCompile Include="Service\FMailClaimService.cpp" />
+    <ClCompile Include="Service\FListingCancelService.cpp" />
+    <ClCompile Include="Service\FExpirationService.cpp" />
+    <ClCompile Include="Application\FAuctionHouseServerBootstrap.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Contents\Command\FAuctionCommandContent.h" />
+    <ClInclude Include="Application\FAuctionHouseServerBootstrap.h" />
+    <ClInclude Include="Contents\Auth\FAuctionAuthContent.h" />
+    <ClInclude Include="Contents\ContentTypes.h" />
+    <ClInclude Include="Contents\FAuctionContentRouter.h" />
+    <ClInclude Include="Contents\Expiration\FAuctionExpirationContent.h" />
+    <ClInclude Include="Contents\Session\FAuctionUserRegistry.h" />
+    <ClInclude Include="Domain\AuctionResultCode.h" />
+    <ClInclude Include="Domain\AuctionSearchSortType.h" />
+    <ClInclude Include="Domain\AuctionState.h" />
+    <ClInclude Include="Database\AuctionDatabaseTypes.h" />
+    <ClInclude Include="Database\FAuctionRepository.h" />
+    <ClInclude Include="Database\FContentThreadDbContext.h" />
+    <ClInclude Include="Database\FGameRepository.h" />
+    <ClInclude Include="Diagnostics\FAuctionTimingSetup.h" />
+    <ClInclude Include="Service\FBidRefundService.h" />
+    <ClInclude Include="Service\FInventoryGrantService.h" />
+    <ClInclude Include="Service\FListingRegistrationService.h" />
+    <ClInclude Include="Service\FBidService.h" />
+    <ClInclude Include="Service\FBuyoutService.h" />
+    <ClInclude Include="Service\FMailClaimService.h" />
+    <ClInclude Include="Service\FListingCancelService.h" />
+    <ClInclude Include="Service\FExpirationService.h" />
+    <ClInclude Include="AuctionHouseServerPch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\ContentsRuntime\ContentsRuntime.vcxproj">
+      <Project>{6DDA23C4-7151-41D4-8C7A-2CEB33453FD6}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\Connector\Connector.vcxproj">
+      <Project>{EAC7B36B-6D0A-4981-8B82-9D95C9C777A1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\Foundation\Foundation.vcxproj">
+      <Project>{1E3B65A5-5AE3-4AA0-9471-88AB92F756D4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\GameData\GameData.vcxproj">
+      <Project>{C47A6418-992B-4A72-B302-85B735C0B184}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\NetworkLib\NetworkLib.vcxproj">
+      <Project>{4C95AD3B-6399-48B6-B9C9-62714E37B650}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <Target Name="CopyMySqlRuntime" AfterTargets="Build">
+    <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libmysql.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libcrypto-3-x64.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libssl-3-x64.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\Config\GameData\Items.yaml" DestinationFolder="$(OutDir)Config\GameData" />
+	<Copy SourceFiles="$(ProjectDir)..\..\Config\GameData\Auction.yaml" DestinationFolder="$(OutDir)Config\GameData" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

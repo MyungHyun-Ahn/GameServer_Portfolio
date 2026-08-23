@@ -1,0 +1,23 @@
+content: Login
+
+messages:
+  - name: Login
+    rq:
+      opcode: 2000
+      fields:
+        - { name: userId, type: uint32 }
+    rp:
+      opcode: 2001
+      fields:
+        - { name: userId, type: uint32 }
+        - { name: success, type: bool }
+  - name: LoginAuth
+    rq:
+      opcode: 2002
+      fields:
+        - { name: ticket, type: string }
+    rp:
+      opcode: 2003
+      fields:
+        - { name: userId, type: uint32 }
+        - { name: success, type: bool }

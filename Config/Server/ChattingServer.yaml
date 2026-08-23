@@ -1,0 +1,57 @@
+# Generated from ConfigSchema/Server/ChattingServer.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+ChattingServer:
+  # Allowed: Iocp, Rio, BoostAsio
+  Backend: Iocp
+  # Allowed: Direct, OwnerThread
+  RioSendDispatchMode: Direct
+  BindIp: 127.0.0.1
+  Port: 19100
+  WorkerThreadCount: 2
+  MaxSessionCount: 512
+  RecvBufferSize: 1024
+  SocketSendBufferBytes: -1
+  RioSendRingSizeBytes: 65536
+  # Allowed: Debug, Info, Warn, Error
+  LogMinimumLevel: Info
+  LogOutputDirectory: ""
+  LogConsoleEnabled: true
+  LogFileEnabled: true
+  LogIncludeThreadId: true
+  PacketKey: 55
+  EnablePagePool: true
+  PageSize: 4096
+  ContentsWorkerThreadCount: 4
+  RoomCount: 50
+  RoomCapacity: 8
+  MaxChatPayloadBytes: 8000
+
+Debug:
+  ManualDump: false
+  Headless: false
+  BootstrapTrace: false
+  TraceUserId: 0
+  LogPackets: false
+  TransitionRaceInjectionEnabled: false
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  TransitionRaceInjectionMode: None
+  PostRoomChangeRaceInjectionEnabled: false
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  PostRoomChangeRaceInjectionMode: None
+  ContentsRaceInjectionEnabled: false
+  ContentsRaceInjectionPeriod: 100
+  # Allowed: None, SwitchToThread, Sleep0, Yield
+  ContentsRaceInjectionMode: None
+  ContentsFailFast: false
+
+LoginAuth:
+  # Allowed: Disabled, Redis
+  Mode: Redis
+  RedisHost: 127.0.0.1
+  RedisPort: 6379
+  RedisPassword: ""
+  RedisDatabase: 0
+  RedisConnectTimeoutMs: 3000
+  RedisKeyPrefix: "chat:ticket:"
+

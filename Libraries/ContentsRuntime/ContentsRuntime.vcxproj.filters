@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Bridge">
+      <UniqueIdentifier>{654F9E26-FB2A-5491-3171-FC19A7AD7AE2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{51332B09-61FF-6EB3-BA07-5A0321B3A53F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Routing">
+      <UniqueIdentifier>{00095D78-A337-0FB7-4AC3-EF732F66DF92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Threading">
+      <UniqueIdentifier>{8C49AA8C-606D-AFCF-19CF-18C130DCFAFB}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ContentsRuntimePch.cpp" />
+    <ClCompile Include="Core\FContentInstanceIdAllocator.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Routing\FContentRuntime.cpp">
+      <Filter>Routing</Filter>
+    </ClCompile>
+    <ClCompile Include="Threading\FContentThread.cpp">
+      <Filter>Threading</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Bridge\IContentBridge.h">
+      <Filter>Bridge</Filter>
+    </ClInclude>
+    <ClInclude Include="ContentsRuntimePch.h" />
+    <ClInclude Include="Core\ContentExecutionState.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ContentRuntimeTypes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\FContentInstanceIdAllocator.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IContent.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Routing\FContentRuntime.h">
+      <Filter>Routing</Filter>
+    </ClInclude>
+    <ClInclude Include="Threading\FContentThread.h">
+      <Filter>Threading</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

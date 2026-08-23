@@ -1,0 +1,206 @@
+name: gameserverportfolio-auction-databases
+
+services:
+  game-db-primary:
+    image: mysql:8.0
+    container_name: gameserverportfolio-game-db-primary
+    restart: unless-stopped
+    command:
+      - --server-id=101
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the repository root .env file}
+      MYSQL_DATABASE: gamedb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the repository root .env file}
+      TZ: Asia/Seoul
+    ports:
+      - "3310:3306"
+    volumes:
+      - game_db_primary_data:/var/lib/mysql
+      - ../Auction/Database/docker/primary-init/001_replication_user.sh:/docker-entrypoint-initdb.d/001-replication-user.sh:ro
+      - ../Auction/Database/GameDB/001_schema.sql:/docker-entrypoint-initdb.d/010-game-schema.sql:ro
+      - ../Auction/Database/GameDB/003_migrate_item_data_id.sql:/docker-entrypoint-initdb.d/015-game-migrate-item-data-id.sql:ro
+      - ../Auction/Database/GameDB/002_currency_procedures.sql:/docker-entrypoint-initdb.d/020-game-procedures.sql:ro
+      - ../Auction/Database/GameDB/004_inventory_procedures.sql:/docker-entrypoint-initdb.d/025-game-inventory-procedures.sql:ro
+      - ../Auction/Database/GameDB/005_inventory_auction_registration.sql:/docker-entrypoint-initdb.d/030-game-auction-registration.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - auction-db-net
+
+  game-db-replica:
+    image: mysql:8.0
+    container_name: gameserverportfolio-game-db-replica
+    restart: unless-stopped
+    command:
+      - --server-id=102
+      - --relay-log=relay-bin
+      - --log-bin=mysql-bin
+      - --log-replica-updates=ON
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the repository root .env file}
+      TZ: Asia/Seoul
+    ports:
+      - "3311:3306"
+    volumes:
+      - game_db_replica_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - auction-db-net
+
+  game-db-replica-2:
+    image: mysql:8.0
+    container_name: gameserverportfolio-game-db-replica-2
+    restart: unless-stopped
+    command:
+      - --server-id=103
+      - --relay-log=relay-bin
+      - --log-bin=mysql-bin
+      - --log-replica-updates=ON
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the repository root .env file}
+      TZ: Asia/Seoul
+    ports:
+      - "3312:3306"
+    volumes:
+      - game_db_replica_2_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - auction-db-net
+
+  auction-db-primary:
+    image: mysql:8.0
+    container_name: gameserverportfolio-auction-db-primary
+    restart: unless-stopped
+    command:
+      - --server-id=201
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the repository root .env file}
+      MYSQL_DATABASE: auctiondb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in the repository root .env file}
+      TZ: Asia/Seoul
+    ports:
+      - "3320:3306"
+    volumes:
+      - auction_db_primary_data:/var/lib/mysql
+      - ../Auction/Database/docker/primary-init/001_replication_user.sh:/docker-entrypoint-initdb.d/001-replication-user.sh:ro
+      - ../Auction/Database/AuctionDB/001_schema.sql:/docker-entrypoint-initdb.d/010-auction-schema.sql:ro
+      - ../Auction/Database/AuctionDB/003_migrate_item_search_columns.sql:/docker-entrypoint-initdb.d/015-auction-migrate-item-search.sql:ro
+      - ../Auction/Database/AuctionDB/002_listing_bid_procedures.sql:/docker-entrypoint-initdb.d/020-auction-procedures.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - auction-db-net
+
+  auction-db-replica:
+    image: mysql:8.0
+    container_name: gameserverportfolio-auction-db-replica
+    restart: unless-stopped
+    command:
+      - --server-id=202
+      - --relay-log=relay-bin
+      - --log-bin=mysql-bin
+      - --log-replica-updates=ON
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the repository root .env file}
+      TZ: Asia/Seoul
+    ports:
+      - "3321:3306"
+    volumes:
+      - auction_db_replica_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - auction-db-net
+
+  auction-db-replica-2:
+    image: mysql:8.0
+    container_name: gameserverportfolio-auction-db-replica-2
+    restart: unless-stopped
+    command:
+      - --server-id=203
+      - --relay-log=relay-bin
+      - --log-bin=mysql-bin
+      - --log-replica-updates=ON
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in the repository root .env file}
+      TZ: Asia/Seoul
+    ports:
+      - "3322:3306"
+    volumes:
+      - auction_db_replica_2_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 20s
+    networks:
+      - auction-db-net
+
+networks:
+  auction-db-net:
+    driver: bridge
+
+volumes:
+  game_db_primary_data:
+  game_db_replica_data:
+  game_db_replica_2_data:
+  auction_db_primary_data:
+  auction_db_replica_data:
+  auction_db_replica_2_data:

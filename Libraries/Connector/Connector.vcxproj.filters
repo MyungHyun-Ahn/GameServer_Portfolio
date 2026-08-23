@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Config">
+      <UniqueIdentifier>{4157A1CA-D279-C684-8D13-501076BE9D65}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Interfaces">
+      <UniqueIdentifier>{C94492B6-8A64-F331-90CF-255B5B1A63BA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MySql">
+      <UniqueIdentifier>{9E3281C5-B871-3A3A-A1F9-FE75EE37DD33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Redis">
+      <UniqueIdentifier>{E708CD10-90A4-E0D2-8246-F632ADA59131}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ConnectorPch.cpp" />
+    <ClCompile Include="MySql\FMySqlConnection.cpp">
+      <Filter>MySql</Filter>
+    </ClCompile>
+    <ClCompile Include="MySql\FMySqlTransaction.cpp">
+      <Filter>MySql</Filter>
+    </ClCompile>
+    <ClCompile Include="MySql\FThreadAffinedMySqlCluster.cpp">
+      <Filter>MySql</Filter>
+    </ClCompile>
+    <ClCompile Include="MySql\MySqlResultReader.cpp">
+      <Filter>MySql</Filter>
+    </ClCompile>
+    <ClCompile Include="Redis\FDisabledChatTicketStore.cpp">
+      <Filter>Redis</Filter>
+    </ClCompile>
+    <ClCompile Include="Redis\FRedisChatTicketStore.cpp">
+      <Filter>Redis</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Config\RedisChatTicketStoreTypes.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ConnectorPch.h" />
+    <ClInclude Include="Interfaces\IChatTicketStore.h">
+      <Filter>Interfaces</Filter>
+    </ClInclude>
+    <ClInclude Include="MySql\FMySqlConnection.h">
+      <Filter>MySql</Filter>
+    </ClInclude>
+    <ClInclude Include="MySql\FMySqlTransaction.h">
+      <Filter>MySql</Filter>
+    </ClInclude>
+    <ClInclude Include="MySql\FThreadAffinedMySqlCluster.h">
+      <Filter>MySql</Filter>
+    </ClInclude>
+    <ClInclude Include="MySql\MySqlResultReader.h">
+      <Filter>MySql</Filter>
+    </ClInclude>
+    <ClInclude Include="MySql\MySqlTypes.h">
+      <Filter>MySql</Filter>
+    </ClInclude>
+    <ClInclude Include="Redis\FDisabledChatTicketStore.h">
+      <Filter>Redis</Filter>
+    </ClInclude>
+    <ClInclude Include="Redis\FRedisChatTicketStore.h">
+      <Filter>Redis</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

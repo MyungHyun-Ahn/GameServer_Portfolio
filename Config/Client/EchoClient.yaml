@@ -1,0 +1,38 @@
+# Generated from ConfigSchema/Client/EchoClient.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+EchoClient:
+  ServerIp: 127.0.0.1
+  Port: 19000
+  LoginUserIdBase: 1000
+  SessionCount: 1
+  RequestCount: 1
+  PayloadSize: 16
+  SendChunkSize: 0
+  SendChunkDelayMs: 0
+  RecvBufferSize: 32
+  ResponseThreadCount: 1
+  ResponsesPerThread: 1
+  HoldSeconds: 0
+  IntervalMs: 1000
+  PacketsPerSend: 1
+  ReconnectProbabilityPercent: 0
+  ReconnectDelayMs: 100
+  ConnectsPerSecond: 0
+  WorkerThreadCount: 4
+  RoomChangeProbabilityPercent: 25
+  MaxRoomEnterRetryCount: 5
+  MaxRoomChangeRetryCount: 3
+  EnablePagePool: true
+  PageSize: 4096
+
+Debug:
+  Quiet: false
+  BootstrapTrace: false
+  TraceSessionIndex: 0
+  RecvTimeoutMs: 0
+  RoomListRecvTimeoutMs: -1
+  EchoRecvTimeoutMs: -1
+  RttCsvPath: ""
+  RttFlushIntervalSeconds: 60
+
