@@ -2,6 +2,10 @@
 
 namespace NetworkLib::Containers
 {
+#if defined(NETWORKLIB_LOCKFREE_QUEUE_TEST_HOOKS)
+	struct FLockFreeQueueTestAccess;
+#endif
+
 	template <typename T> struct SLockFreeQueueNode
 	{
 		T data{};
@@ -78,6 +82,40 @@ namespace NetworkLib::Containers
 		bool Dequeue(
 			T& outValue) noexcept
 		{
+			return DequeueImpl(outValue, SNoOpDequeueHook{});
+		}
+
+		bool Dequeue(
+			T* outValue) noexcept
+		{
+			if (outValue == nullptr)
+			{
+				return false;
+			}
+
+			return Dequeue(*outValue);
+		}
+
+	private:
+		struct SNoOpDequeueHook final
+		{
+			void BeforeHeadCompareExchange(
+				std::uint64_t,
+				std::uint64_t) const noexcept
+			{
+			}
+
+			void AfterHeadCompareExchange(
+				bool) const noexcept
+			{
+			}
+		};
+
+		template <typename TDequeueHook>
+		bool DequeueImpl(
+			T& outValue,
+			TDequeueHook&& hook) noexcept
+		{
 			while (true)
 			{
 				const std::uint64_t observedHead = AtomicLoad64(&m_head);
@@ -105,7 +143,10 @@ namespace NetworkLib::Containers
 
 				outValue = nextNode->data;
 				const std::uint64_t newHead = MakeTaggedPointer(GetTag(observedHead) + 1, nextNode);
-				if (AtomicCompareExchange64(&m_head, newHead, observedHead) == observedHead)
+				hook.BeforeHeadCompareExchange(observedHead, newHead);
+				const bool headChanged = AtomicCompareExchange64(&m_head, newHead, observedHead) == observedHead;
+				hook.AfterHeadCompareExchange(headChanged);
+				if (headChanged)
 				{
 					s_nodePool.Free(headNode);
 					return true;
@@ -113,18 +154,11 @@ namespace NetworkLib::Containers
 			}
 		}
 
-		bool Dequeue(
-			T* outValue) noexcept
-		{
-			if (outValue == nullptr)
-			{
-				return false;
-			}
-
-			return Dequeue(*outValue);
-		}
-
 	private:
+#if defined(NETWORKLIB_LOCKFREE_QUEUE_TEST_HOOKS)
+		friend struct FLockFreeQueueTestAccess;
+#endif
+
 		volatile LONG64 m_head = 0;
 		volatile LONG64 m_tail = 0;
 		inline static SPool s_nodePool{};

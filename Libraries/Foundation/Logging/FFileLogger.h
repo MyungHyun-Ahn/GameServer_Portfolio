@@ -12,6 +12,7 @@ namespace Foundation
 
 	private:
 		void WriteLog(ELogLevel logLevel, std::string_view category, std::string_view message) override;
+		void FlushLog() override;
 
 		SLogConfig m_logConfig;
 		std::unique_ptr<FFileLoggerState> m_state;

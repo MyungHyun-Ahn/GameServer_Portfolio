@@ -11,4 +11,13 @@
     <BaseOutputPath>..\..\Out\ChattingClientWinForms\</BaseOutputPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\CSharp\ClientNetwork\ClientNetwork.csproj" />
+    <ProjectReference Include="..\..\Generated\Packets\CSharp\GeneratedPackets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClientAdaptersCSharpSmokeTest" />
+  </ItemGroup>
+
 </Project>

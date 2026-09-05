@@ -2,7 +2,7 @@
 # Edit schema defaults and regenerate with Generate-Configs.cmd.
 
 EchoServer:
-  # Allowed: Iocp, Rio, BoostAsio
+  # Allowed: Iocp, Rio
   Backend: Iocp
   # Allowed: Direct, OwnerThread
   RioSendDispatchMode: Direct

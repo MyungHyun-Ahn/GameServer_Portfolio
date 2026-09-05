@@ -5,7 +5,7 @@
 #include "ChattingServer/Contents/Room/FRoomRegistry.h"
 #include "ContentsRuntime/Bridge/IContentBridge.h"
 #include "ChattingServer/Contents/Room/RoomFlowTypes.h"
-#include "Generated/Packets/Chatting/ChattingPackets.h"
+#include "Generated/Packets/Cpp/Chatting/ChattingPackets.h"
 
 #include <format>
 namespace ChattingServer::Contents

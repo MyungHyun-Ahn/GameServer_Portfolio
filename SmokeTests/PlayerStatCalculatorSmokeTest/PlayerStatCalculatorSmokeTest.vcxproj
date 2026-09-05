@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64"><Configuration>Debug</Configuration><Platform>x64</Platform></ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64"><Configuration>Release</Configuration><Platform>x64</Platform></ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{961DC78E-8B8C-4A1F-B31F-7A6B3ED79BC2}</ProjectGuid>
+    <RootNamespace>PlayerStatCalculatorSmokeTest</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType><UseDebugLibraries>true</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType><UseDebugLibraries>false</UseDebugLibraries><PlatformToolset>v143</PlatformToolset><WholeProgramOptimization>true</WholeProgramOptimization><CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir><IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir><IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile><WarningLevel>Level3</WarningLevel><SDLCheck>true</SDLCheck><PreprocessorDefinitions>_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions><PrecompiledHeader>Use</PrecompiledHeader><PrecompiledHeaderFile>PlayerStatCalculatorSmokeTestPch.h</PrecompiledHeaderFile><AdditionalIncludeDirectories>$(ProjectDir)..\..;$(ProjectDir)..\..\Libraries;$(ProjectDir)..\..\Libraries\NetworkLib;$(ProjectDir)..\..\World;$(ProjectDir)..\..\World\WorldServer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile>
+    <Link><SubSystem>Console</SubSystem><GenerateDebugInformation>true</GenerateDebugInformation></Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile><WarningLevel>Level3</WarningLevel><FunctionLevelLinking>true</FunctionLevelLinking><IntrinsicFunctions>true</IntrinsicFunctions><SDLCheck>true</SDLCheck><PreprocessorDefinitions>NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions><ConformanceMode>true</ConformanceMode><LanguageStandard>stdcpp20</LanguageStandard><AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions><PrecompiledHeader>Use</PrecompiledHeader><PrecompiledHeaderFile>PlayerStatCalculatorSmokeTestPch.h</PrecompiledHeaderFile><AdditionalIncludeDirectories>$(ProjectDir)..\..;$(ProjectDir)..\..\Libraries;$(ProjectDir)..\..\Libraries\NetworkLib;$(ProjectDir)..\..\World;$(ProjectDir)..\..\World\WorldServer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories></ClCompile>
+    <Link><SubSystem>Console</SubSystem><GenerateDebugInformation>true</GenerateDebugInformation></Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="PlayerStatCalculatorSmokeTestPch.cpp"><PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader><PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader></ClCompile>
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="..\..\World\WorldServer\Domain\FPlayerStatCalculator.cpp"><PrecompiledHeader>NotUsing</PrecompiledHeader><ForcedIncludeFiles>$(ProjectDir)PlayerStatCalculatorSmokeTestPch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles></ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PlayerStatCalculatorSmokeTestPch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\GameData\GameData.vcxproj"><Project>{C47A6418-992B-4A72-B302-85B735C0B184}</Project><ReferenceOutputAssembly>false</ReferenceOutputAssembly></ProjectReference>
+    <ProjectReference Include="..\..\World\WorldCore\WorldCore.vcxproj"><Project>{61CBB7FA-7F5E-40CB-A28F-D7E7B0AF8312}</Project><ReferenceOutputAssembly>false</ReferenceOutputAssembly></ProjectReference>
+  </ItemGroup>
+  <Target Name="CopyGeneratedGameData" AfterTargets="Build">
+    <Copy SourceFiles="$(ProjectDir)..\..\Generated\GameData\Data\Server\Character.yaml" DestinationFolder="$(OutDir)GameData" />
+    <Copy SourceFiles="$(ProjectDir)..\..\Generated\GameData\Data\Server\CharacterLevel.yaml" DestinationFolder="$(OutDir)GameData" />
+    <Copy SourceFiles="$(ProjectDir)..\..\Generated\GameData\Data\Server\Item.yaml" DestinationFolder="$(OutDir)GameData" />
+    <Copy SourceFiles="$(ProjectDir)..\..\Generated\GameData\Data\Server\StatConversion.yaml" DestinationFolder="$(OutDir)GameData" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

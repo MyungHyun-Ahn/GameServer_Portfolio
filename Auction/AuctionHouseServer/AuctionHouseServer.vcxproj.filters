@@ -31,25 +31,40 @@
     <Filter Include="Service">
       <UniqueIdentifier>{E71D227D-383E-04A3-070B-AD241CA994CF}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{135D24FB-8E47-E85E-1ED7-71FF832AFA32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Response">
+      <UniqueIdentifier>{000805FF-1E6B-AD69-1DC9-ED5602E608E5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{8D03CAD4-4546-CAFB-8AEF-65155DEF7FAD}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\AuctionHouseServer">
+      <UniqueIdentifier>{5F18BFE2-C3FC-2835-9677-FFD5A4BF29DE}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application\FAuctionHouseServerBootstrap.cpp">
-      <Filter>Application</Filter>
-    </ClCompile>
     <ClCompile Include="AuctionHouseServerPch.cpp" />
-    <ClCompile Include="Contents\Auth\FAuctionAuthContent.cpp">
-      <Filter>Contents\Auth</Filter>
-    </ClCompile>
     <ClCompile Include="Contents\Command\FAuctionCommandContent.cpp">
       <Filter>Contents\Command</Filter>
     </ClCompile>
-    <ClCompile Include="Contents\Expiration\FAuctionExpirationContent.cpp">
-      <Filter>Contents\Expiration</Filter>
+    <ClCompile Include="Contents\Auth\FAuctionAuthContent.cpp">
+      <Filter>Contents\Auth</Filter>
     </ClCompile>
     <ClCompile Include="Contents\FAuctionContentRouter.cpp">
       <Filter>Contents</Filter>
     </ClCompile>
-    <ClCompile Include="Contents\Session\FAuctionUserRegistry.cpp">
+    <ClCompile Include="Contents\Expiration\FAuctionExpirationContent.cpp">
+      <Filter>Contents\Expiration</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Response\FAuctionErrorResponseSender.cpp">
+      <Filter>Contents\Response</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Session\FAuctionSession.cpp">
+      <Filter>Contents\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Session\FAuctionSessionRegistry.cpp">
       <Filter>Contents\Session</Filter>
     </ClCompile>
     <ClCompile Include="Database\FAuctionRepository.cpp">
@@ -58,14 +73,16 @@
     <ClCompile Include="Database\FContentThreadDbContext.cpp">
       <Filter>Database</Filter>
     </ClCompile>
-    <ClCompile Include="Database\FGameRepository.cpp">
-      <Filter>Database</Filter>
-    </ClCompile>
     <ClCompile Include="Diagnostics\FAuctionTimingSetup.cpp">
       <Filter>Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="..\..\Generated\Config\AuctionHouseServer\AuctionHouseServerConfig.cpp">
+      <Filter>Generated\Config\AuctionHouseServer</Filter>
+    </ClCompile>
     <ClCompile Include="Service\FBidRefundService.cpp">
+      <Filter>Service</Filter>
+    </ClCompile>
+    <ClCompile Include="Service\FListingRegistrationService.cpp">
       <Filter>Service</Filter>
     </ClCompile>
     <ClCompile Include="Service\FBidService.cpp">
@@ -74,59 +91,44 @@
     <ClCompile Include="Service\FBuyoutService.cpp">
       <Filter>Service</Filter>
     </ClCompile>
-    <ClCompile Include="Service\FExpirationService.cpp">
-      <Filter>Service</Filter>
-    </ClCompile>
-    <ClCompile Include="Service\FInventoryGrantService.cpp">
-      <Filter>Service</Filter>
-    </ClCompile>
     <ClCompile Include="Service\FListingCancelService.cpp">
       <Filter>Service</Filter>
     </ClCompile>
-    <ClCompile Include="Service\FListingRegistrationService.cpp">
+    <ClCompile Include="Service\FExpirationService.cpp">
       <Filter>Service</Filter>
     </ClCompile>
-    <ClCompile Include="Service\FMailClaimService.cpp">
-      <Filter>Service</Filter>
+    <ClCompile Include="Application\FAuctionHouseServerBootstrap.cpp">
+      <Filter>Application</Filter>
     </ClCompile>
+    <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application\FAuctionHouseServerBootstrap.h">
-      <Filter>Application</Filter>
-    </ClInclude>
-    <ClInclude Include="AuctionHouseServerPch.h" />
-    <ClInclude Include="Contents\Auth\FAuctionAuthContent.h">
-      <Filter>Contents\Auth</Filter>
-    </ClInclude>
     <ClInclude Include="Contents\Command\FAuctionCommandContent.h">
       <Filter>Contents\Command</Filter>
     </ClInclude>
+    <ClInclude Include="Application\FAuctionHouseServerBootstrap.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Auth\FAuctionAuthContent.h">
+      <Filter>Contents\Auth</Filter>
+    </ClInclude>
     <ClInclude Include="Contents\ContentTypes.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\FAuctionContentRouter.h">
       <Filter>Contents</Filter>
     </ClInclude>
     <ClInclude Include="Contents\Expiration\FAuctionExpirationContent.h">
       <Filter>Contents\Expiration</Filter>
     </ClInclude>
-    <ClInclude Include="Contents\FAuctionContentRouter.h">
-      <Filter>Contents</Filter>
+    <ClInclude Include="Contents\Response\FAuctionErrorResponseSender.h">
+      <Filter>Contents\Response</Filter>
     </ClInclude>
-    <ClInclude Include="Contents\Session\FAuctionUserRegistry.h">
+    <ClInclude Include="Contents\Session\FAuctionSession.h">
       <Filter>Contents\Session</Filter>
     </ClInclude>
-    <ClInclude Include="Database\AuctionDatabaseTypes.h">
-      <Filter>Database</Filter>
-    </ClInclude>
-    <ClInclude Include="Database\FAuctionRepository.h">
-      <Filter>Database</Filter>
-    </ClInclude>
-    <ClInclude Include="Database\FContentThreadDbContext.h">
-      <Filter>Database</Filter>
-    </ClInclude>
-    <ClInclude Include="Database\FGameRepository.h">
-      <Filter>Database</Filter>
-    </ClInclude>
-    <ClInclude Include="Diagnostics\FAuctionTimingSetup.h">
-      <Filter>Diagnostics</Filter>
+    <ClInclude Include="Contents\Session\FAuctionSessionRegistry.h">
+      <Filter>Contents\Session</Filter>
     </ClInclude>
     <ClInclude Include="Domain\AuctionResultCode.h">
       <Filter>Domain</Filter>
@@ -137,7 +139,25 @@
     <ClInclude Include="Domain\AuctionState.h">
       <Filter>Domain</Filter>
     </ClInclude>
+    <ClInclude Include="Database\AuctionDatabaseTypes.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FAuctionRepository.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FContentThreadDbContext.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Diagnostics\FAuctionTimingSetup.h">
+      <Filter>Diagnostics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\Config\AuctionHouseServer\AuctionHouseServerConfig.h">
+      <Filter>Generated\Config\AuctionHouseServer</Filter>
+    </ClInclude>
     <ClInclude Include="Service\FBidRefundService.h">
+      <Filter>Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Service\FListingRegistrationService.h">
       <Filter>Service</Filter>
     </ClInclude>
     <ClInclude Include="Service\FBidService.h">
@@ -146,20 +166,12 @@
     <ClInclude Include="Service\FBuyoutService.h">
       <Filter>Service</Filter>
     </ClInclude>
-    <ClInclude Include="Service\FExpirationService.h">
-      <Filter>Service</Filter>
-    </ClInclude>
-    <ClInclude Include="Service\FInventoryGrantService.h">
-      <Filter>Service</Filter>
-    </ClInclude>
     <ClInclude Include="Service\FListingCancelService.h">
       <Filter>Service</Filter>
     </ClInclude>
-    <ClInclude Include="Service\FListingRegistrationService.h">
+    <ClInclude Include="Service\FExpirationService.h">
       <Filter>Service</Filter>
     </ClInclude>
-    <ClInclude Include="Service\FMailClaimService.h">
-      <Filter>Service</Filter>
-    </ClInclude>
+    <ClInclude Include="AuctionHouseServerPch.h" />
   </ItemGroup>
 </Project>

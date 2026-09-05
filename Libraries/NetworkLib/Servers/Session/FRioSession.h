@@ -41,7 +41,7 @@ namespace NetworkLib::Session
 
 	public:
 		inline static constexpr std::size_t kDefaultSendRingSizeBytes = 64u * 1024u;
-		inline static constexpr std::size_t kMaxSendPacketSizeBytes = 8u * 1024u;
+		inline static constexpr std::size_t kMaxSendPacketSizeBytes = NetworkLib::Packet::Framing::kMaxFramedPacketSizeBytes;
 
 		FRioSession() = default;
 		~FRioSession() override;
@@ -106,6 +106,7 @@ namespace NetworkLib::Session
 		const SSendRequestContext& GetSendRequestContext() const noexcept;
 
 		long AcquireRef() noexcept override;
+		bool TryAcquireRef() noexcept;
 		long ReleaseRef() noexcept override;
 
 		void OnSendQueued() noexcept;
@@ -124,14 +125,14 @@ namespace NetworkLib::Session
 
 	private:
 		SOCKET m_socket = INVALID_SOCKET;
-		std::uint64_t m_sessionId = 0;
+		std::atomic<std::uint64_t> m_sessionId = 0;
 		std::uint32_t m_slotIndex = 0;
 		std::uint32_t m_generation = 0;
 		std::uint32_t m_ownerWorkerIndex = 0;
 		RIO_RQ m_requestQueue = RIO_INVALID_RQ;
 		RIO_BUFFERID m_recvBufferId = RIO_INVALID_BUFFERID;
 		RIO_BUFFERID m_sendRingBufferId = RIO_INVALID_BUFFERID;
-		std::atomic<long> m_refCount = 1;
+		std::atomic<long> m_refCount = 0;
 		std::atomic<bool> m_closing = false;
 		std::atomic<bool> m_recvPending = false;
 		std::atomic<bool> m_ownerSendDrainScheduled = false;

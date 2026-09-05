@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>WorldClientCore</RootNamespace>
+    <AssemblyName>WorldClientCore</AssemblyName>
+    <BaseOutputPath>..\..\Out\WorldClientCore\</BaseOutputPath>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CSharp\ClientNetwork\ClientNetwork.csproj" />
+    <ProjectReference Include="..\..\Generated\Packets\CSharp\GeneratedPackets.csproj" />
+  </ItemGroup>
+
+</Project>

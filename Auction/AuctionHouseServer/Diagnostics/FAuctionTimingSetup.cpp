@@ -3,7 +3,7 @@
 #include "AuctionHouseServer/Diagnostics/FAuctionTimingSetup.h"
 
 #include "AuctionHouseServer/Contents/ContentTypes.h"
-#include "Generated/Packets/Auction/AuctionPackets.h"
+#include "Generated/Packets/Cpp/Auction/AuctionPackets.h"
 
 namespace
 {
@@ -45,22 +45,7 @@ namespace
 		{AuctionHouseServer::Contents::kCommandContentId, "Command"},
 	}};
 
-	constexpr std::array<std::string_view, 12> kGameProcedureNames = {{
-		"sp_gd_c_inventory_item",
-		"sp_gd_c_mail_currency",
-		"sp_gd_c_mail_item",
-		"sp_gd_c_mail_item_expired",
-		"sp_gd_c_mail_item_return",
-		"sp_gd_cu_currency_credit",
-		"sp_gd_cu_mail_claim_attachment",
-		"sp_gd_d_inventory_item",
-		"sp_gd_r_inventory_items",
-		"sp_gd_r_mail_detail",
-		"sp_gd_r_mail_list",
-		"sp_gd_u_currency_debit",
-	}};
-
-	constexpr std::array<std::string_view, 20> kAuctionProcedureNames = {{
+	constexpr std::array<std::string_view, 24> kAuctionProcedureNames = {{
 		"sp_ad_c_listing_prepare",
 		"sp_ad_cu_bid_prepare",
 		"sp_ad_cu_buyout_prepare",
@@ -72,14 +57,18 @@ namespace
 		"sp_ad_r_sale_history",
 		"sp_ad_r_sale_history_detail",
 		"sp_ad_u_bid_complete",
+		"sp_ad_u_bid_revert",
 		"sp_ad_u_bid_refund_complete",
 		"sp_ad_u_bid_refund_prepare",
 		"sp_ad_u_bid_refund_revert",
 		"sp_ad_u_buyout_complete",
+		"sp_ad_u_buyout_revert",
 		"sp_ad_u_cancel_complete",
 		"sp_ad_u_cancel_prepare",
+		"sp_ad_u_cancel_revert",
 		"sp_ad_u_expire_complete",
 		"sp_ad_u_expire_prepare",
+		"sp_ad_u_expire_revert",
 		"sp_ad_u_listing_activate",
 	}};
 
@@ -151,8 +140,7 @@ namespace AuctionHouseServer::Diagnostics
 	{
 		Foundation::Diagnostics::STimingMetricsConfig config{};
 		config.flushIntervalSeconds = flushIntervalSeconds;
-		config.metricNames.reserve(kContentStageDescriptors.size() * kPacketDescriptors.size() * 2 + kGameProcedureNames.size() +
-								   kAuctionProcedureNames.size() + 8);
+		config.metricNames.reserve(kContentStageDescriptors.size() * kPacketDescriptors.size() * 2 + kAuctionProcedureNames.size() + 4);
 
 		for (const SContentStageDescriptor& contentStage : kContentStageDescriptors)
 		{
@@ -163,22 +151,15 @@ namespace AuctionHouseServer::Diagnostics
 			}
 		}
 
-		for (const std::string_view procedureName : kGameProcedureNames)
-		{
-			config.metricNames.push_back(BuildProcedureMetricName(procedureName));
-		}
 		for (const std::string_view procedureName : kAuctionProcedureNames)
 		{
 			config.metricNames.push_back(BuildProcedureMetricName(procedureName));
 		}
 
-		for (const std::string_view databaseRole : {std::string_view("Game"), std::string_view("Auction")})
-		{
-			config.metricNames.push_back(std::format("MySql.{}.Connect", databaseRole));
-			config.metricNames.push_back(std::format("MySql.{}.Begin", databaseRole));
-			config.metricNames.push_back(std::format("MySql.{}.Commit", databaseRole));
-			config.metricNames.push_back(std::format("MySql.{}.Rollback", databaseRole));
-		}
+		config.metricNames.push_back("MySql.Auction.Connect");
+		config.metricNames.push_back("MySql.Auction.Begin");
+		config.metricNames.push_back("MySql.Auction.Commit");
+		config.metricNames.push_back("MySql.Auction.Rollback");
 
 		return config;
 	}
@@ -210,9 +191,7 @@ namespace AuctionHouseServer::Diagnostics
 		Database::SAuctionDatabaseConfig& databaseConfig,
 		Foundation::Diagnostics::FTimingMetricsRuntime& timingMetricsRuntime)
 	{
-		const auto gameTimingConfig = BuildMySqlTimingConfig(timingMetricsRuntime, "Game", kGameProcedureNames);
 		const auto auctionTimingConfig = BuildMySqlTimingConfig(timingMetricsRuntime, "Auction", kAuctionProcedureNames);
-		ApplyTimingConfig(databaseConfig.gamePrimary, databaseConfig.gameReplicas, gameTimingConfig);
 		ApplyTimingConfig(databaseConfig.auctionPrimary, databaseConfig.auctionReplicas, auctionTimingConfig);
 	}
 }

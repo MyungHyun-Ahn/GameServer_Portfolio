@@ -320,7 +320,8 @@ namespace ContentsRuntime::Threading
 									<< " pendingWorkCount=" << pendingWorkCount
 									<< " enterQueueDepth=" << state.enterQueueDepth.load(std::memory_order_relaxed)
 									<< " leaveQueueDepth=" << state.leaveQueueDepth.load(std::memory_order_relaxed)
-									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed);
+									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed)
+									<< " completionQueueDepth=" << state.completionQueueDepth.load(std::memory_order_relaxed);
 								TraceThread(impl.config, workItem.lifecycleEvent.sessionId, oss.str());
 							}
 
@@ -358,7 +359,8 @@ namespace ContentsRuntime::Threading
 									<< " pendingWorkCount=" << pendingWorkCount
 									<< " enterQueueDepth=" << state.enterQueueDepth.load(std::memory_order_relaxed)
 									<< " leaveQueueDepth=" << state.leaveQueueDepth.load(std::memory_order_relaxed)
-									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed);
+									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed)
+									<< " completionQueueDepth=" << state.completionQueueDepth.load(std::memory_order_relaxed);
 								TraceThread(impl.config, workItem.lifecycleEvent.sessionId, oss.str());
 							}
 
@@ -401,7 +403,8 @@ namespace ContentsRuntime::Threading
 									<< " pendingWorkCount=" << pendingWorkCount
 									<< " enterQueueDepth=" << state.enterQueueDepth.load(std::memory_order_relaxed)
 									<< " leaveQueueDepth=" << state.leaveQueueDepth.load(std::memory_order_relaxed)
-									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed);
+									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed)
+									<< " completionQueueDepth=" << state.completionQueueDepth.load(std::memory_order_relaxed);
 								TraceThread(impl.config, workItem.packet.sessionId, oss.str());
 							}
 
@@ -428,6 +431,25 @@ namespace ContentsRuntime::Threading
 							state.packetQueueDepth.fetch_sub(1, std::memory_order_relaxed);
 							break;
 						}
+
+						case Core::EQueuedWorkKind::Completion:
+							if (impl.config.enableTraceLogging)
+							{
+								std::ostringstream oss;
+								oss << "worker execute completion. workerIndex=" << impl.workerIndex
+									<< " contentInstanceId=" << state.contentInstanceId << " queueWaitMs=" << queueWaitMs
+									<< " pendingWorkCount=" << pendingWorkCount
+									<< " enterQueueDepth=" << state.enterQueueDepth.load(std::memory_order_relaxed)
+									<< " leaveQueueDepth=" << state.leaveQueueDepth.load(std::memory_order_relaxed)
+									<< " packetQueueDepth=" << state.packetQueueDepth.load(std::memory_order_relaxed)
+									<< " completionQueueDepth=" << state.completionQueueDepth.load(std::memory_order_relaxed);
+								TraceThread(impl.config, 0, oss.str());
+							}
+
+							workItem.completion();
+							state.completionCount.fetch_add(1, std::memory_order_relaxed);
+							state.completionQueueDepth.fetch_sub(1, std::memory_order_relaxed);
+							break;
 					}
 
 					state.inFlightCallbackCount.fetch_sub(1, std::memory_order_relaxed);
@@ -460,9 +482,9 @@ namespace ContentsRuntime::Threading
 						return false;
 					}
 
-					const std::uint64_t totalQueueDepth = state.enterQueueDepth.load(std::memory_order_relaxed) +
-														  state.leaveQueueDepth.load(std::memory_order_relaxed) +
-														  state.packetQueueDepth.load(std::memory_order_relaxed);
+					const std::uint64_t totalQueueDepth =
+						state.enterQueueDepth.load(std::memory_order_relaxed) + state.leaveQueueDepth.load(std::memory_order_relaxed) +
+						state.packetQueueDepth.load(std::memory_order_relaxed) + state.completionQueueDepth.load(std::memory_order_relaxed);
 					const std::int32_t lastDelayFrame = state.lastDelayFrame.load(std::memory_order_relaxed);
 					const std::uint64_t workerPendingWorkCount = impl.pendingWorkCount.load(std::memory_order_relaxed);
 					const bool overloaded = workerPendingWorkCount >= impl.config.ownershipTransferSourcePendingWorkThreshold &&
@@ -669,7 +691,8 @@ namespace ContentsRuntime::Threading
 								<< " pendingWorkCount=" << impl.pendingWorkCount.load(std::memory_order_relaxed)
 								<< " enterQueueDepth=" << state->enterQueueDepth.load(std::memory_order_relaxed)
 								<< " leaveQueueDepth=" << state->leaveQueueDepth.load(std::memory_order_relaxed)
-								<< " packetQueueDepth=" << state->packetQueueDepth.load(std::memory_order_relaxed);
+								<< " packetQueueDepth=" << state->packetQueueDepth.load(std::memory_order_relaxed)
+								<< " completionQueueDepth=" << state->completionQueueDepth.load(std::memory_order_relaxed);
 							TraceThread(impl.config, 0, oss.str());
 						}
 
@@ -889,22 +912,28 @@ namespace ContentsRuntime::Threading
 		stats.enqueueEnterCallCount = state->enqueueEnterCallCount.load(std::memory_order_relaxed);
 		stats.enqueueLeaveCallCount = state->enqueueLeaveCallCount.load(std::memory_order_relaxed);
 		stats.enqueuePacketCallCount = state->enqueuePacketCallCount.load(std::memory_order_relaxed);
+		stats.enqueueCompletionCallCount = state->enqueueCompletionCallCount.load(std::memory_order_relaxed);
 		stats.enterCount = state->enterCount.load(std::memory_order_relaxed);
 		stats.leaveCount = state->leaveCount.load(std::memory_order_relaxed);
 		stats.packetCount = state->packetCount.load(std::memory_order_relaxed);
+		stats.completionCount = state->completionCount.load(std::memory_order_relaxed);
 		stats.frameCount = state->frameCount.load(std::memory_order_relaxed);
 		stats.enterQueueDepth = state->enterQueueDepth.load(std::memory_order_relaxed);
 		stats.leaveQueueDepth = state->leaveQueueDepth.load(std::memory_order_relaxed);
 		stats.packetQueueDepth = state->packetQueueDepth.load(std::memory_order_relaxed);
+		stats.completionQueueDepth = state->completionQueueDepth.load(std::memory_order_relaxed);
 		stats.maxEnterQueueDepth = state->maxEnterQueueDepth.load(std::memory_order_relaxed);
 		stats.maxLeaveQueueDepth = state->maxLeaveQueueDepth.load(std::memory_order_relaxed);
 		stats.maxPacketQueueDepth = state->maxPacketQueueDepth.load(std::memory_order_relaxed);
+		stats.maxCompletionQueueDepth = state->maxCompletionQueueDepth.load(std::memory_order_relaxed);
 		stats.enqueueEnterLockWaitNs = state->enqueueEnterLockWaitNs.load(std::memory_order_relaxed);
 		stats.enqueueLeaveLockWaitNs = state->enqueueLeaveLockWaitNs.load(std::memory_order_relaxed);
 		stats.enqueuePacketLockWaitNs = state->enqueuePacketLockWaitNs.load(std::memory_order_relaxed);
+		stats.enqueueCompletionLockWaitNs = state->enqueueCompletionLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxEnqueueEnterLockWaitNs = state->maxEnqueueEnterLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxEnqueueLeaveLockWaitNs = state->maxEnqueueLeaveLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxEnqueuePacketLockWaitNs = state->maxEnqueuePacketLockWaitNs.load(std::memory_order_relaxed);
+		stats.maxEnqueueCompletionLockWaitNs = state->maxEnqueueCompletionLockWaitNs.load(std::memory_order_relaxed);
 		stats.rejectedPacketCount = state->rejectedPacketCount.load(std::memory_order_relaxed);
 		stats.lastDelayFrame = state->lastDelayFrame.load(std::memory_order_relaxed);
 		stats.maxDelayFrame = state->maxDelayFrame.load(std::memory_order_relaxed);
@@ -1093,35 +1122,58 @@ namespace ContentsRuntime::Threading
 		return Core::EPacketEnqueueResult::Accepted;
 	}
 
-	bool FContentThread::EnqueueMoveTransition(
-		Core::SContentLifecycleEvent sourceLeaveEvent,
-		Core::SContentLifecycleEvent targetEnterEvent)
+	bool FContentThread::EnqueueCompletion(
+		const Core::FContentInstanceId contentInstanceId,
+		std::function<void()> completion)
 	{
-		std::shared_lock<std::shared_mutex> contentsLock(m_impl->contentsLock);
-		const auto sourceIt = m_impl->contents.find(sourceLeaveEvent.contentInstanceId);
-		const auto targetIt = m_impl->contents.find(targetEnterEvent.contentInstanceId);
-		if (sourceIt == m_impl->contents.end() || targetIt == m_impl->contents.end() || sourceIt->second == nullptr ||
-			targetIt->second == nullptr || sourceIt->second->content == nullptr || targetIt->second->content == nullptr)
+		if (!completion)
 		{
 			return false;
 		}
 
-		auto sourceCompletion = std::move(sourceLeaveEvent.completionCallback);
-		sourceLeaveEvent.completionCallback =
-			[this, targetEnterEvent = std::move(targetEnterEvent), sourceCompletion = std::move(sourceCompletion)]() mutable
+		std::shared_lock<std::shared_mutex> contentsLock(m_impl->contentsLock);
+		const auto stateIt = m_impl->contents.find(contentInstanceId);
+		if (stateIt == m_impl->contents.end() || stateIt->second == nullptr || stateIt->second->content == nullptr)
 		{
-			if (sourceCompletion)
-			{
-				sourceCompletion();
-			}
+			return false;
+		}
 
-			auto fallbackCompletion = targetEnterEvent.completionCallback;
-			if (!this->EnqueueEnter(std::move(targetEnterEvent)) && fallbackCompletion)
-			{
-				fallbackCompletion();
-			}
-		};
+		Core::SContentExecutionState& state = *stateIt->second;
+		state.enqueueCompletionCallCount.fetch_add(1, std::memory_order_relaxed);
+		const std::uint64_t queueDepth = state.completionQueueDepth.fetch_add(1, std::memory_order_relaxed) + 1;
+		UpdateMaxAtomic(state.maxCompletionQueueDepth, queueDepth);
 
-		return EnqueueLeave(std::move(sourceLeaveEvent));
+		Core::SQueuedWorkItem workItem{};
+		workItem.kind = Core::EQueuedWorkKind::Completion;
+		workItem.enqueuedAt = std::chrono::steady_clock::now();
+		workItem.completion = std::move(completion);
+
+		bool shouldWake = false;
+		const auto mailboxLockWaitStart = std::chrono::steady_clock::now();
+		{
+			std::lock_guard<std::mutex> mailboxLock(state.mailbox.lock);
+			const std::uint64_t waitNs = ToNanoseconds(std::chrono::steady_clock::now() - mailboxLockWaitStart);
+			state.enqueueCompletionLockWaitNs.fetch_add(waitNs, std::memory_order_relaxed);
+			UpdateMaxAtomic(state.maxEnqueueCompletionLockWaitNs, waitNs);
+			state.mailbox.items.push_back(std::move(workItem));
+			if (!state.mailbox.readyQueued)
+			{
+				state.mailbox.readyQueued = true;
+				shouldWake = true;
+			}
+		}
+
+		m_impl->pendingWorkCount.fetch_add(1, std::memory_order_relaxed);
+		if (shouldWake)
+		{
+			std::lock_guard<std::mutex> readyLock(m_impl->readyLock);
+			m_impl->readyContentIds.push_back(state.contentInstanceId);
+		}
+		if (shouldWake)
+		{
+			m_impl->wakeCondition.notify_one();
+		}
+		return true;
 	}
+
 }

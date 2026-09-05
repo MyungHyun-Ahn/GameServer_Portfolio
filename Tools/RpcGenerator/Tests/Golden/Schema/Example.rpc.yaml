@@ -1,0 +1,67 @@
+schema-version: 1
+namespace: TestProtocol::Example
+output: Example/ExampleRpcMethods.h
+
+service:
+  name: Example
+  id: 42
+  reserved-method-ids: [9]
+
+aliases:
+  - { name: FCommandId, type: FUserId }
+  - { name: FPayloadAlias, type: FPayload }
+  - { name: FUserId, type: uint64 }
+
+enums:
+  - name: EResult
+    underlying: uint8
+    values:
+      - { name: Success, value: 0 }
+      - { name: Failed, value: 1 }
+
+structs:
+  - name: FEnvelope
+    fields:
+      - { name: commandId, type: FCommandId }
+      - { name: payload, type: FPayloadAlias }
+
+  - name: FPayload
+    fields:
+      - { name: text, type: string }
+      - { name: values, type: vector<uint32> }
+
+methods:
+  - name: Query
+    id: 1
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: query, type: string }
+    response:
+      fields:
+        - { name: result, type: EResult }
+        - { name: payload, type: FEnvelope }
+
+  - name: Changed
+    id: 2
+    routing-key: userId
+    noti:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: payload, type: FPayload }
+
+  - name: Execute
+    id: 3
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: commandId, type: FCommandId }
+    response:
+      fields:
+        - { name: result, type: EResult }
+    noti:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: result, type: EResult }

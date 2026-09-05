@@ -37,6 +37,7 @@ namespace ContentsRuntime::Routing
 			Core::FContentInstanceId targetContentInstanceId,
 			std::uint16_t opcode,
 			std::span<const char> payload) override;
+		bool EnqueueCompletionToInstance(Core::FContentInstanceId contentInstanceId, std::function<void()> completion) override;
 		bool MoveSession(std::uint64_t sessionId, Core::FContentId targetContentId) override;
 		bool MoveSessionToInstance(std::uint64_t sessionId, Core::FContentInstanceId targetContentInstanceId) override;
 		bool MoveSessionWithCompletion(std::uint64_t sessionId,

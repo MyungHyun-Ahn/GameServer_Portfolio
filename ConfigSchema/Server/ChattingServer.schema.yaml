@@ -2,7 +2,7 @@ ChattingServer:
   Backend:
     type: enum
     default: Iocp
-    values: [Iocp, Rio, BoostAsio]
+    values: [Iocp, Rio]
   RioSendDispatchMode:
     type: enum
     default: Direct

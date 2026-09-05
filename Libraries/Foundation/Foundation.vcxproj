@@ -104,7 +104,6 @@
     <ClInclude Include="Config\FConfigValueReader.h" />
     <ClInclude Include="Diagnostics\CrashDumpTypes.h" />
     <ClInclude Include="Diagnostics\FCrashDump.h" />
-    <ClInclude Include="Diagnostics\Tls\FTlsCollectorRuntime.h" />
     <ClInclude Include="Diagnostics\Rtt\FRttCsvLogger.h" />
     <ClInclude Include="Diagnostics\Rtt\FRttMetricsRuntime.h" />
     <ClInclude Include="Diagnostics\Rtt\FRttThreadLocalCollector.h" />
@@ -114,6 +113,7 @@
     <ClInclude Include="Diagnostics\Timing\FTimingScope.h" />
     <ClInclude Include="Diagnostics\Timing\FTimingThreadLocalCollector.h" />
     <ClInclude Include="Diagnostics\Timing\TimingTypes.h" />
+    <ClInclude Include="Diagnostics\Tls\FTlsCollectorRuntime.h" />
     <ClInclude Include="Ids\FDefaultIncrementIdAllocator.h" />
     <ClInclude Include="Ids\IIdAllocator.h" />
     <ClInclude Include="FoundationPch.h" />

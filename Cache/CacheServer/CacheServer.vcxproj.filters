@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{38CC94BC-6A70-591C-8B96-E7CB48BDBFB5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{39A0C4C6-CE0A-0F08-158C-D6FABBF47204}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Database">
+      <UniqueIdentifier>{01426DE3-A241-0154-FC4D-CF061FD27B97}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain">
+      <UniqueIdentifier>{4D76D012-2915-3F63-0BB6-33042D792D51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{AC8A4DCA-2EB4-EA81-3270-0E662BEEDC4F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{B99C1474-00A8-C0D0-2B4B-21F7A78AB03C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Rpc">
+      <UniqueIdentifier>{75937E70-FD41-E0E4-1FAA-8FE68EE61208}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\CacheServer">
+      <UniqueIdentifier>{0E656332-D041-D1DA-AA5A-9A91D40EB1D5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Rpc\Cache">
+      <UniqueIdentifier>{0E9777DF-D134-2D0B-3629-7F92779FA995}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="CacheServerPch.cpp" />
+    <ClCompile Include="..\..\Generated\Config\CacheServer\CacheServerConfig.cpp">
+      <Filter>Generated\Config\CacheServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\FCacheServerBootstrap.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\FPlayerCacheContent.cpp">
+      <Filter>Contents</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\FRpcRouterContent.cpp">
+      <Filter>Contents</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\FContentThreadDbContext.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Database\FPlayerCacheRepository.cpp">
+      <Filter>Database</Filter>
+    </ClCompile>
+    <ClCompile Include="Domain\FCacheUser.cpp">
+      <Filter>Domain</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\CacheServer\CacheServerConfig.h">
+      <Filter>Generated\Config\CacheServer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\Rpc\Cache\CacheRpcMethods.h">
+      <Filter>Generated\Rpc\Cache</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\FCacheServerBootstrap.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="CacheServerPch.h" />
+    <ClInclude Include="Contents\ContentTypes.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\FPlayerCacheContent.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\FRpcRouterContent.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\CacheDatabaseTypes.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FContentThreadDbContext.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Database\FPlayerCacheRepository.h">
+      <Filter>Database</Filter>
+    </ClInclude>
+    <ClInclude Include="Domain\FCacheUser.h">
+      <Filter>Domain</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

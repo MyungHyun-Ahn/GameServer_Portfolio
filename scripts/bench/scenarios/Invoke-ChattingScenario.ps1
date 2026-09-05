@@ -83,10 +83,14 @@ function Invoke-ChattingScenario
             -StdOutPath $serverStdOutPath `
             -StdErrPath $serverStdErrPath
 
-        $serverReady = Wait-BenchmarkServerReady -Process $serverProcess -TimeoutSeconds $startupTimeoutSeconds
+        $serverReady = Wait-BenchmarkServerReady `
+            -Process $serverProcess `
+            -TimeoutSeconds $startupTimeoutSeconds `
+            -ReadyLogPath $serverStdOutPath `
+            -ReadyPattern '(?m)^\[BenchmarkReady\]\s+port=\d+\s*$'
         if (-not $serverReady)
         {
-            $failureReason = "Server failed to become ready."
+            $failureReason = "Server did not emit the BenchmarkReady marker before startup timeout."
             throw $failureReason
         }
 

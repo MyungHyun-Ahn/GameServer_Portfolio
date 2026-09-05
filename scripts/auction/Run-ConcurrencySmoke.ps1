@@ -1,5 +1,6 @@
 param(
-    [int]$Port = 19103,
+    [int]$Port = 19102,
+    [int]$CachePort = 19104,
     [switch]$SkipBuild
 )
 
@@ -7,10 +8,15 @@ $ErrorActionPreference = "Stop"
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $scriptDirectory)
 $envFile = Join-Path $repositoryRoot ".env"
+$cacheProject = Join-Path $repositoryRoot "Cache\CacheServer\CacheServer.vcxproj"
 $serverProject = Join-Path $repositoryRoot "Auction\AuctionHouseServer\AuctionHouseServer.vcxproj"
 $clientProject = Join-Path $repositoryRoot "Auction\AuctionDummyClient\AuctionDummyClient.vcxproj"
+$cacheExecutable = Join-Path $repositoryRoot "Out\CacheServer\Debug\CacheServer.exe"
 $serverExecutable = Join-Path $repositoryRoot "Out\AuctionHouseServer\Debug\AuctionHouseServer.exe"
 $clientExecutable = Join-Path $repositoryRoot "Out\AuctionDummyClient\Debug\AuctionDummyClient.exe"
+$cacheConfigTemplate = Join-Path $repositoryRoot "Config\Server\CacheServer.yaml"
+$serverConfigTemplate = Join-Path $repositoryRoot "Config\Server\AuctionHouseServer.yaml"
+. (Join-Path $repositoryRoot "scripts\common\ServerConfig.ps1")
 
 function Get-DotEnvValue([string]$Name)
 {
@@ -33,9 +39,35 @@ function Invoke-RootSql([string]$Container, [string]$Sql, [string]$RootPassword)
     if ($LASTEXITCODE -ne 0) { throw "SQL execution failed in $Container" }
 }
 
+function Wait-ListeningPort(
+    [int]$ListenPort,
+    [System.Diagnostics.Process]$Process,
+    [string]$Name,
+    [string]$StandardErrorPath)
+{
+    $deadline = [DateTime]::UtcNow.AddSeconds(10)
+    while ([DateTime]::UtcNow -lt $deadline -and -not $Process.HasExited)
+    {
+        if ($null -ne (Get-NetTCPConnection -State Listen -LocalPort $ListenPort -ErrorAction SilentlyContinue))
+        {
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    }
+
+    $errorOutput = Get-Content -LiteralPath $StandardErrorPath -Raw -ErrorAction SilentlyContinue
+    throw "$Name did not enter Listen state. error=$errorOutput"
+}
+
+if ($Port -le 0 -or $Port -gt 65535 -or $CachePort -le 0 -or $CachePort -gt 65535 -or $Port -eq $CachePort)
+{
+    throw "Port and CachePort must be different values in range 1..65535."
+}
+
 if (-not (Test-Path -LiteralPath $envFile)) { throw "Create $envFile from .env.example first." }
 $rootPassword = Get-DotEnvValue "MYSQL_ROOT_PASSWORD"
-$env:MYSQL_PASSWORD = Get-DotEnvValue "MYSQL_PASSWORD"
+$appPassword = Get-DotEnvValue "MYSQL_PASSWORD"
+$env:MYSQL_PASSWORD = $appPassword
 
 & (Join-Path $repositoryRoot "Infra\Start-AuctionDatabases.ps1")
 $loginCompose = Join-Path $repositoryRoot "Infra\docker-compose.login-platform.yaml"
@@ -43,7 +75,7 @@ docker compose --env-file $envFile -f $loginCompose up -d chat-redis
 if ($LASTEXITCODE -ne 0) { throw "Failed to start Redis." }
 for ($attempt = 0; $attempt -lt 60; ++$attempt)
 {
-    $redisState = docker inspect --format "{{.State.Health.Status}}" refactoringserver-chat-redis 2>$null
+    $redisState = docker inspect --format "{{.State.Health.Status}}" gameserverportfolio-chat-redis 2>$null
     if (($redisState | Out-String).Trim() -eq "healthy") { break }
     Start-Sleep -Seconds 1
 }
@@ -51,16 +83,27 @@ if (($redisState | Out-String).Trim() -ne "healthy") { throw "Redis did not beco
 
 if (-not $SkipBuild)
 {
-    $env:TEMP = "E:\Procademy\build-temp"
-    $env:TMP = $env:TEMP
-    New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
-    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-    $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-    $msbuild = Join-Path $visualStudioPath "MSBuild\Current\Bin\MSBuild.exe"
-    foreach ($project in @($serverProject, $clientProject))
+    $buildTemp = Join-Path $repositoryRoot "Out\Temp"
+    $previousTemp = $env:TEMP
+    $previousTmp = $env:TMP
+    New-Item -ItemType Directory -Path $buildTemp -Force | Out-Null
+    try
     {
-        & $msbuild $project /t:Build /p:Configuration=Debug /p:Platform=x64 /m /nologo /v:minimal
-        if ($LASTEXITCODE -ne 0) { throw "Build failed: $project" }
+        $env:TEMP = $buildTemp
+        $env:TMP = $buildTemp
+        $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+        $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+        $msbuild = Join-Path $visualStudioPath "MSBuild\Current\Bin\MSBuild.exe"
+        foreach ($project in @($cacheProject, $serverProject, $clientProject))
+        {
+            & $msbuild $project /t:Build /p:Configuration=Debug /p:Platform=x64 /m /nologo /v:minimal
+            if ($LASTEXITCODE -ne 0) { throw "Build failed: $project" }
+        }
+    }
+    finally
+    {
+        $env:TEMP = $previousTemp
+        $env:TMP = $previousTmp
     }
 }
 
@@ -100,26 +143,60 @@ foreach ($userId in $userIds)
 {
     $ticket = "auction-concurrency-$userId-" + [guid]::NewGuid().ToString("N")
     $tickets += $ticket
-    docker exec refactoringserver-chat-redis redis-cli SET "chat:active-login:$userId" "1" | Out-Null
-    docker exec refactoringserver-chat-redis redis-cli SETEX "auction:ticket:$ticket" 60 "$userId`:1" | Out-Null
+    docker exec gameserverportfolio-chat-redis redis-cli SET "chat:active-login:$userId" "1" | Out-Null
+    docker exec gameserverportfolio-chat-redis redis-cli SETEX "auction:ticket:$ticket" 60 "$userId`:1" | Out-Null
     if ($LASTEXITCODE -ne 0) { throw "Failed to seed AuctionAuth ticket for $userId." }
 }
 
 $testDirectory = Join-Path $repositoryRoot ("Out\AuctionConcurrencyTest\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
 New-Item -ItemType Directory -Path $testDirectory -Force | Out-Null
+$cacheStdout = Join-Path $testDirectory "cache.stdout.log"
+$cacheStderr = Join-Path $testDirectory "cache.stderr.log"
 $serverStdout = Join-Path $testDirectory "server.stdout.log"
 $serverStderr = Join-Path $testDirectory "server.stderr.log"
 $clientStdout = Join-Path $testDirectory "client.stdout.log"
 $clientStderr = Join-Path $testDirectory "client.stderr.log"
+$cacheConfig = Join-Path $testDirectory "CacheServer.yaml"
+New-ServerConfigFile -TemplatePath $cacheConfigTemplate -DestinationPath $cacheConfig -Overrides @{
+    "CacheServer.Port" = $CachePort
+    "CacheServer.PlayerCacheShardCount" = 4
+    "CacheServer.DatabaseEnabled" = $true
+    "GameDatabase.Password" = (ConvertTo-ServerConfigYamlString $appPassword)
+    "CacheServer.LogOutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "cache-logs"))
+    "Debug.RunSeconds" = 35
+} | Out-Null
+$serverConfig = Join-Path $testDirectory "AuctionHouseServer.yaml"
+New-ServerConfigFile -TemplatePath $serverConfigTemplate -DestinationPath $serverConfig -Overrides @{
+    "AuctionHouseServer.Port" = $Port
+    "AuctionHouseServer.RunSeconds" = 25
+    "AuctionHouseServer.ExpirationPollMilliseconds" = 10
+    "Logging.OutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction-logs"))
+    "Diagnostics.TimingCsvPath" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction_timing.csv"))
+    "Authentication.Enabled" = $true
+    "CacheRpc.Port" = $CachePort
+    "CacheRpc.ReconnectMilliseconds" = 100
+    "AuctionDatabase.Enabled" = $true
+    "AuctionDatabase.Password" = (ConvertTo-ServerConfigYamlString $appPassword)
+} | Out-Null
+$cacheProcess = $null
 $serverProcess = $null
 
 try
 {
+    $cacheProcess = Start-Process -FilePath $cacheExecutable `
+        -ArgumentList @("--config", $cacheConfig) `
+        -WorkingDirectory $testDirectory `
+        -RedirectStandardOutput $cacheStdout `
+        -RedirectStandardError $cacheStderr `
+        -WindowStyle Hidden -PassThru
+    Wait-ListeningPort -ListenPort $CachePort -Process $cacheProcess -Name "CacheServer" -StandardErrorPath $cacheStderr
+
     $serverProcess = Start-Process -FilePath $serverExecutable `
-        -ArgumentList @("--port", "$Port", "--run-seconds", "25", "--database-enabled", "--redis-auth-enabled", "--expiration-poll-ms", "10") `
+        -ArgumentList @("--config", $serverConfig) `
         -WorkingDirectory $testDirectory -RedirectStandardOutput $serverStdout `
         -RedirectStandardError $serverStderr -WindowStyle Hidden -PassThru
-    Start-Sleep -Seconds 1
+    Wait-ListeningPort -ListenPort $Port -Process $serverProcess -Name "AuctionHouseServer" -StandardErrorPath $serverStderr
+    Start-Sleep -Milliseconds 500
 
     $clientArguments = @("--port", "$Port", "--concurrency-test", "--expiration-race-at-unix-ms", "$expirationRaceUnixMs")
     foreach ($ticket in $tickets) { $clientArguments += @("--concurrency-ticket", $ticket) }
@@ -190,6 +267,10 @@ finally
     if ($serverProcess -ne $null -and -not $serverProcess.HasExited)
     {
         Stop-Process -Id $serverProcess.Id -Force
+    }
+    if ($cacheProcess -ne $null -and -not $cacheProcess.HasExited)
+    {
+        Stop-Process -Id $cacheProcess.Id -Force
     }
     try
     {

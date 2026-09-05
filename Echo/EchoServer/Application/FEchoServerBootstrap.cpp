@@ -16,9 +16,9 @@
 #include "EchoServer/Contents/Lobby/FLobbyContent.h"
 #include "EchoServer/Contents/Room/FRoomRegistry.h"
 #include "Generated/Config/EchoServer/EchoServerConfig.h"
-#include "Generated/Packets/Chat/ChatPackets.h"
-#include "Generated/Packets/Echo/EchoPackets.h"
-#include "Generated/Packets/Login/LoginPackets.h"
+#include "Generated/Packets/Cpp/Chat/ChatPackets.h"
+#include "Generated/Packets/Cpp/Echo/EchoPackets.h"
+#include "Generated/Packets/Cpp/Login/LoginPackets.h"
 #include "Packet/Framing/FDefaultPacketFramer.h"
 #include "Servers/Core/BackendTypes.h"
 #include "Servers/Core/FServerFactory.h"
@@ -280,8 +280,6 @@ namespace
 				return NetworkLib::Core::EBackendKind::Iocp;
 			case Generated::Config::EchoServer::EBackend::Rio:
 				return NetworkLib::Core::EBackendKind::Rio;
-			case Generated::Config::EchoServer::EBackend::BoostAsio:
-				return NetworkLib::Core::EBackendKind::BoostAsio;
 		}
 
 		return NetworkLib::Core::EBackendKind::Iocp;
@@ -658,10 +656,6 @@ int EchoServer::Application::RunEchoServer(
 			if (argument == "rio")
 			{
 				serverConfig.backendKind = NetworkLib::Core::EBackendKind::Rio;
-			}
-			else if (argument == "asio")
-			{
-				serverConfig.backendKind = NetworkLib::Core::EBackendKind::BoostAsio;
 			}
 			else if (argument == "--manual-dump")
 			{
@@ -1043,5 +1037,6 @@ int EchoServer::Application::RunEchoServer(
 	std::cin.get();
 	server->Stop();
 	Foundation::FCrashDump::Shutdown();
+	compositeLogger->Flush();
 	return 0;
 }

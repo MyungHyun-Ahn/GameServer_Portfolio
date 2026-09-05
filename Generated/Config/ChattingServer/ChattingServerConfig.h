@@ -5,8 +5,7 @@ namespace Generated::Config::ChattingServer
 	enum class EBackend
 	{
 		Iocp,
-		Rio,
-		BoostAsio
+		Rio
 	};
 
 	enum class ERioSendDispatchMode

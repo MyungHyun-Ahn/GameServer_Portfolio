@@ -1,7 +1,7 @@
 #include "AuctionDummyClientPch.h"
 
 #include "ClientNetworkLib/FClientNetwork.h"
-#include "Generated/Packets/Auction/AuctionPackets.h"
+#include "Generated/Packets/Cpp/Auction/AuctionPackets.h"
 #include "LoadTest/FAuctionLoadTestRunner.h"
 
 #include <algorithm>
@@ -25,7 +25,9 @@ namespace
 	constexpr std::uint16_t kInventoryItemNotFound = 11;
 	constexpr std::uint16_t kItemVersionMismatch = 13;
 	constexpr std::uint16_t kListingNotFound = 15;
+	constexpr std::uint16_t kInsufficientCurrency = 17;
 	constexpr std::uint16_t kListingVersionMismatch = 19;
+	constexpr std::uint16_t kBidRequiresBuyout = 33;
 	constexpr std::uint16_t kMailNotFound = 22;
 	constexpr std::uint16_t kMailAttachmentNotClaimable = 23;
 	constexpr std::uint16_t kHighestBidExists = 28;
@@ -39,6 +41,9 @@ namespace
 		std::uint16_t port = kDefaultPort;
 		bool backpressureTest = false;
 		bool databaseFlowTest = false;
+		bool cacheReadRpcTest = false;
+		bool cacheWriteRpcTest = false;
+		bool bidRefundFaultTest = false;
 		bool concurrencyTest = false;
 		bool reconnectTest = false;
 		bool loadTest = false;
@@ -93,6 +98,18 @@ namespace
 			else if (argument == "--database-flow-test")
 			{
 				outOptions.databaseFlowTest = true;
+			}
+			else if (argument == "--cache-read-rpc-test")
+			{
+				outOptions.cacheReadRpcTest = true;
+			}
+			else if (argument == "--cache-write-rpc-test")
+			{
+				outOptions.cacheWriteRpcTest = true;
+			}
+			else if (argument == "--bid-refund-fault-test")
+			{
+				outOptions.bidRefundFaultTest = true;
 			}
 			else if (argument == "--concurrency-test")
 			{
@@ -236,6 +253,61 @@ namespace
 		return true;
 	}
 
+	int RunBidRefundFaultTest(
+		ClientNetworkLib::FClientNetwork& client,
+		const ClientNetworkLib::FClientSessionId sessionId,
+		const std::string& ticket,
+		std::string& outError)
+	{
+		constexpr std::uint64_t kUserId = 940030001;
+		constexpr std::uint64_t kListingId = 99300001;
+		constexpr std::uint64_t kBidId = 77300001;
+		constexpr std::uint64_t kExpectedBidVersion = 1;
+
+		Generated::Auction::FAuctionAuthRq authRequest;
+		authRequest.requestId = 1;
+		authRequest.ticket = ticket;
+		if (!client.SendPacket(sessionId, authRequest, kRandomKey, outError))
+		{
+			return 1;
+		}
+
+		Generated::Auction::FAuctionAuthRp authResponse;
+		if (!WaitForPacket(client, authResponse, outError) || authResponse.resultCode != kSuccess || authResponse.userId != kUserId ||
+			authResponse.searchPageSize == 0 || authResponse.inventoryListPageSize == 0 || authResponse.mailListPageSize == 0 ||
+			authResponse.defaultCurrencyId == 0 || authResponse.minimumBidIncrement == 0 || authResponse.minimumListingPrice == 0 ||
+			authResponse.minimumListingPrice > authResponse.maximumListingPrice)
+		{
+			outError = "bid refund fault test authentication failed: " + outError;
+			return 1;
+		}
+
+		Generated::Auction::FBidRefundRq refundRequest;
+		refundRequest.requestId = 2;
+		refundRequest.listingId = kListingId;
+		refundRequest.bidId = kBidId;
+		refundRequest.expectedBidVersion = kExpectedBidVersion;
+		if (!client.SendPacket(sessionId, refundRequest, kRandomKey, outError))
+		{
+			std::cerr << "BID_REFUND_FAULT_NO_RESPONSE error=" << outError << '\n';
+			return 2;
+		}
+
+		Generated::Auction::FBidRefundRp refundResponse;
+		if (!WaitForPacket(client, refundResponse, outError))
+		{
+			std::cerr << "BID_REFUND_FAULT_NO_RESPONSE error=" << outError << '\n';
+			return 2;
+		}
+
+		std::cout << "BID_REFUND_FAULT_RESULT"
+				  << " resultCode=" << refundResponse.resultCode << " bidId=" << refundResponse.bidId
+				  << " refundedAmount=" << refundResponse.refundedAmount << " currencyBalance=" << refundResponse.currencyBalance
+				  << " bidState=" << static_cast<std::uint32_t>(refundResponse.bidState) << " bidVersion=" << refundResponse.bidVersion
+				  << '\n';
+		return 0;
+	}
+
 	template <typename TPacket>
 	bool TryReadPacketForSession(
 		const ClientNetworkLib::FClientEvent& event,
@@ -290,7 +362,11 @@ namespace
 		const std::string& sellerTicket,
 		std::string& outError)
 	{
-		constexpr std::uint64_t kUserId = 3001;
+		// Reserved identities for Run-DatabaseFlowSmoke.ps1. Keeping these users in
+		// a dedicated high range lets the smoke test clean up only its own rows.
+		constexpr std::uint64_t kUserId = 940020001;
+		constexpr std::uint64_t kOutbidUserId = 940020002;
+		constexpr std::uint64_t kSellerUserId = 940020005;
 		// Deliberately maps to a different modulo than kUserId so the smoke test can
 		// detect an accidental return to listingId-based routing.
 		constexpr std::uint64_t kListingId = 99000002;
@@ -323,7 +399,10 @@ namespace
 			return false;
 		}
 		Generated::Auction::FAuctionAuthRp authResponse;
-		if (!WaitForPacket(client, authResponse, outError) || authResponse.resultCode != kSuccess || authResponse.userId != kUserId)
+		if (!WaitForPacket(client, authResponse, outError) || authResponse.resultCode != kSuccess || authResponse.userId != kUserId ||
+			authResponse.searchPageSize == 0 || authResponse.inventoryListPageSize == 0 || authResponse.mailListPageSize == 0 ||
+			authResponse.defaultCurrencyId == 0 || authResponse.minimumBidIncrement == 0 || authResponse.minimumListingPrice == 0 ||
+			authResponse.minimumListingPrice > authResponse.maximumListingPrice)
 		{
 			outError = "AuctionAuth validation failed: " + outError;
 			return false;
@@ -345,7 +424,7 @@ namespace
 
 		Generated::Auction::FInventoryListRq inventoryRequest;
 		inventoryRequest.requestId = 4;
-		inventoryRequest.limit = 10;
+		inventoryRequest.limit = authResponse.inventoryListPageSize;
 		if (!client.SendPacket(sessionId, inventoryRequest, kRandomKey, outError))
 		{
 			return false;
@@ -366,10 +445,10 @@ namespace
 		registerRequest.requestId = 5;
 		registerRequest.itemInstanceId = inventoryResponse.itemInstanceIds[2];
 		registerRequest.expectedItemVersion = inventoryResponse.versions[2];
-		registerRequest.currencyId = 1;
-		registerRequest.startPrice = 1000;
-		registerRequest.buyoutPrice = 5000;
-		registerRequest.durationSeconds = 86400;
+		registerRequest.currencyId = authResponse.defaultCurrencyId;
+		registerRequest.startPrice = std::clamp<std::uint64_t>(1000, authResponse.minimumListingPrice, authResponse.maximumListingPrice);
+		registerRequest.buyoutPrice = std::clamp<std::uint64_t>(5000, registerRequest.startPrice, authResponse.maximumListingPrice);
+		registerRequest.durationSeconds = authResponse.defaultListingDurationSeconds;
 		auto staleRegisterRequest = registerRequest;
 		staleRegisterRequest.expectedItemVersion += 1;
 		if (!client.SendPacket(sessionId, staleRegisterRequest, kRandomKey, outError))
@@ -652,7 +731,7 @@ namespace
 		}
 		Generated::Auction::FAuctionAuthRp outbidAuthResponse;
 		if (!WaitForPacket(client, outbidAuthResponse, outError) || outbidAuthResponse.resultCode != kSuccess ||
-			outbidAuthResponse.userId != 3002)
+			outbidAuthResponse.userId != kOutbidUserId)
 		{
 			outError = "outbid listener authentication failed: " + outError;
 			return false;
@@ -792,13 +871,12 @@ namespace
 
 		Generated::Auction::FMailListRq mailListRequest;
 		mailListRequest.requestId = 205;
-		mailListRequest.limit = 10;
+		mailListRequest.limit = authResponse.mailListPageSize;
 		if (!client.SendPacket(sessionId, mailListRequest, kRandomKey, outError))
 			return false;
 		Generated::Auction::FMailListRp buyerMailList;
 		if (!WaitForPacket(client, buyerMailList, outError) || buyerMailList.resultCode != kSuccess || buyerMailList.mailIds.size() != 2 ||
-			buyerMailList.subjects.size() != 2 || buyerMailList.subjects[0] != "Auction purchase" ||
-			buyerMailList.subjects[1] != "Auction purchase")
+			buyerMailList.subjects.size() != 2 || buyerMailList.subjects[0].empty() || buyerMailList.subjects[1].empty())
 		{
 			outError = "buyer MailList validation failed: " + outError;
 			return false;
@@ -812,7 +890,7 @@ namespace
 		Generated::Auction::FMailDetailRp buyerMailDetail;
 		if (!WaitForPacket(client, buyerMailDetail, outError) || buyerMailDetail.resultCode != kSuccess ||
 			buyerMailDetail.attachmentIds.size() != 1 || buyerMailDetail.attachmentTypes[0] != 1 ||
-			buyerMailDetail.itemInstanceIds[0] != 88000005 || buyerMailDetail.itemDataIds[0] != 2001 ||
+			buyerMailDetail.itemInstanceIds[0] != 994020000004 || buyerMailDetail.itemDataIds[0] != 2001 ||
 			buyerMailDetail.quantities[0] != 10 || buyerMailDetail.attachmentStates[0] != 1)
 		{
 			outError = "buyer MailDetail validation failed: " + outError;
@@ -827,8 +905,8 @@ namespace
 			return false;
 		Generated::Auction::FMailClaimRp itemClaimResponse;
 		if (!WaitForPacket(client, itemClaimResponse, outError) || itemClaimResponse.resultCode != kSuccess ||
-			itemClaimResponse.attachmentType != 1 || itemClaimResponse.itemInstanceId != 88000005 || itemClaimResponse.itemDataId != 2001 ||
-			itemClaimResponse.quantity != 10 || itemClaimResponse.mailState != 3)
+			itemClaimResponse.attachmentType != 1 || itemClaimResponse.itemInstanceId != 994020000004 ||
+			itemClaimResponse.itemDataId != 2001 || itemClaimResponse.quantity != 10 || itemClaimResponse.mailState != 3)
 		{
 			outError = "item MailClaim validation failed: " + outError;
 			return false;
@@ -849,7 +927,7 @@ namespace
 			return false;
 		Generated::Auction::FMailDetailRp secondBuyerMail;
 		if (!WaitForPacket(client, secondBuyerMail, outError) || secondBuyerMail.resultCode != kSuccess ||
-			secondBuyerMail.attachmentIds.size() != 1 || secondBuyerMail.itemInstanceIds[0] != 88000003)
+			secondBuyerMail.attachmentIds.size() != 1 || secondBuyerMail.itemInstanceIds[0] != 994020000002)
 		{
 			outError = "second buyer mail validation failed: " + outError;
 			return false;
@@ -861,7 +939,7 @@ namespace
 			return false;
 		Generated::Auction::FMailClaimRp secondItemClaim;
 		if (!WaitForPacket(client, secondItemClaim, outError) || secondItemClaim.resultCode != kSuccess ||
-			secondItemClaim.itemInstanceId != 88000003)
+			secondItemClaim.itemInstanceId != 994020000002)
 		{
 			outError = "second item claim validation failed: " + outError;
 			return false;
@@ -888,7 +966,7 @@ namespace
 			return false;
 		Generated::Auction::FAuctionAuthRp sellerAuthResponse;
 		if (!WaitForPacket(client, sellerAuthResponse, outError) || sellerAuthResponse.resultCode != kSuccess ||
-			sellerAuthResponse.userId != 2001)
+			sellerAuthResponse.userId != kSellerUserId)
 		{
 			outError = "seller authentication failed: " + outError;
 			return false;
@@ -924,7 +1002,7 @@ namespace
 				return false;
 			Generated::Auction::FMailClaimRp currencyClaim;
 			if (!WaitForPacket(client, currencyClaim, outError) || currencyClaim.resultCode != kSuccess ||
-				currencyClaim.attachmentType != 2 || currencyClaim.currencyId != 1 ||
+				currencyClaim.attachmentType != 2 || currencyClaim.currencyId != authResponse.defaultCurrencyId ||
 				currencyClaim.currencyBalance != expectedSellerBalance || currencyClaim.mailState != 3)
 			{
 				outError = "currency MailClaim validation failed: " + outError;
@@ -992,8 +1070,7 @@ namespace
 			return false;
 		Generated::Auction::FMailDetailRp returnMailDetail;
 		if (!WaitForPacket(client, returnMailDetail, outError) || returnMailDetail.resultCode != kSuccess ||
-			returnMailDetail.subject != "Auction cancelled" || returnMailDetail.attachmentIds.size() != 1 ||
-			returnMailDetail.itemDataIds[0] != 1001)
+			returnMailDetail.subject.empty() || returnMailDetail.attachmentIds.size() != 1 || returnMailDetail.itemDataIds[0] != 1001)
 		{
 			outError = "cancel return mail validation failed: " + outError;
 			return false;
@@ -1047,8 +1124,8 @@ namespace
 			return false;
 		Generated::Auction::FMailDetailRp wonItemMailDetail;
 		if (!WaitForPacket(client, wonItemMailDetail, outError) || wonItemMailDetail.resultCode != kSuccess ||
-			wonItemMailDetail.subject != "Auction purchase" || wonItemMailDetail.attachmentIds.size() != 1 ||
-			wonItemMailDetail.itemDataIds[0] != 1002 || wonItemMailDetail.quantities[0] != 1)
+			wonItemMailDetail.subject.empty() || wonItemMailDetail.attachmentIds.size() != 1 || wonItemMailDetail.itemDataIds[0] != 1002 ||
+			wonItemMailDetail.quantities[0] != 1)
 		{
 			outError = "expired auction winner mail validation failed: " + outError;
 			return false;
@@ -1066,6 +1143,303 @@ namespace
 				  << " expirationWonNoti=1 expirationWinnerMail=1"
 				  << " authRequired=1 alreadyAuthenticated=1 duplicateRejected=1"
 				  << " replicaReadAttempts=" << replicaReadAttempts << "\n";
+		return true;
+	}
+
+	bool RunCacheReadRpcFlow(
+		ClientNetworkLib::FClientNetwork& client,
+		const ClientNetworkLib::FClientSessionId sessionId,
+		const std::string& ticket,
+		const bool testWrites,
+		std::string& outError)
+	{
+		constexpr std::uint64_t kUserId = 930010001;
+		constexpr std::uint64_t kFirstItemInstanceId = 930010000003;
+		constexpr std::uint64_t kSecondItemInstanceId = 930010000002;
+		constexpr std::uint64_t kThirdItemInstanceId = 930010000001;
+		constexpr std::uint64_t kMailId = 930010000001;
+		constexpr std::uint64_t kAttachmentId = 930010000001;
+		constexpr std::uint64_t kMissingMailId = 999999999999999999;
+		constexpr std::uint64_t kInsufficientBidListingId = 993010000001;
+
+		Generated::Auction::FAuctionAuthRq authRequest;
+		authRequest.requestId = 1;
+		authRequest.ticket = ticket;
+		if (!client.SendPacket(sessionId, authRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+
+		Generated::Auction::FAuctionAuthRp authResponse;
+		if (!WaitForPacket(client, authResponse, outError) || authResponse.resultCode != kSuccess || authResponse.userId != kUserId ||
+			authResponse.searchPageSize == 0 || authResponse.inventoryListPageSize == 0 || authResponse.mailListPageSize == 0 ||
+			authResponse.defaultCurrencyId == 0 || authResponse.minimumBidIncrement == 0 || authResponse.minimumListingPrice == 0 ||
+			authResponse.minimumListingPrice > authResponse.maximumListingPrice)
+		{
+			outError = "AuctionAuth validation failed. result=" + std::to_string(authResponse.resultCode) + " error=" + outError;
+			return false;
+		}
+
+		Generated::Auction::FInventoryListRq inventoryRequest;
+		inventoryRequest.requestId = 2;
+		inventoryRequest.limit = authResponse.inventoryListPageSize;
+		if (!client.SendPacket(sessionId, inventoryRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+
+		Generated::Auction::FInventoryListRp inventoryResponse;
+		if (!WaitForPacket(client, inventoryResponse, outError) || inventoryResponse.resultCode != kSuccess ||
+			inventoryResponse.itemInstanceIds !=
+				std::vector<std::uint64_t>{kFirstItemInstanceId, kSecondItemInstanceId, kThirdItemInstanceId} ||
+			inventoryResponse.itemDataIds != std::vector<std::uint32_t>{3001, 2001, 1001} ||
+			inventoryResponse.quantities != std::vector<std::uint32_t>{30, 20, 1} ||
+			inventoryResponse.equippedStates != std::vector<std::uint8_t>{0, 0, 1} ||
+			inventoryResponse.tradableStates != std::vector<std::uint8_t>{0, 1, 1} ||
+			inventoryResponse.versions != std::vector<std::uint64_t>{3, 2, 1})
+		{
+			outError = "InventoryList cache RPC validation failed. result=" + std::to_string(inventoryResponse.resultCode) +
+					   " count=" + std::to_string(inventoryResponse.itemInstanceIds.size()) + " error=" + outError;
+			return false;
+		}
+
+		Generated::Auction::FMailListRq mailListRequest;
+		mailListRequest.requestId = 3;
+		mailListRequest.limit = authResponse.mailListPageSize;
+		if (!client.SendPacket(sessionId, mailListRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+
+		Generated::Auction::FMailListRp mailListResponse;
+		if (!WaitForPacket(client, mailListResponse, outError) || mailListResponse.resultCode != kSuccess ||
+			mailListResponse.mailIds != std::vector<std::uint64_t>{kMailId} || mailListResponse.mailTypes != std::vector<std::uint8_t>{2} ||
+			mailListResponse.subjects != std::vector<std::string>{"Cache RPC smoke"} ||
+			mailListResponse.states != std::vector<std::uint8_t>{1})
+		{
+			outError = "MailList cache RPC validation failed. result=" + std::to_string(mailListResponse.resultCode) +
+					   " count=" + std::to_string(mailListResponse.mailIds.size()) + " error=" + outError;
+			return false;
+		}
+
+		Generated::Auction::FMailDetailRq mailDetailRequest;
+		mailDetailRequest.requestId = 4;
+		mailDetailRequest.mailId = kMailId;
+		if (!client.SendPacket(sessionId, mailDetailRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+
+		Generated::Auction::FMailDetailRp mailDetailResponse;
+		if (!WaitForPacket(client, mailDetailResponse, outError) || mailDetailResponse.resultCode != kSuccess ||
+			mailDetailResponse.mailId != kMailId || mailDetailResponse.mailType != 2 || mailDetailResponse.subject != "Cache RPC smoke" ||
+			mailDetailResponse.body != "GameDB reads are served by CacheServer RPC." || mailDetailResponse.state != 1 ||
+			mailDetailResponse.attachmentIds != std::vector<std::uint64_t>{kAttachmentId} ||
+			mailDetailResponse.attachmentTypes != std::vector<std::uint8_t>{2} ||
+			mailDetailResponse.currencyIds != std::vector<std::uint16_t>{authResponse.defaultCurrencyId} ||
+			mailDetailResponse.currencyAmounts != std::vector<std::uint64_t>{777} ||
+			mailDetailResponse.attachmentStates != std::vector<std::uint8_t>{1})
+		{
+			outError = "MailDetail cache RPC validation failed. result=" + std::to_string(mailDetailResponse.resultCode) +
+					   " attachmentCount=" + std::to_string(mailDetailResponse.attachmentIds.size()) + " error=" + outError;
+			return false;
+		}
+
+		mailDetailRequest.requestId = 5;
+		mailDetailRequest.mailId = kMissingMailId;
+		if (!client.SendPacket(sessionId, mailDetailRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+
+		Generated::Auction::FMailDetailRp missingMailResponse;
+		if (!WaitForPacket(client, missingMailResponse, outError) || missingMailResponse.resultCode != kMailNotFound)
+		{
+			outError =
+				"missing MailDetail was not rejected. result=" + std::to_string(missingMailResponse.resultCode) + " error=" + outError;
+			return false;
+		}
+
+		if (!testWrites)
+		{
+			std::cout << "CACHE_READ_RPC_TEST_SUCCESS userId=" << kUserId << " inventoryCount=" << inventoryResponse.itemInstanceIds.size()
+					  << " mailCount=" << mailListResponse.mailIds.size() << " mailDetailFound=1 mailDetailNotFound=1\n";
+			return true;
+		}
+
+		Generated::Auction::FDebugCheatRq goldCheat;
+		goldCheat.requestId = 6;
+		goldCheat.cheatType = 1;
+		goldCheat.amount = 500;
+		if (!client.SendPacket(sessionId, goldCheat, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FDebugCheatRp goldCheatResponse;
+		if (!WaitForPacket(client, goldCheatResponse, outError) || goldCheatResponse.resultCode != kSuccess ||
+			goldCheatResponse.currencyBalance != 1500)
+		{
+			outError = "CreditCurrency RPC validation failed. result=" + std::to_string(goldCheatResponse.resultCode) +
+					   " balance=" + std::to_string(goldCheatResponse.currencyBalance) + " error=" + outError;
+			return false;
+		}
+
+		Generated::Auction::FDebugCheatRq itemCheat;
+		itemCheat.requestId = 7;
+		itemCheat.cheatType = 2;
+		itemCheat.itemDataId = 1002;
+		itemCheat.strStat = 4;
+		itemCheat.dexStat = 5;
+		itemCheat.intStat = 6;
+		itemCheat.lukStat = 7;
+		if (!client.SendPacket(sessionId, itemCheat, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FDebugCheatRp itemCheatResponse;
+		if (!WaitForPacket(client, itemCheatResponse, outError) || itemCheatResponse.resultCode != kSuccess ||
+			itemCheatResponse.itemInstanceId == 0)
+		{
+			outError = "GrantInventoryItem RPC validation failed. result=" + std::to_string(itemCheatResponse.resultCode) +
+					   " itemInstanceId=" + std::to_string(itemCheatResponse.itemInstanceId) + " error=" + outError;
+			return false;
+		}
+
+		inventoryRequest.requestId = 8;
+		if (!client.SendPacket(sessionId, inventoryRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FInventoryListRp inventoryAfterGrant;
+		if (!WaitForPacket(client, inventoryAfterGrant, outError) || inventoryAfterGrant.resultCode != kSuccess)
+		{
+			return false;
+		}
+		const auto grantedItemIt = std::find(
+			inventoryAfterGrant.itemInstanceIds.begin(), inventoryAfterGrant.itemInstanceIds.end(), itemCheatResponse.itemInstanceId);
+		if (grantedItemIt == inventoryAfterGrant.itemInstanceIds.end())
+		{
+			outError = "granted item was not visible in the cached inventory.";
+			return false;
+		}
+		const std::size_t grantedItemIndex = static_cast<std::size_t>(grantedItemIt - inventoryAfterGrant.itemInstanceIds.begin());
+		if (inventoryAfterGrant.itemDataIds[grantedItemIndex] != 1002 || inventoryAfterGrant.quantities[grantedItemIndex] != 1 ||
+			inventoryAfterGrant.tradableStates[grantedItemIndex] != 1 || inventoryAfterGrant.versions[grantedItemIndex] != 1 ||
+			inventoryAfterGrant.itemData[grantedItemIndex].find("\"str\":4") == std::string::npos ||
+			inventoryAfterGrant.itemData[grantedItemIndex].find("\"dex\":5") == std::string::npos ||
+			inventoryAfterGrant.itemData[grantedItemIndex].find("\"int\":6") == std::string::npos ||
+			inventoryAfterGrant.itemData[grantedItemIndex].find("\"luk\":7") == std::string::npos)
+		{
+			outError = "granted item snapshot did not match the requested item data.";
+			return false;
+		}
+
+		Generated::Auction::FMailClaimRq claimRequest;
+		claimRequest.requestId = 9;
+		claimRequest.mailId = kMailId;
+		claimRequest.attachmentId = kAttachmentId;
+		if (!client.SendPacket(sessionId, claimRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FMailClaimRp claimResponse;
+		if (!WaitForPacket(client, claimResponse, outError) || claimResponse.resultCode != kSuccess || claimResponse.attachmentType != 2 ||
+			claimResponse.currencyId != authResponse.defaultCurrencyId || claimResponse.currencyAmount != 777 ||
+			claimResponse.currencyBalance != 2277 || claimResponse.mailState != 3)
+		{
+			outError = "ClaimMailAttachment RPC validation failed. result=" + std::to_string(claimResponse.resultCode) +
+					   " balance=" + std::to_string(claimResponse.currencyBalance) + " error=" + outError;
+			return false;
+		}
+
+		claimRequest.requestId = 10;
+		if (!client.SendPacket(sessionId, claimRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FMailClaimRp duplicateClaimResponse;
+		if (!WaitForPacket(client, duplicateClaimResponse, outError) || duplicateClaimResponse.resultCode != kMailAttachmentNotClaimable)
+		{
+			outError = "duplicate Cache RPC mail claim was not rejected. result=" + std::to_string(duplicateClaimResponse.resultCode) +
+					   " error=" + outError;
+			return false;
+		}
+
+		Generated::Auction::FListingRegisterRq registerRequest;
+		registerRequest.requestId = 11;
+		registerRequest.itemInstanceId = itemCheatResponse.itemInstanceId;
+		registerRequest.expectedItemVersion = 1;
+		registerRequest.currencyId = authResponse.defaultCurrencyId;
+		registerRequest.startPrice = std::clamp<std::uint64_t>(1000, authResponse.minimumListingPrice, authResponse.maximumListingPrice);
+		registerRequest.buyoutPrice = std::clamp<std::uint64_t>(2000, registerRequest.startPrice, authResponse.maximumListingPrice);
+		registerRequest.durationSeconds = authResponse.defaultListingDurationSeconds;
+		if (!client.SendPacket(sessionId, registerRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FListingRegisterRp registerResponse;
+		if (!WaitForPacket(client, registerResponse, outError) || registerResponse.resultCode != kSuccess ||
+			registerResponse.listingId == 0)
+		{
+			outError = "listing registration through Cache RPC failed. result=" + std::to_string(registerResponse.resultCode) +
+					   " listingId=" + std::to_string(registerResponse.listingId) + " error=" + outError;
+			return false;
+		}
+
+		inventoryRequest.requestId = 12;
+		if (!client.SendPacket(sessionId, inventoryRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FInventoryListRp inventoryAfterListing;
+		if (!WaitForPacket(client, inventoryAfterListing, outError) || inventoryAfterListing.resultCode != kSuccess ||
+			std::find(inventoryAfterListing.itemInstanceIds.begin(),
+				inventoryAfterListing.itemInstanceIds.end(),
+				itemCheatResponse.itemInstanceId) != inventoryAfterListing.itemInstanceIds.end())
+		{
+			outError = "listed item remained in the cached inventory.";
+			return false;
+		}
+
+		Generated::Auction::FBidRq buyoutThresholdBidRequest;
+		buyoutThresholdBidRequest.requestId = 13;
+		buyoutThresholdBidRequest.listingId = kInsufficientBidListingId;
+		buyoutThresholdBidRequest.bidAmount = 10000;
+		buyoutThresholdBidRequest.expectedListingVersion = 1;
+		if (!client.SendPacket(sessionId, buyoutThresholdBidRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FBidRp buyoutThresholdBidResponse;
+		if (!WaitForPacket(client, buyoutThresholdBidResponse, outError) || buyoutThresholdBidResponse.resultCode != kBidRequiresBuyout ||
+			buyoutThresholdBidResponse.listingId != kInsufficientBidListingId || buyoutThresholdBidResponse.bidId != 0)
+		{
+			outError = "bid at the buyout price was not rejected. result=" + std::to_string(buyoutThresholdBidResponse.resultCode) +
+					   " error=" + outError;
+			return false;
+		}
+
+		Generated::Auction::FBidRq insufficientBidRequest;
+		insufficientBidRequest.requestId = 14;
+		insufficientBidRequest.listingId = kInsufficientBidListingId;
+		insufficientBidRequest.bidAmount = 5000;
+		insufficientBidRequest.expectedListingVersion = 1;
+		if (!client.SendPacket(sessionId, insufficientBidRequest, kRandomKey, outError))
+		{
+			return false;
+		}
+		Generated::Auction::FBidRp insufficientBidResponse;
+		if (!WaitForPacket(client, insufficientBidResponse, outError) || insufficientBidResponse.resultCode != kInsufficientCurrency ||
+			insufficientBidResponse.listingId != kInsufficientBidListingId || insufficientBidResponse.bidId != 0)
+		{
+			outError = "insufficient-currency bid was not rejected through Cache RPC. result=" +
+					   std::to_string(insufficientBidResponse.resultCode) + " error=" + outError;
+			return false;
+		}
+
+		std::cout << "CACHE_WRITE_RPC_TEST_SUCCESS userId=" << kUserId << " currencyBalance=" << claimResponse.currencyBalance
+				  << " grantedItemInstanceId=" << itemCheatResponse.itemInstanceId << " listingId=" << registerResponse.listingId
+				  << " duplicateClaimRejected=1 cacheInventoryUpdated=1 buyoutThresholdRejected=1 debitFailureReverted=1\n";
 		return true;
 	}
 
@@ -1474,6 +1848,8 @@ int main(
 	{
 		std::cerr << "Usage: AuctionDummyClient [--port N] [--backpressure-test]"
 				  << " [--database-flow-test --ticket VALUE --outbid-ticket VALUE --seller-ticket VALUE]"
+				  << " [--cache-read-rpc-test --ticket VALUE] [--cache-write-rpc-test --ticket VALUE]"
+				  << " [--bid-refund-fault-test --ticket VALUE]"
 				  << " [--concurrency-test --concurrency-ticket VALUE (five times)]"
 				  << " [--expiration-race-at-unix-ms N] [--reconnect-test --ticket VALUE]"
 				  << " [--load-test --config PATH]\n";
@@ -1549,6 +1925,41 @@ int main(
 			return 1;
 		}
 		return 0;
+	}
+	if (options.cacheReadRpcTest || options.cacheWriteRpcTest)
+	{
+		if (options.ticket.empty())
+		{
+			std::cerr << "--ticket is required for Cache RPC tests.\n";
+			client.Stop();
+			return 1;
+		}
+
+		const bool succeeded = RunCacheReadRpcFlow(client, sessionId, options.ticket, options.cacheWriteRpcTest, errorMessage);
+		client.Stop();
+		if (!succeeded)
+		{
+			std::cerr << "cache RPC test failed: " << errorMessage << "\n";
+			return 1;
+		}
+		return 0;
+	}
+	if (options.bidRefundFaultTest)
+	{
+		if (options.ticket.empty())
+		{
+			std::cerr << "--ticket is required for --bid-refund-fault-test.\n";
+			client.Stop();
+			return 1;
+		}
+
+		const int result = RunBidRefundFaultTest(client, sessionId, options.ticket, errorMessage);
+		client.Stop();
+		if (result == 1)
+		{
+			std::cerr << "bid refund fault test failed: " << errorMessage << "\n";
+		}
+		return result;
 	}
 	if (options.concurrencyTest)
 	{

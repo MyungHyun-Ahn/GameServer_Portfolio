@@ -8,7 +8,8 @@ namespace ContentsRuntime::Core
 	{
 		Enter,
 		Leave,
-		Packet
+		Packet,
+		Completion
 	};
 
 	struct SQueuedWorkItem
@@ -17,6 +18,7 @@ namespace ContentsRuntime::Core
 		std::chrono::steady_clock::time_point enqueuedAt{};
 		SContentLifecycleEvent lifecycleEvent{};
 		FOwnedPacketEnvelope packet{};
+		std::function<void()> completion;
 	};
 
 	struct SContentMailbox
@@ -47,22 +49,28 @@ namespace ContentsRuntime::Core
 		std::atomic<std::uint64_t> enqueueEnterCallCount = 0;
 		std::atomic<std::uint64_t> enqueueLeaveCallCount = 0;
 		std::atomic<std::uint64_t> enqueuePacketCallCount = 0;
+		std::atomic<std::uint64_t> enqueueCompletionCallCount = 0;
 		std::atomic<std::uint64_t> enterCount = 0;
 		std::atomic<std::uint64_t> leaveCount = 0;
 		std::atomic<std::uint64_t> packetCount = 0;
+		std::atomic<std::uint64_t> completionCount = 0;
 		std::atomic<std::uint64_t> frameCount = 0;
 		std::atomic<std::uint64_t> enterQueueDepth = 0;
 		std::atomic<std::uint64_t> leaveQueueDepth = 0;
 		std::atomic<std::uint64_t> packetQueueDepth = 0;
+		std::atomic<std::uint64_t> completionQueueDepth = 0;
 		std::atomic<std::uint64_t> maxEnterQueueDepth = 0;
 		std::atomic<std::uint64_t> maxLeaveQueueDepth = 0;
 		std::atomic<std::uint64_t> maxPacketQueueDepth = 0;
+		std::atomic<std::uint64_t> maxCompletionQueueDepth = 0;
 		std::atomic<std::uint64_t> enqueueEnterLockWaitNs = 0;
 		std::atomic<std::uint64_t> enqueueLeaveLockWaitNs = 0;
 		std::atomic<std::uint64_t> enqueuePacketLockWaitNs = 0;
+		std::atomic<std::uint64_t> enqueueCompletionLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxEnqueueEnterLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxEnqueueLeaveLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxEnqueuePacketLockWaitNs = 0;
+		std::atomic<std::uint64_t> maxEnqueueCompletionLockWaitNs = 0;
 		std::atomic<std::uint64_t> rejectedPacketCount = 0;
 		std::atomic<int> lastDelayFrame = 0;
 		std::atomic<int> maxDelayFrame = 0;

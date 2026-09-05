@@ -10,10 +10,14 @@ $ownedRoots = @(
     "Libraries\ClientNetworkLib",
     "Libraries\Connector",
     "Libraries\ContentsRuntime",
+    "Libraries\RpcLib",
+    "Libraries\ServerProtocol",
     "Libraries\GameData",
     "Chatting",
     "Echo",
     "Auction",
+    "Cache",
+    "World",
     "Generated",
     "SmokeTests"
 )

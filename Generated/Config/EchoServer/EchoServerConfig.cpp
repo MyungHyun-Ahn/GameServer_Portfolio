@@ -10,8 +10,8 @@
 
 namespace Generated::Config::EchoServer
 {
-	constexpr std::array<Foundation::Config::SConfigEnumValue<EBackend>, 3> kEchoServerBackendEnumValues = {
-		{{"Iocp", EBackend::Iocp}, {"Rio", EBackend::Rio}, {"BoostAsio", EBackend::BoostAsio}}};
+	constexpr std::array<Foundation::Config::SConfigEnumValue<EBackend>, 2> kEchoServerBackendEnumValues = {
+		{{"Iocp", EBackend::Iocp}, {"Rio", EBackend::Rio}}};
 
 	constexpr std::array<Foundation::Config::SConfigEnumValue<ERioSendDispatchMode>, 2> kEchoServerRioSendDispatchModeEnumValues = {
 		{{"Direct", ERioSendDispatchMode::Direct}, {"OwnerThread", ERioSendDispatchMode::OwnerThread}}};

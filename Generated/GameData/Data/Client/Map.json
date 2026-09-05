@@ -1,0 +1,22 @@
+[
+  {
+    "MapDataId": 1,
+    "Name": "Training Dungeon 1",
+    "MapType": "Dungeon",
+    "WorldWidth": 1024,
+    "WorldHeight": 1024,
+    "SectorSize": 128,
+    "AoiSectorRadius": 1,
+    "MapAssetKey": "Backgrounds/Tilesets/TilesetDungeon.png"
+  },
+  {
+    "MapDataId": 2,
+    "Name": "Training Dungeon 2",
+    "MapType": "Dungeon",
+    "WorldWidth": 1024,
+    "WorldHeight": 1024,
+    "SectorSize": 128,
+    "AoiSectorRadius": 1,
+    "MapAssetKey": "Backgrounds/Tilesets/TilesetDungeon.png"
+  }
+]

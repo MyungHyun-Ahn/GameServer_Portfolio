@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Generated.GameData</RootNamespace>
+    <AssemblyName>GeneratedGameData</AssemblyName>
+    <BaseOutputPath>..\..\..\Out\GeneratedGameData\</BaseOutputPath>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\CSharp\GameData\GameData.csproj" />
+    <Compile Include="**\*.g.cs"
+             Exclude="bin\**\*.g.cs;obj\**\*.g.cs" />
+  </ItemGroup>
+
+</Project>

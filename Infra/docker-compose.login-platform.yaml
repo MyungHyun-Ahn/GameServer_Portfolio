@@ -1,7 +1,7 @@
 services:
   account-mysql:
     image: mysql:8.0
-    container_name: refactoringserver-account-mysql
+    container_name: gameserverportfolio-account-mysql
     restart: unless-stopped
     command:
       - --default-authentication-plugin=mysql_native_password
@@ -31,7 +31,7 @@ services:
 
   chat-redis:
     image: redis:7.2-alpine
-    container_name: refactoringserver-chat-redis
+    container_name: gameserverportfolio-chat-redis
     restart: unless-stopped
     command:
       - redis-server
@@ -60,7 +60,7 @@ services:
     build:
       context: ../LoginServer
       dockerfile: Dockerfile
-    container_name: refactoringserver-login-server
+    container_name: gameserverportfolio-login-server
     restart: unless-stopped
     environment:
       LOGIN_SERVER_HOST: 0.0.0.0
@@ -80,9 +80,13 @@ services:
       CHAT_SERVER_PORT: 19100
       CHAT_TICKET_KEY_PREFIX: "chat:ticket:"
       AUCTION_TICKET_KEY_PREFIX: "auction:ticket:"
+      WORLD_TICKET_KEY_PREFIX: "world:ticket:"
       CHAT_TICKET_TTL_SECONDS: 60
       AUCTION_SERVER_IP: 127.0.0.1
       AUCTION_SERVER_PORT: 19102
+      WORLD_SERVER_IP: 127.0.0.1
+      WORLD_SERVER_PORT: 19200
+      WORLD_SERVER_INSTANCE_ID: 1
       ARGON2_MEMORY_COST_KIB: 19456
       ARGON2_TIME_COST: 2
       ARGON2_PARALLELISM: 1

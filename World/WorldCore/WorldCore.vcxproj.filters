@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Entity">
+      <UniqueIdentifier>{61AB5B4C-872E-4CDD-B7C8-84BFEB48D92A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Map">
+      <UniqueIdentifier>{B0CF593B-BB11-4F53-AB8C-DBE26095AF50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Map\Sector">
+      <UniqueIdentifier>{DD684284-2104-4871-949D-89286187CC9B}</UniqueIdentifier>
+    </Filter>
+	<Filter Include="Map\Sector\Systems">
+	  <UniqueIdentifier>{A0C1FE31-8D4E-49C4-88D7-A35D12B32446}</UniqueIdentifier>
+	</Filter>
+	<Filter Include="Map\Spawn">
+	  <UniqueIdentifier>{FC9077BE-099C-4E3B-9C8D-CC28C66D61E5}</UniqueIdentifier>
+	</Filter>
+  </ItemGroup>
+  <ItemGroup>
+	<ClCompile Include="Entity\FActorEntity.cpp"><Filter>Entity</Filter></ClCompile>
+    <ClCompile Include="Entity\FEntityRegistry.cpp"><Filter>Entity</Filter></ClCompile>
+	<ClCompile Include="Entity\FMonsterEntity.cpp"><Filter>Entity</Filter></ClCompile>
+    <ClCompile Include="Entity\FPlayerEntity.cpp"><Filter>Entity</Filter></ClCompile>
+    <ClCompile Include="Map\FMapInputBuffer.cpp"><Filter>Map</Filter></ClCompile>
+    <ClCompile Include="Map\FMapInstance.cpp"><Filter>Map</Filter></ClCompile>
+    <ClCompile Include="Map\FMapInstanceFactory.cpp"><Filter>Map</Filter></ClCompile>
+    <ClCompile Include="Map\FMapInstanceManager.cpp"><Filter>Map</Filter></ClCompile>
+	<ClCompile Include="Map\FMapTickExecution.cpp"><Filter>Map</Filter></ClCompile>
+	<ClCompile Include="Map\FMapVisibilitySystem.cpp"><Filter>Map</Filter></ClCompile>
+	<ClCompile Include="Map\Spawn\FDeterministicSpawnSampler.cpp"><Filter>Map\Spawn</Filter></ClCompile>
+	<ClCompile Include="Map\Spawn\FMonsterSpawnSystem.cpp"><Filter>Map\Spawn</Filter></ClCompile>
+	<ClCompile Include="Map\Spawn\FPlayerRespawnSystem.cpp"><Filter>Map\Spawn</Filter></ClCompile>
+    <ClCompile Include="Map\Sector\FSectorDeferredCommandBuffer.cpp"><Filter>Map\Sector</Filter></ClCompile>
+    <ClCompile Include="Map\Sector\FSectorGrid.cpp"><Filter>Map\Sector</Filter></ClCompile>
+    <ClCompile Include="Map\Sector\FSerialSectorExecutor.cpp"><Filter>Map\Sector</Filter></ClCompile>
+    <ClCompile Include="Map\Sector\FSectorTaskProcessor.cpp"><Filter>Map\Sector</Filter></ClCompile>
+    <ClCompile Include="Map\Sector\FSectorTickPlan.cpp"><Filter>Map\Sector</Filter></ClCompile>
+	<ClCompile Include="Map\Sector\FSectorUpdatePipeline.cpp"><Filter>Map\Sector</Filter></ClCompile>
+	<ClCompile Include="Map\Sector\Systems\FPlayerMovementSystem.cpp"><Filter>Map\Sector\Systems</Filter></ClCompile>
+	<ClCompile Include="Map\Sector\Systems\FPlayerAttackSystem.cpp"><Filter>Map\Sector\Systems</Filter></ClCompile>
+	<ClCompile Include="Map\Sector\Systems\FMonsterAiSystem.cpp"><Filter>Map\Sector\Systems</Filter></ClCompile>
+    <ClCompile Include="WorldCorePch.cpp" />
+    <ClCompile Include="WorldTypes.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+	<ClInclude Include="Entity\FActorEntity.h"><Filter>Entity</Filter></ClInclude>
+    <ClInclude Include="Entity\FEntityRegistry.h"><Filter>Entity</Filter></ClInclude>
+	<ClInclude Include="Entity\FMonsterEntity.h"><Filter>Entity</Filter></ClInclude>
+    <ClInclude Include="Entity\FPlayerEntity.h"><Filter>Entity</Filter></ClInclude>
+    <ClInclude Include="Map\FMapInputBuffer.h"><Filter>Map</Filter></ClInclude>
+    <ClInclude Include="Map\FMapInstance.h"><Filter>Map</Filter></ClInclude>
+    <ClInclude Include="Map\FMapInstanceFactory.h"><Filter>Map</Filter></ClInclude>
+    <ClInclude Include="Map\FMapInstanceManager.h"><Filter>Map</Filter></ClInclude>
+	<ClInclude Include="Map\FMapTickExecution.h"><Filter>Map</Filter></ClInclude>
+	<ClInclude Include="Map\FMapVisibilitySystem.h"><Filter>Map</Filter></ClInclude>
+	<ClInclude Include="Map\Spawn\FDeterministicSpawnSampler.h"><Filter>Map\Spawn</Filter></ClInclude>
+	<ClInclude Include="Map\Spawn\FMonsterSpawnSystem.h"><Filter>Map\Spawn</Filter></ClInclude>
+	<ClInclude Include="Map\Spawn\FPlayerRespawnSystem.h"><Filter>Map\Spawn</Filter></ClInclude>
+    <ClInclude Include="Map\Sector\FSectorDeferredCommandBuffer.h"><Filter>Map\Sector</Filter></ClInclude>
+    <ClInclude Include="Map\Sector\FSectorGrid.h"><Filter>Map\Sector</Filter></ClInclude>
+    <ClInclude Include="Map\Sector\FSerialSectorExecutor.h"><Filter>Map\Sector</Filter></ClInclude>
+    <ClInclude Include="Map\Sector\FSectorTaskProcessor.h"><Filter>Map\Sector</Filter></ClInclude>
+    <ClInclude Include="Map\Sector\FSectorTickPlan.h"><Filter>Map\Sector</Filter></ClInclude>
+	<ClInclude Include="Map\Sector\FSectorUpdateContext.h"><Filter>Map\Sector</Filter></ClInclude>
+	<ClInclude Include="Map\Sector\FSectorUpdatePipeline.h"><Filter>Map\Sector</Filter></ClInclude>
+    <ClInclude Include="Map\Sector\ISectorExecutor.h"><Filter>Map\Sector</Filter></ClInclude>
+	<ClInclude Include="Map\Sector\Systems\FPlayerMovementSystem.h"><Filter>Map\Sector\Systems</Filter></ClInclude>
+	<ClInclude Include="Map\Sector\Systems\FPlayerAttackSystem.h"><Filter>Map\Sector\Systems</Filter></ClInclude>
+	<ClInclude Include="Map\Sector\Systems\FMonsterAiSystem.h"><Filter>Map\Sector\Systems</Filter></ClInclude>
+    <ClInclude Include="WorldCorePch.h" />
+    <ClInclude Include="WorldTypes.h" />
+  </ItemGroup>
+</Project>

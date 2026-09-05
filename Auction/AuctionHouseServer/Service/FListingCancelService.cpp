@@ -4,7 +4,6 @@
 
 #include "AuctionHouseServer/Database/FAuctionRepository.h"
 #include "AuctionHouseServer/Database/FContentThreadDbContext.h"
-#include "AuctionHouseServer/Database/FGameRepository.h"
 
 namespace AuctionHouseServer::Service
 {
@@ -33,11 +32,11 @@ namespace AuctionHouseServer::Service
 	{
 	}
 
-	Domain::EAuctionResultCode FListingCancelService::Execute(
+	Domain::EAuctionResultCode FListingCancelService::Prepare(
 		const std::uint64_t sellerUserId,
 		const std::uint64_t listingId,
 		const std::uint64_t expectedListingVersion,
-		Database::SListingCancelResult& outResult,
+		Database::SListingCancelPrepareResult& outResult,
 		std::string& outError) const
 	{
 		if (sellerUserId == 0 || listingId == 0 || expectedListingVersion == 0)
@@ -45,54 +44,72 @@ namespace AuctionHouseServer::Service
 
 		auto& context = Database::FContentThreadDbContext::Get(m_config);
 		auto* auctionConnection = context.GetAuctionPrimary(outError);
-		auto* gameConnection = context.GetGamePrimary(outError);
-		if (auctionConnection == nullptr || gameConnection == nullptr)
+		if (auctionConnection == nullptr)
 			return Domain::EAuctionResultCode::DatabaseUnavailable;
 		Connector::MySql::FMySqlTransaction auctionTransaction(*auctionConnection);
 		if (!auctionTransaction.Begin(outError))
 			return Domain::EAuctionResultCode::DatabaseUnavailable;
 
 		Database::FAuctionRepository auctionRepository(*auctionConnection);
-		Database::SListingCancelPrepareResult prepared;
-		if (!auctionRepository.PrepareListingCancel(listingId, sellerUserId, expectedListingVersion, prepared, outError))
+		if (!auctionRepository.PrepareListingCancel(listingId, sellerUserId, expectedListingVersion, outResult, outError))
 		{
+			auctionTransaction.Rollback();
 			return MapPrepareError(outError);
-		}
-		Connector::MySql::FMySqlTransaction gameTransaction(*gameConnection);
-		if (!gameTransaction.Begin(outError))
-		{
-			return Domain::EAuctionResultCode::DatabaseUnavailable;
-		}
-		std::uint64_t returnMailId = 0;
-		if (!Database::FGameRepository(*gameConnection)
-				.CreateItemReturnMail(sellerUserId,
-					prepared.itemInstanceId,
-					prepared.itemDataId,
-					prepared.quantity,
-					prepared.itemDataJson,
-					returnMailId,
-					outError))
-		{
-			return Domain::EAuctionResultCode::DatabaseUnavailable;
 		}
 		if (!auctionTransaction.Commit(outError))
 		{
-			return Domain::EAuctionResultCode::DatabaseUnavailable;
-		}
-		if (!gameTransaction.Commit(outError))
 			return Domain::EAuctionResultCode::PartialCommit;
+		}
+		return Domain::EAuctionResultCode::Success;
+	}
 
+	Domain::EAuctionResultCode FListingCancelService::Complete(
+		const std::uint64_t sellerUserId,
+		const std::uint64_t listingId,
+		const std::uint64_t preparedListingVersion,
+		std::uint64_t& outListingVersion,
+		std::string& outError) const
+	{
+		auto& context = Database::FContentThreadDbContext::Get(m_config);
+		auto* auctionConnection = context.GetAuctionPrimary(outError);
+		if (auctionConnection == nullptr)
+		{
+			return Domain::EAuctionResultCode::PartialCommit;
+		}
+		Database::FAuctionRepository auctionRepository(*auctionConnection);
 		Connector::MySql::FMySqlTransaction completionTransaction(*auctionConnection);
 		if (!completionTransaction.Begin(outError))
 			return Domain::EAuctionResultCode::PartialCommit;
-		std::uint64_t listingVersion = 0;
-		if (!auctionRepository.CompleteListingCancel(listingId, sellerUserId, prepared.preparedListingVersion, listingVersion, outError) ||
+		if (!auctionRepository.CompleteListingCancel(listingId, sellerUserId, preparedListingVersion, outListingVersion, outError) ||
 			!completionTransaction.Commit(outError))
 		{
 			return Domain::EAuctionResultCode::PartialCommit;
 		}
-		outResult.returnMailId = returnMailId;
-		outResult.listingVersion = listingVersion;
 		return Domain::EAuctionResultCode::Success;
+	}
+
+	bool FListingCancelService::Revert(
+		const std::uint64_t sellerUserId,
+		const std::uint64_t listingId,
+		const std::uint64_t preparedListingVersion,
+		std::string& outError) const
+	{
+		auto& context = Database::FContentThreadDbContext::Get(m_config);
+		auto* connection = context.GetAuctionPrimary(outError);
+		if (connection == nullptr)
+		{
+			return false;
+		}
+		Connector::MySql::FMySqlTransaction transaction(*connection);
+		if (!transaction.Begin(outError))
+		{
+			return false;
+		}
+		if (!Database::FAuctionRepository(*connection).RevertListingCancel(listingId, sellerUserId, preparedListingVersion, outError))
+		{
+			transaction.Rollback();
+			return false;
+		}
+		return transaction.Commit(outError);
 	}
 }

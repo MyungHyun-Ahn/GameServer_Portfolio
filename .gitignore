@@ -1,6 +1,9 @@
 # Visual Studio / MSBuild
 .vs/
+.codex_tmp/
+.codex-temp/
 **/Intermediate/
+**/x64/
 Out/
 *.user
 *.suo
@@ -23,6 +26,7 @@ Out/
 # .NET
 **/bin/
 **/obj/
+**/dist/
 *.deps.json
 *.runtimeconfig.json
 
@@ -34,7 +38,6 @@ Out/
 
 # Node.js
 **/node_modules/
-LoginServer/dist/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -63,6 +66,7 @@ Tickets.txt
 !**/.env.example
 *.local.yaml
 *.local.yml
+Config/Server/*.local.yaml
 appsettings.*.local.json
 docker-compose.override.yml
 docker-compose.override.yaml
@@ -74,6 +78,9 @@ temp/
 .cache/
 *.tmp
 *.temp
+~$*.xlsx
+**/~$*.xlsx
+*.xlsx.tmp
 *.bak
 *.old
 *.orig

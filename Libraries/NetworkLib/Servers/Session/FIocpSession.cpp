@@ -8,6 +8,7 @@ namespace NetworkLib::Session
 	{
 		FIocpSession* session = s_sessionPool.Alloc();
 		session->Reset();
+		session->m_refCount.store(1, std::memory_order_release);
 		return session;
 	}
 
@@ -55,10 +56,9 @@ namespace NetworkLib::Session
 		std::size_t recvBufferCapacity)
 	{
 		m_socket = socket;
-		m_sessionId = sessionId;
+		m_sessionId.store(sessionId, std::memory_order_release);
 		m_slotIndex = slotIndex;
 		m_generation = generation;
-		m_refCount.store(1);
 		m_closing.store(false);
 		m_recvBuffer.Initialize(recvBufferCapacity);
 		m_activeSendBuffers.clear();
@@ -77,10 +77,9 @@ namespace NetworkLib::Session
 		ReleaseActiveSendBuffers();
 		ReleaseQueuedSendBuffers();
 		m_socket = INVALID_SOCKET;
-		m_sessionId = 0;
+		m_sessionId.store(0, std::memory_order_release);
 		m_slotIndex = 0;
 		m_generation = 0;
-		m_refCount.store(1);
 		m_closing.store(false);
 		m_recvContext = {};
 		m_sendContext = {};
@@ -105,7 +104,7 @@ namespace NetworkLib::Session
 
 	std::uint64_t FIocpSession::GetSessionId() const noexcept
 	{
-		return m_sessionId;
+		return m_sessionId.load(std::memory_order_acquire);
 	}
 
 	std::uint32_t FIocpSession::GetSlotIndex() const noexcept
@@ -132,6 +131,20 @@ namespace NetworkLib::Session
 	long FIocpSession::AcquireRef() noexcept
 	{
 		return m_refCount.fetch_add(1) + 1;
+	}
+
+	bool FIocpSession::TryAcquireRef() noexcept
+	{
+		long refCount = m_refCount.load(std::memory_order_acquire);
+		while (refCount > 0)
+		{
+			if (m_refCount.compare_exchange_weak(refCount, refCount + 1, std::memory_order_acq_rel, std::memory_order_acquire))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	long FIocpSession::ReleaseRef() noexcept

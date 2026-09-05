@@ -6,9 +6,9 @@
 #include "Crypto/FDefaultPacketCipher.h"
 #include "EchoServer/Contents/Room/RoomFlowTypes.h"
 #include "Generated/Config/EchoClient/EchoClientConfig.h"
-#include "Generated/Packets/Chat/ChatPackets.h"
-#include "Generated/Packets/Echo/EchoPackets.h"
-#include "Generated/Packets/Login/LoginPackets.h"
+#include "Generated/Packets/Cpp/Chat/ChatPackets.h"
+#include "Generated/Packets/Cpp/Echo/EchoPackets.h"
+#include "Generated/Packets/Cpp/Login/LoginPackets.h"
 #include "Packet/Buffer/FPacketBuffer.h"
 #include "Packet/Framing/FDefaultPacketFramer.h"
 #include "Packet/Framing/PacketTypes.h"
@@ -931,6 +931,12 @@ namespace
 						}
 
 						return true;
+					}
+
+					if (packetFramer.HasInvalidPacketHeader(inboundBuffer))
+					{
+						sessionResult.errorMessage = "oversized response packet header rejected.";
+						return false;
 					}
 
 					if (!WaitUntilSocketReadable(clientSocket, effectiveRecvTimeoutMs))
@@ -2236,6 +2242,11 @@ namespace
 			}
 
 			HandleContentPacketLocked(session, contentPacketView, rttCollector);
+		}
+
+		if (!session.finalized && session.packetFramer.HasInvalidPacketHeader(session.inboundBuffer))
+		{
+			FinalizeSessionLocked(session, false, "oversized response packet header rejected.");
 		}
 
 		if (!session.finalized)

@@ -98,17 +98,17 @@
     <ClCompile Include="Contents\Auth\FAuctionAuthContent.cpp" />
     <ClCompile Include="Contents\FAuctionContentRouter.cpp" />
     <ClCompile Include="Contents\Expiration\FAuctionExpirationContent.cpp" />
-    <ClCompile Include="Contents\Session\FAuctionUserRegistry.cpp" />
+    <ClCompile Include="Contents\Response\FAuctionErrorResponseSender.cpp" />
+    <ClCompile Include="Contents\Session\FAuctionSession.cpp" />
+    <ClCompile Include="Contents\Session\FAuctionSessionRegistry.cpp" />
     <ClCompile Include="Database\FAuctionRepository.cpp" />
     <ClCompile Include="Database\FContentThreadDbContext.cpp" />
-    <ClCompile Include="Database\FGameRepository.cpp" />
     <ClCompile Include="Diagnostics\FAuctionTimingSetup.cpp" />
+	<ClCompile Include="..\..\Generated\Config\AuctionHouseServer\AuctionHouseServerConfig.cpp" />
     <ClCompile Include="Service\FBidRefundService.cpp" />
-    <ClCompile Include="Service\FInventoryGrantService.cpp" />
     <ClCompile Include="Service\FListingRegistrationService.cpp" />
     <ClCompile Include="Service\FBidService.cpp" />
     <ClCompile Include="Service\FBuyoutService.cpp" />
-    <ClCompile Include="Service\FMailClaimService.cpp" />
     <ClCompile Include="Service\FListingCancelService.cpp" />
     <ClCompile Include="Service\FExpirationService.cpp" />
     <ClCompile Include="Application\FAuctionHouseServerBootstrap.cpp" />
@@ -121,21 +121,21 @@
     <ClInclude Include="Contents\ContentTypes.h" />
     <ClInclude Include="Contents\FAuctionContentRouter.h" />
     <ClInclude Include="Contents\Expiration\FAuctionExpirationContent.h" />
-    <ClInclude Include="Contents\Session\FAuctionUserRegistry.h" />
+    <ClInclude Include="Contents\Response\FAuctionErrorResponseSender.h" />
+    <ClInclude Include="Contents\Session\FAuctionSession.h" />
+    <ClInclude Include="Contents\Session\FAuctionSessionRegistry.h" />
     <ClInclude Include="Domain\AuctionResultCode.h" />
     <ClInclude Include="Domain\AuctionSearchSortType.h" />
     <ClInclude Include="Domain\AuctionState.h" />
     <ClInclude Include="Database\AuctionDatabaseTypes.h" />
     <ClInclude Include="Database\FAuctionRepository.h" />
     <ClInclude Include="Database\FContentThreadDbContext.h" />
-    <ClInclude Include="Database\FGameRepository.h" />
     <ClInclude Include="Diagnostics\FAuctionTimingSetup.h" />
+	<ClInclude Include="..\..\Generated\Config\AuctionHouseServer\AuctionHouseServerConfig.h" />
     <ClInclude Include="Service\FBidRefundService.h" />
-    <ClInclude Include="Service\FInventoryGrantService.h" />
     <ClInclude Include="Service\FListingRegistrationService.h" />
     <ClInclude Include="Service\FBidService.h" />
     <ClInclude Include="Service\FBuyoutService.h" />
-    <ClInclude Include="Service\FMailClaimService.h" />
     <ClInclude Include="Service\FListingCancelService.h" />
     <ClInclude Include="Service\FExpirationService.h" />
     <ClInclude Include="AuctionHouseServerPch.h" />
@@ -161,13 +161,35 @@
       <Project>{4C95AD3B-6399-48B6-B9C9-62714E37B650}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\RpcLib\RpcLib.vcxproj">
+      <Project>{7E71E1D1-24AA-4BD3-A68E-598954A27B19}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
-  <Target Name="CopyMySqlRuntime" AfterTargets="Build">
+	<ItemGroup>
+		<AuctionHouseServerRuntimeConfig Include="$(ProjectDir)..\..\Config\Server\AuctionHouseServer.yaml" />
+		<AuctionHouseServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\Item.yaml" />
+		<AuctionHouseServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\AuctionPolicy.yaml" />
+		<AuctionHouseServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\InventoryPolicy.yaml" />
+		<AuctionHouseServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\MailPolicy.yaml" />
+	</ItemGroup>
+  <Target Name="CopyAuctionHouseServerRuntime" AfterTargets="Build">
+	<MakeDir Directories="$(OutDir)Config\Server;$(OutDir)Config\GameData" />
     <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libmysql.dll" DestinationFolder="$(OutDir)" />
     <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libcrypto-3-x64.dll" DestinationFolder="$(OutDir)" />
     <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libssl-3-x64.dll" DestinationFolder="$(OutDir)" />
-    <Copy SourceFiles="$(ProjectDir)..\..\Config\GameData\Items.yaml" DestinationFolder="$(OutDir)Config\GameData" />
-	<Copy SourceFiles="$(ProjectDir)..\..\Config\GameData\Auction.yaml" DestinationFolder="$(OutDir)Config\GameData" />
+	<Copy SourceFiles="@(AuctionHouseServerRuntimeConfig)"
+		DestinationFolder="$(OutDir)Config\Server"
+		Condition="!Exists('$(ProjectDir)..\..\Config\Server\AuctionHouseServer.local.yaml')" />
+	<Copy SourceFiles="$(ProjectDir)..\..\Config\Server\AuctionHouseServer.local.yaml"
+		DestinationFiles="$(OutDir)Config\Server\AuctionHouseServer.yaml"
+		Condition="Exists('$(ProjectDir)..\..\Config\Server\AuctionHouseServer.local.yaml')" />
+	<Copy SourceFiles="$(ProjectDir)..\..\Config\Server\AuctionHouseServer.local.yaml"
+		DestinationFolder="$(OutDir)Config\Server"
+		Condition="Exists('$(ProjectDir)..\..\Config\Server\AuctionHouseServer.local.yaml')" />
+	<Delete Files="$(OutDir)Config\Server\AuctionHouseServer.local.yaml"
+		Condition="!Exists('$(ProjectDir)..\..\Config\Server\AuctionHouseServer.local.yaml')" />
+	<Copy SourceFiles="@(AuctionHouseServerRuntimeGameData)" DestinationFolder="$(OutDir)Config\GameData" SkipUnchangedFiles="true" />
   </Target>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

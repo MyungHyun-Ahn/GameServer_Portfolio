@@ -27,10 +27,7 @@ namespace AuctionHouseServer::Database
 	FContentThreadDbContext::FContentThreadDbContext(
 		SAuctionDatabaseConfig config,
 		const std::uint32_t workerIndex)
-		: m_gameCluster(
-			  BuildClusterConfig(config.enabled, config.gamePrimary, config.gameReplicas, config.replicaReconnectCooldownMilliseconds),
-			  workerIndex)
-		, m_auctionCluster(BuildClusterConfig(config.enabled,
+		: m_auctionCluster(BuildClusterConfig(config.enabled,
 							   config.auctionPrimary,
 							   config.auctionReplicas,
 							   config.replicaReconnectCooldownMilliseconds),
@@ -50,18 +47,6 @@ namespace AuctionHouseServer::Database
 			context = std::make_unique<FContentThreadDbContext>(config, workerIndex);
 		}
 		return *context;
-	}
-
-	Connector::MySql::FMySqlConnection* FContentThreadDbContext::GetGamePrimary(
-		std::string& outError)
-	{
-		return m_gameCluster.GetPrimary(outError);
-	}
-
-	Connector::MySql::FMySqlConnection* FContentThreadDbContext::GetGameReplica(
-		std::string& outError)
-	{
-		return m_gameCluster.GetReplica(outError);
 	}
 
 	Connector::MySql::FMySqlConnection* FContentThreadDbContext::GetAuctionPrimary(

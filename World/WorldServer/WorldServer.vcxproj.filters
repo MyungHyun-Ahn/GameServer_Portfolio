@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Application">
+      <UniqueIdentifier>{E7D047FA-B778-FA5A-BED5-E1F02F844255}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents">
+      <UniqueIdentifier>{E4E04DCA-7B79-67B0-CF4D-93311577F55F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Domain">
+      <UniqueIdentifier>{048CE256-2B47-0ECD-2763-774860A604E1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{0509F97D-14D7-E533-1B0A-983A560844D3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Map">
+      <UniqueIdentifier>{7BE6661E-4661-8B4F-C7FF-9ED9DECCE216}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Session">
+      <UniqueIdentifier>{67357A5B-AE1B-B8D6-9FA5-856283956E8A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config">
+      <UniqueIdentifier>{46511182-819A-A79B-6531-A86D11394AD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Contents\Map\Sector">
+      <UniqueIdentifier>{7DDD8788-FB49-4DC3-4057-27B807EF728F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Config\WorldServer">
+      <UniqueIdentifier>{9278C9FF-B11E-E316-AD45-60A4633AEA4F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WorldServerPch.cpp" />
+    <ClCompile Include="..\..\Generated\Config\WorldServer\WorldServerConfig.cpp">
+      <Filter>Generated\Config\WorldServer</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\FWorldServerBootstrap.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\FMapRouterContent.cpp">
+      <Filter>Contents</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Map\FMapContentShard.cpp">
+      <Filter>Contents\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Map\Sector\FSectorExecutorContent.cpp">
+      <Filter>Contents\Map\Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Map\Sector\FTaskGraphSectorExecutionService.cpp">
+      <Filter>Contents\Map\Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Map\Sector\FTaskGraphSectorExecutor.cpp">
+      <Filter>Contents\Map\Sector</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Session\FWorldSession.cpp">
+      <Filter>Contents\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Contents\Session\FWorldSessionRegistry.cpp">
+      <Filter>Contents\Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Domain\FPlayerStatCalculator.cpp">
+      <Filter>Domain</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WorldServerPch.h" />
+    <ClInclude Include="..\..\Generated\Config\WorldServer\WorldServerConfig.h">
+      <Filter>Generated\Config\WorldServer</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\FWorldServerBootstrap.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\ContentTypes.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\FMapRouterContent.h">
+      <Filter>Contents</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Map\FMapContentShard.h">
+      <Filter>Contents\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Map\Sector\FSectorExecutorContent.h">
+      <Filter>Contents\Map\Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Map\Sector\FTaskGraphSectorExecutionService.h">
+      <Filter>Contents\Map\Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Map\Sector\FTaskGraphSectorExecutor.h">
+      <Filter>Contents\Map\Sector</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Session\FWorldSession.h">
+      <Filter>Contents\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Contents\Session\FWorldSessionRegistry.h">
+      <Filter>Contents\Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Domain\FPlayerStatCalculator.h">
+      <Filter>Domain</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

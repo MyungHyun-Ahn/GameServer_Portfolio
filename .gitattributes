@@ -1,0 +1,8 @@
+# Linux and Docker entry-point scripts must remain executable with LF line endings.
+*.sh text eol=lf
+
+# Packaged assets and binary dependencies must not be text-normalized.
+*.xlsx binary
+*.png binary
+*.dll binary
+*.lib binary

@@ -1,0 +1,74 @@
+CacheServer:
+  Backend:
+    type: enum
+    default: Iocp
+    values: [Iocp, Rio]
+  RioSendDispatchMode:
+    type: enum
+    default: Direct
+    values: [Direct, OwnerThread]
+  BindIp: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19103, required: true }
+  WorkerThreadCount: { type: int32, default: 2 }
+  MaxSessionCount: { type: int32, default: 128 }
+  RecvBufferSize: { type: int32, default: 65536 }
+  SocketSendBufferBytes: { type: int32, default: -1 }
+  RioSendRingSizeBytes: { type: uint32, default: 65536 }
+  PacketKey: { type: uint32, default: 55 }
+  ContentsWorkerThreadCount: { type: int32, default: 5 }
+  PlayerCacheShardCount: { type: uint32, default: 4 }
+  MailboxCapacity: { type: uint64, default: 1024 }
+  RpcServerInstanceId: { type: uint32, default: 1 }
+  GameDataDirectory: { type: string, default: GameData, required: true }
+  DatabaseEnabled: { type: bool, default: false }
+  ReplicaReconnectCooldownMilliseconds: { type: uint32, default: 60000 }
+  LogMinimumLevel:
+    type: enum
+    default: Info
+    values: [Debug, Info, Warn, Error]
+  LogOutputDirectory: { type: string, default: "" }
+  LogConsoleEnabled: { type: bool, default: true }
+  LogFileEnabled: { type: bool, default: true }
+  LogIncludeThreadId: { type: bool, default: true }
+
+GameDatabase:
+  Password: { type: string, default: "" }
+
+GamePrimary:
+  Host: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 3310, required: true }
+  User: { type: string, default: appuser, required: true }
+  Database: { type: string, default: gamedb, required: true }
+  ConnectTimeoutSeconds: { type: uint32, default: 3 }
+
+GameReplica1:
+  Enabled: { type: bool, default: true }
+  Host: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 3311, required: true }
+  User: { type: string, default: appuser, required: true }
+  Database: { type: string, default: gamedb, required: true }
+  ConnectTimeoutSeconds: { type: uint32, default: 3 }
+
+GameReplica2:
+  Enabled: { type: bool, default: true }
+  Host: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 3312, required: true }
+  User: { type: string, default: appuser, required: true }
+  Database: { type: string, default: gamedb, required: true }
+  ConnectTimeoutSeconds: { type: uint32, default: 3 }
+
+CachePolicy:
+  GameOwnerLeaseMilliseconds: { type: uint32, default: 30000 }
+  IdleEvictionMilliseconds: { type: uint32, default: 300000 }
+  MaintenanceIntervalMilliseconds: { type: uint32, default: 1000 }
+  RevokeTimeoutMilliseconds: { type: uint32, default: 2000 }
+
+FaultInjection:
+  CreditBeforeDatabaseTransaction: { type: bool, default: false }
+  CreditAfterCommitDisconnect: { type: bool, default: false }
+  CreditBeforeDatabaseDelayMilliseconds: { type: uint32, default: 0 }
+  CreditAfterCommitDelayMilliseconds: { type: uint32, default: 0 }
+
+Debug:
+  RunSeconds: { type: uint32, default: 0 }
+  Headless: { type: bool, default: false }

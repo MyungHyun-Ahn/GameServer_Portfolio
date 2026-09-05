@@ -29,7 +29,7 @@ namespace ContentsRuntime::Threading
 		bool EnqueueLeave(Core::SContentLifecycleEvent event);
 		bool EnqueuePacket(Core::FOwnedPacketEnvelope packet);
 		Core::EPacketEnqueueResult EnqueuePacketDetailed(Core::FOwnedPacketEnvelope packet);
-		bool EnqueueMoveTransition(Core::SContentLifecycleEvent sourceLeaveEvent, Core::SContentLifecycleEvent targetEnterEvent);
+		bool EnqueueCompletion(Core::FContentInstanceId contentInstanceId, std::function<void()> completion);
 
 	private:
 		struct SImpl;

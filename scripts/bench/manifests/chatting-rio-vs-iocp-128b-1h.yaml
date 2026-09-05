@@ -13,6 +13,7 @@ Defaults:
     Executable: Out/ChattingServer/Release/ChattingServer.exe
     ConfigTemplate: Config/Server/ChattingServer.yaml
     Overrides:
+      LoginAuth.Mode: Disabled
       ChattingServer.Port: 19100
       ChattingServer.MaxSessionCount: 256
       ChattingServer.WorkerThreadCount: 2
@@ -30,11 +31,13 @@ Defaults:
       ChattingDummy.Port: 19100
       ChattingDummy.PacketKey: 55
       ChattingDummy.WorkerThreadCount: 4
-      ChattingDummy.SessionCount: 250
+      ChattingDummy.SessionCount: 150
       ChattingDummy.ConnectsPerSecond: 50
       ChattingDummy.SendIntervalMs: 0
       ChattingDummy.PayloadSizeBytes: 128
-      ChattingDummy.RoomSelectionMode: Random
+      ChattingDummy.RoomSelectionMode: Hotspot
+      ChattingDummy.HotspotRoomIds: "77"
+      ChattingDummy.HotspotBiasPercent: 90
       ChattingDummy.RoomChangeProbabilityPercent: 0
       ChattingDummy.ReconnectProbabilityPercent: 0
       ChattingDummy.ReconnectDelayMs: 100
@@ -42,24 +45,24 @@ Defaults:
       ChattingDummy.ConsoleSummaryIntervalSeconds: 60
 
 Runs:
-  - Name: iocp_default_128b_250_random_1h
-    Tags: [iocp, default, random-room, payload-128b, one-hour]
+  - Name: iocp_default_128b_150_hotspot_1h
+    Tags: [iocp, default, hotspot, payload-128b, one-hour]
     Server:
       Overrides:
         ChattingServer.Backend: Iocp
         ChattingServer.RioSendDispatchMode: Direct
         ChattingServer.SocketSendBufferBytes: -1
 
-  - Name: rio_direct_128b_250_random_1h
-    Tags: [rio, direct, random-room, payload-128b, one-hour]
+  - Name: rio_direct_128b_150_hotspot_1h
+    Tags: [rio, direct, hotspot, payload-128b, one-hour]
     Server:
       Overrides:
         ChattingServer.Backend: Rio
         ChattingServer.RioSendDispatchMode: Direct
         ChattingServer.SocketSendBufferBytes: -1
 
-  - Name: rio_owner_128b_250_random_1h
-    Tags: [rio, owner-thread, random-room, payload-128b, one-hour]
+  - Name: rio_owner_128b_150_hotspot_1h
+    Tags: [rio, owner-thread, hotspot, payload-128b, one-hour]
     Server:
       Overrides:
         ChattingServer.Backend: Rio

@@ -15,6 +15,11 @@ namespace Foundation
 			WriteLog(logLevel, category, message);
 		}
 
+		void Flush()
+		{
+			FlushLog();
+		}
+
 		template <typename... TArgs>
 			requires(sizeof...(TArgs) > 0)
 		void Log(
@@ -28,6 +33,7 @@ namespace Foundation
 
 	private:
 		virtual void WriteLog(ELogLevel logLevel, std::string_view category, std::string_view message) = 0;
+		virtual void FlushLog() = 0;
 
 		template <typename... TArgs>
 		void LogFormat(

@@ -11,6 +11,9 @@ namespace NetworkLib::Packet::Framing
 	};
 #pragma pack(pop)
 
+	inline constexpr std::size_t kMaxFramedPacketSizeBytes = 8u * 1024u;
+	inline constexpr std::size_t kMaxTransportPayloadSizeBytes = kMaxFramedPacketSizeBytes - sizeof(SPacketHeader);
+
 	struct SOutgoingPacket
 	{
 		std::uint8_t randomKey = 0;

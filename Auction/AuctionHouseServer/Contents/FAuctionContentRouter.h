@@ -2,14 +2,14 @@
 
 namespace AuctionHouseServer::Contents
 {
-	class FAuctionUserRegistry;
+	class FAuctionSessionRegistry;
 
 	class FAuctionContentRouter final : public ContentsRuntime::Core::IContent
 	{
 	public:
 		FAuctionContentRouter(std::shared_ptr<Foundation::ILogger> logger,
 			ContentsRuntime::Core::FContentInstanceId contentInstanceId,
-			std::shared_ptr<FAuctionUserRegistry> userRegistry,
+			std::shared_ptr<FAuctionSessionRegistry> sessionRegistry,
 			std::vector<ContentsRuntime::Core::FContentInstanceId> commandShardInstanceIds);
 
 		ContentsRuntime::Core::FContentId GetContentId() const noexcept override;
@@ -41,7 +41,7 @@ namespace AuctionHouseServer::Contents
 	private:
 		std::shared_ptr<Foundation::ILogger> m_logger;
 		ContentsRuntime::Core::FContentInstanceId m_contentInstanceId = ContentsRuntime::Core::kInvalidContentInstanceId;
-		std::shared_ptr<FAuctionUserRegistry> m_userRegistry;
+		std::shared_ptr<FAuctionSessionRegistry> m_sessionRegistry;
 		std::vector<ContentsRuntime::Core::FContentInstanceId> m_commandShardInstanceIds;
 	};
 }

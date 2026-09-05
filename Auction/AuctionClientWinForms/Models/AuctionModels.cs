@@ -10,14 +10,20 @@ internal sealed record DebugCheatResult(
 internal sealed record AuctionConnectionSettings(string Host, int Port, byte PacketKey);
 
 internal sealed record AuctionAuthResult(
-	ushort ResultCode,
-	ulong RequestId,
-	ulong UserId,
-	uint MaxActiveListings,
-	uint SearchPageSize,
-	uint MinimumListingDurationSeconds,
-	uint MaximumListingDurationSeconds,
-	uint DefaultListingDurationSeconds);
+    ushort ResultCode,
+    ulong RequestId,
+    ulong UserId,
+    uint MaxActiveListings,
+    uint SearchPageSize,
+    uint InventoryListPageSize,
+    uint MailListPageSize,
+    uint MinimumListingDurationSeconds,
+    uint MaximumListingDurationSeconds,
+    uint DefaultListingDurationSeconds,
+    ushort DefaultCurrencyId,
+    ulong MinimumBidIncrement,
+    ulong MinimumListingPrice,
+    ulong MaximumListingPrice);
 
 internal sealed record ListingSummary(
     ulong ListingId,

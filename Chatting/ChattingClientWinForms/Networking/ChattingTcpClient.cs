@@ -1,22 +1,40 @@
-using System.Net.Sockets;
 using System.Text;
 using ChattingClientWinForms.Models;
+using ClientNetwork.Packet;
+using ClientNetwork.Threading;
+using ClientNetwork.Transport;
+using Generated.Packets;
+using Generated.Packets.Chatting;
+using Generated.Packets.Login;
 
 namespace ChattingClientWinForms.Networking;
 
 internal sealed class ChattingTcpClient : IAsyncDisposable
 {
     private readonly SemaphoreSlim m_lifecycleLock = new(1, 1);
-    private readonly SemaphoreSlim m_sendLock = new(1, 1);
-    private readonly List<byte> m_receiveBuffer = [];
+    private readonly object m_connectionSetupLock = new();
+    private readonly object m_connectAttemptLock = new();
+    private readonly object m_dispatchLock = new();
+    private readonly FClientSession m_session = new();
+    private readonly PacketRouter m_packetRouter = new();
+    private readonly FSerializedCallbackQueue m_callbackQueue = new();
 
-    private TcpClient? m_tcpClient;
-    private NetworkStream? m_stream;
-    private CancellationTokenSource? m_receiveCancellation;
-    private Task? m_receiveTask;
-    private byte m_packetKey;
-    private int m_disconnectNotified;
-    private bool m_disposed;
+    private CancellationTokenSource? m_dispatchCancellation;
+    private Task? m_dispatchTask;
+    private TaskCompletionSource? m_connectionSetupCompletion;
+    private CancellationTokenSource? m_connectAttemptStopSource;
+    private string? m_requestedDisconnectReason;
+    private long m_requestedDisconnectGeneration;
+    private long m_activeGeneration;
+    private int m_disconnectNotified = 1;
+    private int m_disposed;
+
+    public ChattingTcpClient()
+    {
+        m_packetRouter.SetLoginHandler(new LoginResponseHandler(this));
+        m_packetRouter.SetChattingHandler(new ChattingResponseHandler(this));
+        m_session.Disconnected += HandleSessionDisconnected;
+    }
 
     public event Action<string>? SystemMessageReceived;
     public event Action<bool>? ConnectionStateChanged;
@@ -26,55 +44,110 @@ internal sealed class ChattingTcpClient : IAsyncDisposable
     public event Action<ChattingResult>? ChattingResultReceived;
     public event Action<BroadcastMessage>? BroadcastReceived;
 
-    public bool IsConnected => m_stream is not null && m_tcpClient is not null;
+    public bool IsConnected => m_session.IsConnected;
 
     public async Task ConnectAsync(ClientConnectionSettings settings, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(settings);
         ThrowIfDisposed();
+        CancelConnectAttempt();
 
         await m_lifecycleLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        TaskCompletionSource? connectionSetupCompletion = null;
+        CancellationTokenSource? connectAttemptStopSource = null;
         try
         {
-            await DisconnectCoreAsync("Disconnected.", notifyDisconnection: false, awaitReceiveTask: false).ConfigureAwait(false);
-
-            TcpClient tcpClient = new();
-            tcpClient.NoDelay = true;
-            try
+            ThrowIfDisposed();
+            CancelConnectAttempt();
+            bool wasConnected = Volatile.Read(ref m_disconnectNotified) == 0;
+            Interlocked.Exchange(ref m_activeGeneration, 0);
+            await StopDispatchLoopAsync().ConfigureAwait(false);
+            if (wasConnected)
             {
-                await tcpClient.ConnectAsync(settings.Host, settings.Port, cancellationToken).ConfigureAwait(false);
-            }
-            catch
-            {
-                tcpClient.Dispose();
-                throw;
+                NotifyDisconnected("Reconnecting.");
             }
 
-            m_packetKey = settings.PacketKey;
-            m_tcpClient = tcpClient;
-            m_stream = tcpClient.GetStream();
-            m_receiveBuffer.Clear();
-            Interlocked.Exchange(ref m_disconnectNotified, 0);
+            if (m_session.State != EClientConnectionState.Disconnected)
+            {
+                await m_session.DisconnectAsync().ConfigureAwait(false);
+            }
 
-            m_receiveCancellation = new CancellationTokenSource();
-            m_receiveTask = Task.Run(() => ReceiveLoopAsync(m_stream, m_receiveCancellation.Token), CancellationToken.None);
+            Volatile.Write(ref m_requestedDisconnectGeneration, 0);
+            m_requestedDisconnectReason = null;
+
+            connectionSetupCompletion = BeginConnectionSetup();
+            connectAttemptStopSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            RegisterConnectAttempt(connectAttemptStopSource);
         }
         finally
         {
             m_lifecycleLock.Release();
         }
 
-        EmitSystemMessage($"Connected to {settings.Host}:{settings.Port}.");
-        ConnectionStateChanged?.Invoke(true);
+        try
+        {
+            var options = new FClientConnectionOptions(settings.Host, settings.Port)
+            {
+                PacketKey = settings.PacketKey
+            };
+            long generation = await m_session.ConnectAsync(options, connectAttemptStopSource.Token).ConfigureAwait(false);
+
+            await m_lifecycleLock.WaitAsync().ConfigureAwait(false);
+            try
+            {
+                ThrowIfDisposed();
+                bool isCurrentAttempt = IsCurrentConnectAttempt(connectAttemptStopSource);
+                if (!isCurrentAttempt || connectAttemptStopSource.IsCancellationRequested)
+                {
+                    if (m_session.ConnectionGeneration == generation &&
+                        m_session.State != EClientConnectionState.Disconnected)
+                    {
+                        await m_session.DisconnectAsync().ConfigureAwait(false);
+                    }
+                    throw new OperationCanceledException(connectAttemptStopSource.Token);
+                }
+
+                Volatile.Write(ref m_activeGeneration, generation);
+                StartDispatchLoop(generation);
+                Interlocked.Exchange(ref m_disconnectNotified, 0);
+
+                EmitSystemMessage($"Connected to {settings.Host}:{settings.Port}.");
+                EmitConnectionState(true);
+            }
+            finally
+            {
+                m_lifecycleLock.Release();
+            }
+        }
+        finally
+        {
+            CompleteConnectionSetup(connectionSetupCompletion);
+            CompleteConnectAttempt(connectAttemptStopSource);
+            connectAttemptStopSource.Dispose();
+        }
     }
 
     public async Task DisconnectAsync(string reason = "Disconnected.")
     {
         ThrowIfDisposed();
+        CancelConnectAttempt();
 
         await m_lifecycleLock.WaitAsync().ConfigureAwait(false);
         try
         {
-            await DisconnectCoreAsync(reason, notifyDisconnection: true, awaitReceiveTask: false).ConfigureAwait(false);
+            ThrowIfDisposed();
+            CancelConnectAttempt();
+            long generation = Interlocked.Exchange(ref m_activeGeneration, 0);
+            m_requestedDisconnectReason = reason;
+            Volatile.Write(ref m_requestedDisconnectGeneration, generation);
+
+            if (m_session.State != EClientConnectionState.Disconnected)
+            {
+                await m_session.DisconnectAsync().ConfigureAwait(false);
+            }
+
+            await StopDispatchLoopAsync().ConfigureAwait(false);
+            NotifyDisconnected(reason);
         }
         finally
         {
@@ -84,22 +157,22 @@ internal sealed class ChattingTcpClient : IAsyncDisposable
 
     public Task SendLoginAsync(uint userId, CancellationToken cancellationToken = default)
     {
-        return SendPacketAsync(ChattingPacketCodec.CreateLoginRequestPacket(userId, m_packetKey), cancellationToken);
+        return SendPacketAsync(new LoginRq { UserId = userId }, cancellationToken);
     }
 
     public Task SendLoginAuthAsync(string ticket, CancellationToken cancellationToken = default)
     {
-        return SendPacketAsync(ChattingPacketCodec.CreateLoginAuthRequestPacket(ticket, m_packetKey), cancellationToken);
+        return SendPacketAsync(new LoginAuthRq { Ticket = ticket }, cancellationToken);
     }
 
     public Task SendRoomListAsync(CancellationToken cancellationToken = default)
     {
-        return SendPacketAsync(ChattingPacketCodec.CreateRoomListRequestPacket(m_packetKey), cancellationToken);
+        return SendPacketAsync(new RoomListRq(), cancellationToken);
     }
 
     public Task SendRoomChangeAsync(uint targetRoomId, CancellationToken cancellationToken = default)
     {
-        return SendPacketAsync(ChattingPacketCodec.CreateRoomChangeRequestPacket(targetRoomId, m_packetKey), cancellationToken);
+        return SendPacketAsync(new RoomChangeRq { TargetRoomId = targetRoomId }, cancellationToken);
     }
 
     public Task SendChattingAsync(
@@ -109,311 +182,237 @@ internal sealed class ChattingTcpClient : IAsyncDisposable
         string text,
         CancellationToken cancellationToken = default)
     {
-        byte[] payload = Encoding.UTF8.GetBytes(text);
-        return SendPacketAsync(
-            ChattingPacketCodec.CreateChattingRequestPacket(
-                roomId,
-                clientMessageId,
-                sentTick,
-                payload,
-                m_packetKey),
-            cancellationToken);
+        return SendPacketAsync(new ChattingRq
+        {
+            RoomId = roomId,
+            ClientMessageId = clientMessageId,
+            SentTick = sentTick,
+            Payload = Encoding.UTF8.GetBytes(text)
+        }, cancellationToken);
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (m_disposed)
+        if (Interlocked.Exchange(ref m_disposed, 1) != 0)
         {
             return;
         }
 
-        m_disposed = true;
+        CancelConnectAttempt();
         try
         {
-            await DisconnectAsync("Client closed.").ConfigureAwait(false);
-        }
-        catch
-        {
-        }
-
-        m_sendLock.Dispose();
-        m_lifecycleLock.Dispose();
-    }
-
-    private async Task SendPacketAsync(byte[] packet, CancellationToken cancellationToken)
-    {
-        ThrowIfDisposed();
-
-        await m_sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            NetworkStream? stream = m_stream;
-            if (stream is null)
+            await m_lifecycleLock.WaitAsync().ConfigureAwait(false);
+            try
             {
-                throw new InvalidOperationException("Not connected.");
-            }
+                CancelConnectAttempt();
+                long generation = Interlocked.Exchange(ref m_activeGeneration, 0);
+                m_requestedDisconnectReason = "Client closed.";
+                Volatile.Write(ref m_requestedDisconnectGeneration, generation);
+                Interlocked.Exchange(ref m_disconnectNotified, 1);
 
-            await stream.WriteAsync(packet, cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception exception) when (exception is IOException or ObjectDisposedException or SocketException)
-        {
-            EmitSystemMessage($"Send failed: {exception.Message}");
-            throw;
+                await StopDispatchLoopAsync().ConfigureAwait(false);
+                m_session.Disconnected -= HandleSessionDisconnected;
+                await m_session.DisposeAsync().ConfigureAwait(false);
+            }
+            finally
+            {
+                m_lifecycleLock.Release();
+            }
         }
         finally
         {
-            m_sendLock.Release();
+            await m_callbackQueue.DisposeAsync().ConfigureAwait(false);
         }
     }
 
-    private async Task ReceiveLoopAsync(NetworkStream stream, CancellationToken cancellationToken)
+    private async Task SendPacketAsync(IContentPacket packet, CancellationToken cancellationToken)
     {
-        string disconnectReason = "Connection closed by server.";
+        ThrowIfDisposed();
 
+        if (!await m_session.SendAsync(packet, cancellationToken).ConfigureAwait(false))
+        {
+            throw new InvalidOperationException("Not connected.");
+        }
+    }
+
+    private void StartDispatchLoop(long generation)
+    {
+        var cancellation = new CancellationTokenSource();
+        lock (m_dispatchLock)
+        {
+            m_dispatchCancellation = cancellation;
+        }
+
+        Task dispatchTask = DispatchPacketsAsync(generation, cancellation.Token);
+        lock (m_dispatchLock)
+        {
+            if (ReferenceEquals(m_dispatchCancellation, cancellation))
+            {
+                m_dispatchTask = dispatchTask;
+            }
+        }
+    }
+
+    private async Task DispatchPacketsAsync(long generation, CancellationToken cancellationToken)
+    {
         try
         {
-            byte[] readBuffer = new byte[4096];
-            while (!cancellationToken.IsCancellationRequested)
+            while (await m_session.WaitToReadPacketAsync(cancellationToken).ConfigureAwait(false))
             {
-                int receivedBytes = await stream.ReadAsync(readBuffer, cancellationToken).ConfigureAwait(false);
-                if (receivedBytes == 0)
+                while (m_session.TryDequeuePacket(out FReceivedPacket packet))
                 {
-                    break;
-                }
-
-                AppendReceivedBytes(readBuffer.AsSpan(0, receivedBytes));
-                while (true)
-                {
-                    if (!ChattingPacketCodec.TryExtractPacket(
-                            m_receiveBuffer,
-                            m_packetKey,
-                            out DecodedPacket? decodedPacket,
-                            out string? errorMessage))
+                    if (cancellationToken.IsCancellationRequested ||
+                        Volatile.Read(ref m_activeGeneration) != generation)
                     {
-                        if (!string.IsNullOrEmpty(errorMessage))
-                        {
-                            throw new InvalidOperationException(errorMessage);
-                        }
-
-                        break;
+                        return;
                     }
 
-                    if (decodedPacket is not null)
+                    if (packet.ConnectionGeneration != generation)
                     {
-                        DispatchPacket(decodedPacket);
+                        continue;
+                    }
+
+                    bool handled;
+                    try
+                    {
+                        handled = m_packetRouter.DispatchPacket(packet.Opcode, packet.Body.Span);
+                    }
+                    catch (Exception exception)
+                    {
+                        EmitSystemMessage($"Packet handler failed. opcode={packet.Opcode}, error={exception.Message}");
+                        continue;
+                    }
+
+                    if (!handled)
+                    {
+                        EmitSystemMessage(GetDispatchFailureMessage(packet.Opcode));
                     }
                 }
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            disconnectReason = "Disconnected.";
+        }
+        catch (ObjectDisposedException) when (cancellationToken.IsCancellationRequested)
+        {
         }
         catch (Exception exception)
         {
-            disconnectReason = $"Connection lost: {exception.Message}";
-            EmitSystemMessage(disconnectReason);
+            EmitSystemMessage($"Packet dispatch stopped: {exception.Message}");
+        }
+    }
+
+    private async Task StopDispatchLoopAsync()
+    {
+        CancellationTokenSource? cancellation;
+        Task? dispatchTask;
+        lock (m_dispatchLock)
+        {
+            cancellation = m_dispatchCancellation;
+            dispatchTask = m_dispatchTask;
+            m_dispatchCancellation = null;
+            m_dispatchTask = null;
+        }
+
+        if (cancellation is null)
+        {
+            return;
+        }
+
+        try
+        {
+            cancellation.Cancel();
+            if (dispatchTask is not null)
+            {
+                await dispatchTask.ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
         }
         finally
         {
-            await CompleteReceiveLoopAsync(stream, disconnectReason).ConfigureAwait(false);
+            cancellation.Dispose();
         }
     }
 
-    private void DispatchPacket(DecodedPacket decodedPacket)
+    private void HandleSessionDisconnected(FClientDisconnectInfo disconnectInfo)
     {
-        switch (decodedPacket.Opcode)
-        {
-        case ChattingPacketCodec.LoginRpOpcode:
-        case ChattingPacketCodec.LoginAuthRpOpcode:
-            if (ChattingPacketCodec.TryReadLoginResult(decodedPacket, out LoginResult loginResult))
-            {
-                LoginResultReceived?.Invoke(loginResult);
-            }
-            else
-            {
-                EmitSystemMessage("Failed to parse LoginRp.");
-            }
-
-            return;
-        case ChattingPacketCodec.RoomListRpOpcode:
-            if (ChattingPacketCodec.TryReadRoomListResult(decodedPacket, out IReadOnlyList<ChatRoomInfo> rooms))
-            {
-                RoomListReceived?.Invoke(rooms);
-            }
-            else
-            {
-                EmitSystemMessage("Failed to parse RoomListRp.");
-            }
-
-            return;
-        case ChattingPacketCodec.RoomChangeRpOpcode:
-            if (ChattingPacketCodec.TryReadRoomChangeResult(decodedPacket, out RoomChangeResult roomChangeResult))
-            {
-                RoomChangeResultReceived?.Invoke(roomChangeResult);
-            }
-            else
-            {
-                EmitSystemMessage("Failed to parse RoomChangeRp.");
-            }
-
-            return;
-        case ChattingPacketCodec.ChattingRpOpcode:
-            if (ChattingPacketCodec.TryReadChattingResult(decodedPacket, out ChattingResult chattingResult))
-            {
-                ChattingResultReceived?.Invoke(chattingResult);
-            }
-            else
-            {
-                EmitSystemMessage("Failed to parse ChattingRp.");
-            }
-
-            return;
-        case ChattingPacketCodec.BroadcastOpcode:
-            if (ChattingPacketCodec.TryReadBroadcast(decodedPacket, out BroadcastMessage broadcastMessage))
-            {
-                BroadcastReceived?.Invoke(broadcastMessage);
-            }
-            else
-            {
-                EmitSystemMessage("Failed to parse Broadcast.");
-            }
-
-            return;
-        default:
-            EmitSystemMessage($"Unhandled opcode received: {decodedPacket.Opcode}");
-            return;
-        }
+        Task connectionSetupTask = GetConnectionSetupTask();
+        _ = HandleSessionDisconnectedAsync(disconnectInfo, connectionSetupTask);
     }
 
-    private async Task CompleteReceiveLoopAsync(NetworkStream stream, string disconnectReason)
+    private async Task HandleSessionDisconnectedAsync(
+        FClientDisconnectInfo disconnectInfo,
+        Task connectionSetupTask)
     {
-        await m_lifecycleLock.WaitAsync().ConfigureAwait(false);
+        await connectionSetupTask.ConfigureAwait(false);
         try
         {
-            if (!ReferenceEquals(m_stream, stream))
+            await m_lifecycleLock.WaitAsync().ConfigureAwait(false);
+        }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
+
+        try
+        {
+            if (Interlocked.CompareExchange(
+                    ref m_activeGeneration,
+                    0,
+                    disconnectInfo.ConnectionGeneration) != disconnectInfo.ConnectionGeneration)
             {
                 return;
             }
 
-            CancellationTokenSource? receiveCancellation = m_receiveCancellation;
-            TcpClient? tcpClient = m_tcpClient;
+            await StopDispatchLoopAsync().ConfigureAwait(false);
 
-            m_receiveCancellation = null;
-            m_receiveTask = null;
-            m_stream = null;
-            m_tcpClient = null;
-            m_receiveBuffer.Clear();
-
-            try
-            {
-                receiveCancellation?.Dispose();
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                stream.Dispose();
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                tcpClient?.Dispose();
-            }
-            catch
-            {
-            }
+            string reason = Volatile.Read(ref m_requestedDisconnectGeneration) == disconnectInfo.ConnectionGeneration &&
+                !string.IsNullOrWhiteSpace(m_requestedDisconnectReason)
+                    ? m_requestedDisconnectReason
+                    : BuildDisconnectReason(disconnectInfo);
+            NotifyDisconnected(reason);
         }
         finally
         {
             m_lifecycleLock.Release();
         }
-
-        NotifyDisconnected(disconnectReason);
     }
 
-    private async Task DisconnectCoreAsync(
-        string reason,
-        bool notifyDisconnection,
-        bool awaitReceiveTask)
+    private TaskCompletionSource BeginConnectionSetup()
     {
-        CancellationTokenSource? receiveCancellation = m_receiveCancellation;
-        Task? receiveTask = m_receiveTask;
-        NetworkStream? stream = m_stream;
-        TcpClient? tcpClient = m_tcpClient;
+        var completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        lock (m_connectionSetupLock)
+        {
+            m_connectionSetupCompletion = completion;
+        }
+        return completion;
+    }
 
-        m_receiveCancellation = null;
-        m_receiveTask = null;
-        m_stream = null;
-        m_tcpClient = null;
-        m_receiveBuffer.Clear();
-
-        try
+    private Task GetConnectionSetupTask()
+    {
+        lock (m_connectionSetupLock)
         {
-            receiveCancellation?.Cancel();
-        }
-        catch
-        {
-        }
-
-        try
-        {
-            stream?.Dispose();
-        }
-        catch
-        {
-        }
-
-        try
-        {
-            tcpClient?.Dispose();
-        }
-        catch
-        {
-        }
-
-        if (awaitReceiveTask && receiveTask is not null)
-        {
-            try
-            {
-                await receiveTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-            catch (ObjectDisposedException)
-            {
-            }
-            catch (IOException)
-            {
-            }
-        }
-
-        try
-        {
-            receiveCancellation?.Dispose();
-        }
-        catch
-        {
-        }
-
-        if (notifyDisconnection)
-        {
-            NotifyDisconnected(reason);
+            return m_connectionSetupCompletion?.Task ?? Task.CompletedTask;
         }
     }
 
-    private void AppendReceivedBytes(ReadOnlySpan<byte> bytes)
+    private void CompleteConnectionSetup(TaskCompletionSource? completion)
     {
-        for (int index = 0; index < bytes.Length; ++index)
+        if (completion is null)
         {
-            m_receiveBuffer.Add(bytes[index]);
+            return;
         }
+
+        lock (m_connectionSetupLock)
+        {
+            if (ReferenceEquals(m_connectionSetupCompletion, completion))
+            {
+                m_connectionSetupCompletion = null;
+            }
+        }
+        completion.TrySetResult();
     }
 
     private void NotifyDisconnected(string reason)
@@ -424,16 +423,208 @@ internal sealed class ChattingTcpClient : IAsyncDisposable
         }
 
         EmitSystemMessage(reason);
-        ConnectionStateChanged?.Invoke(false);
+        EmitConnectionState(false);
     }
 
-    private void EmitSystemMessage(string message)
+    private void EmitSystemMessage(string message) => InvokeSafely(SystemMessageReceived, message);
+
+    private void EmitConnectionState(bool connected) => InvokeSafely(ConnectionStateChanged, connected);
+
+    private void EmitLoginResult(uint userId, bool success)
     {
-        SystemMessageReceived?.Invoke(message);
+        InvokeSafely(LoginResultReceived, new LoginResult(userId, success));
+    }
+
+    private bool EmitRoomList(RoomListRp packet)
+    {
+        int roomCount = packet.RoomIds.Count;
+        if (packet.RoomNames.Count != roomCount ||
+            packet.ParticipantCounts.Count != roomCount ||
+            packet.Capacities.Count != roomCount ||
+            packet.JoinableFlags.Count != roomCount)
+        {
+            return false;
+        }
+
+        var rooms = new List<ChatRoomInfo>(roomCount);
+        for (int index = 0; index < roomCount; ++index)
+        {
+            rooms.Add(new ChatRoomInfo(
+                packet.RoomIds[index],
+                packet.RoomNames[index],
+                packet.ParticipantCounts[index],
+                packet.Capacities[index],
+                packet.JoinableFlags[index] != 0));
+        }
+
+        InvokeSafely(RoomListReceived, rooms);
+        return true;
+    }
+
+    private void EmitRoomChangeResult(RoomChangeRp packet)
+    {
+        var resultCode = Enum.IsDefined(typeof(RoomFlowResultCode), packet.ResultCode)
+            ? (RoomFlowResultCode)packet.ResultCode
+            : RoomFlowResultCode.InternalError;
+        InvokeSafely(RoomChangeResultReceived, new RoomChangeResult(
+            packet.PreviousRoomId,
+            packet.CurrentRoomId,
+            packet.Success,
+            resultCode));
+    }
+
+    private void EmitChattingResult(ChattingRp packet)
+    {
+        InvokeSafely(ChattingResultReceived, new ChattingResult(packet.Success));
+    }
+
+    private void EmitBroadcast(Broadcast packet)
+    {
+        InvokeSafely(BroadcastReceived, new BroadcastMessage(
+            packet.RoomId,
+            packet.SenderUserId,
+            packet.MessageId,
+            packet.SentTick,
+            packet.Payload));
+    }
+
+    private void InvokeSafely<T>(Action<T>? callbacks, T argument)
+    {
+        if (callbacks is null)
+        {
+            return;
+        }
+
+        Delegate[] invocationList = callbacks.GetInvocationList();
+        m_callbackQueue.Enqueue(() =>
+        {
+            foreach (Delegate callback in invocationList)
+            {
+                if (Volatile.Read(ref m_disposed) != 0)
+                {
+                    return;
+                }
+
+                try
+                {
+                    ((Action<T>)callback)(argument);
+                }
+                catch
+                {
+                    // UI/application callbacks must not terminate packet dispatch.
+                }
+            }
+        });
+    }
+
+    private void RegisterConnectAttempt(CancellationTokenSource stopSource)
+    {
+        lock (m_connectAttemptLock)
+        {
+            m_connectAttemptStopSource = stopSource;
+        }
+    }
+
+    private bool IsCurrentConnectAttempt(CancellationTokenSource stopSource)
+    {
+        lock (m_connectAttemptLock)
+        {
+            return ReferenceEquals(m_connectAttemptStopSource, stopSource);
+        }
+    }
+
+    private void CompleteConnectAttempt(CancellationTokenSource stopSource)
+    {
+        lock (m_connectAttemptLock)
+        {
+            if (ReferenceEquals(m_connectAttemptStopSource, stopSource))
+            {
+                m_connectAttemptStopSource = null;
+            }
+        }
+    }
+
+    private void CancelConnectAttempt()
+    {
+        lock (m_connectAttemptLock)
+        {
+            try
+            {
+                m_connectAttemptStopSource?.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+    }
+
+    private static string BuildDisconnectReason(FClientDisconnectInfo disconnectInfo)
+    {
+        return disconnectInfo.Reason switch
+        {
+            EClientDisconnectReason.RemoteClosed => "Connection closed by server.",
+            EClientDisconnectReason.LocalRequest => "Disconnected.",
+            EClientDisconnectReason.Disposed => "Client closed.",
+            _ => $"Connection lost: {disconnectInfo.Exception?.Message ?? disconnectInfo.Message}"
+        };
+    }
+
+    private static string GetDispatchFailureMessage(ushort opcode)
+    {
+        return opcode switch
+        {
+            LoginRp.OpcodeValue or LoginAuthRp.OpcodeValue => "Failed to parse LoginRp.",
+            RoomListRp.OpcodeValue => "Failed to parse RoomListRp.",
+            RoomChangeRp.OpcodeValue => "Failed to parse RoomChangeRp.",
+            ChattingRp.OpcodeValue => "Failed to parse ChattingRp.",
+            Broadcast.OpcodeValue => "Failed to parse Broadcast.",
+            _ => $"Unhandled opcode received: {opcode}"
+        };
     }
 
     private void ThrowIfDisposed()
     {
-        ObjectDisposedException.ThrowIf(m_disposed, this);
+        ObjectDisposedException.ThrowIf(Volatile.Read(ref m_disposed) != 0, this);
+    }
+
+    private sealed class LoginResponseHandler(ChattingTcpClient owner) : LoginPacketHandlerBase
+    {
+        public override bool HandleLoginRp(LoginRp packet)
+        {
+            owner.EmitLoginResult(packet.UserId, packet.Success);
+            return true;
+        }
+
+        public override bool HandleLoginAuthRp(LoginAuthRp packet)
+        {
+            owner.EmitLoginResult(packet.UserId, packet.Success);
+            return true;
+        }
+    }
+
+    private sealed class ChattingResponseHandler(ChattingTcpClient owner) : ChattingPacketHandlerBase
+    {
+        public override bool HandleRoomListRp(RoomListRp packet)
+        {
+            return owner.EmitRoomList(packet);
+        }
+
+        public override bool HandleRoomChangeRp(RoomChangeRp packet)
+        {
+            owner.EmitRoomChangeResult(packet);
+            return true;
+        }
+
+        public override bool HandleChattingRp(ChattingRp packet)
+        {
+            owner.EmitChattingResult(packet);
+            return true;
+        }
+
+        public override bool HandleBroadcast(Broadcast packet)
+        {
+            owner.EmitBroadcast(packet);
+            return true;
+        }
     }
 }

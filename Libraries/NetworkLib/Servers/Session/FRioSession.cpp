@@ -16,6 +16,7 @@ namespace NetworkLib::Session
 		FRioSession* session = s_sessionPool.Alloc();
 		session->RegisterInSessionRegistry();
 		session->Reset();
+		session->m_refCount.store(1, std::memory_order_release);
 		return session;
 	}
 
@@ -86,13 +87,12 @@ namespace NetworkLib::Session
 		std::size_t sendRingCapacityBytes) noexcept
 	{
 		m_socket = socket;
-		m_sessionId = sessionId;
+		m_sessionId.store(sessionId, std::memory_order_release);
 		m_slotIndex = slotIndex;
 		m_generation = generation;
 		m_ownerWorkerIndex = ownerWorkerIndex;
 		m_requestQueue = RIO_INVALID_RQ;
 		m_recvBufferId = RIO_INVALID_BUFFERID;
-		m_refCount.store(1);
 		m_closing.store(false);
 		m_recvPending.store(false);
 		m_ownerSendDrainScheduled.store(false);
@@ -120,13 +120,12 @@ namespace NetworkLib::Session
 	{
 		ReleaseQueuedSendPackets();
 		m_socket = INVALID_SOCKET;
-		m_sessionId = 0;
+		m_sessionId.store(0, std::memory_order_release);
 		m_slotIndex = 0;
 		m_generation = 0;
 		m_ownerWorkerIndex = 0;
 		m_requestQueue = RIO_INVALID_RQ;
 		m_recvBufferId = RIO_INVALID_BUFFERID;
-		m_refCount.store(1);
 		m_closing.store(false);
 		m_recvPending.store(false);
 		m_ownerSendDrainScheduled.store(false);
@@ -163,7 +162,7 @@ namespace NetworkLib::Session
 
 	std::uint64_t FRioSession::GetSessionId() const noexcept
 	{
-		return m_sessionId;
+		return m_sessionId.load(std::memory_order_acquire);
 	}
 
 	std::uint32_t FRioSession::GetSlotIndex() const noexcept
@@ -501,6 +500,20 @@ namespace NetworkLib::Session
 	long FRioSession::AcquireRef() noexcept
 	{
 		return m_refCount.fetch_add(1, std::memory_order_relaxed) + 1;
+	}
+
+	bool FRioSession::TryAcquireRef() noexcept
+	{
+		long refCount = m_refCount.load(std::memory_order_acquire);
+		while (refCount > 0)
+		{
+			if (m_refCount.compare_exchange_weak(refCount, refCount + 1, std::memory_order_acq_rel, std::memory_order_acquire))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	long FRioSession::ReleaseRef() noexcept

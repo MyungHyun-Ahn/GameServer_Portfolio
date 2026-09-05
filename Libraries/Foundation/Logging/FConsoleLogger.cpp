@@ -42,6 +42,12 @@ namespace Foundation
 		WriteConsoleLine(Logging::BuildLine(m_logConfig, logLevel, category, message), logLevel >= ELogLevel::Error);
 	}
 
+	void FConsoleLogger::FlushLog()
+	{
+		const std::lock_guard<std::mutex> lock(g_consoleMutex);
+		std::cout.flush();
+	}
+
 	void FConsoleLogger::WriteLine(
 		const std::string_view line)
 	{

@@ -5,8 +5,9 @@ namespace NetworkLib::Containers
 	template <typename T>
 	concept FundamentalOrPointer = std::is_fundamental_v<T> || std::is_pointer_v<T>;
 
-	constexpr std::uint64_t kAddressMask = 0x0000FFFFFFFFFFFFULL;
-	constexpr std::uint32_t kTagBitCount = 16;
+	// Windows x64 user-mode virtual addresses are limited to the low 47 bits.
+	constexpr std::uint64_t kAddressMask = 0x00007FFFFFFFFFFFULL;
+	constexpr std::uint32_t kTagBitCount = 17;
 	constexpr std::uint64_t kTagMask = ~kAddressMask;
 
 	inline std::uint64_t MakeTaggedPointer(

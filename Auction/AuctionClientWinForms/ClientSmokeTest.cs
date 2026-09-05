@@ -33,8 +33,10 @@ internal static class ClientSmokeTest
 				login.AuctionServer.Port,
 				settings.AuctionPacketKey));
 			AuctionAuthResult auth = await client.AuthenticateAsync(login.AuctionTicket);
-			if (auth.ResultCode != 0 || auth.MaxActiveListings == 0)
+			if (auth.ResultCode != 0 || auth.MaxActiveListings == 0 || auth.DefaultCurrencyId == 0)
 				return 1;
+			ulong startPrice = GetListingPrice(auth, 1_000);
+			ulong buyoutPrice = GetBuyoutPrice(auth, startPrice, 2_000);
 
 			List<ulong> createdItemIds = [];
 			for (uint index = 0; index <= auth.MaxActiveListings; ++index)
@@ -57,16 +59,17 @@ internal static class ClientSmokeTest
 			for (int index = 0; index < auth.MaxActiveListings; ++index)
 			{
 				ListingRegisterResult result = await client.RegisterListingAsync(
-					items[createdItemIds[index]], 1, 1_000, 2_000, auth.MinimumListingDurationSeconds);
+					items[createdItemIds[index]], auth.DefaultCurrencyId, startPrice, buyoutPrice,
+					auth.MinimumListingDurationSeconds);
 				if (result.ResultCode != 0)
 					return 1;
 			}
 
 			ListingRegisterResult rejected = await client.RegisterListingAsync(
 				items[createdItemIds[checked((int)auth.MaxActiveListings)]],
-				1,
-				1_000,
-				2_000,
+				auth.DefaultCurrencyId,
+				startPrice,
+				buyoutPrice,
 				auth.MinimumListingDurationSeconds);
 			if (rejected.ResultCode != ListingLimitExceeded)
 				return 1;
@@ -295,8 +298,20 @@ internal static class ClientSmokeTest
                 return 1;
             }
 
-            ListingRegisterResult materialListing = await client.RegisterListingAsync(material, 1, 100, 1_000, 3_600);
-            ListingRegisterResult equipmentListing = await client.RegisterListingAsync(equipment, 1, 1_000, 5_000, 3_600);
+            ulong materialStartPrice = GetListingPrice(auth, 100);
+            ulong equipmentStartPrice = GetListingPrice(auth, 1_000);
+            ListingRegisterResult materialListing = await client.RegisterListingAsync(
+                material,
+                auth.DefaultCurrencyId,
+                materialStartPrice,
+                GetBuyoutPrice(auth, materialStartPrice, 1_000),
+                auth.DefaultListingDurationSeconds);
+            ListingRegisterResult equipmentListing = await client.RegisterListingAsync(
+                equipment,
+                auth.DefaultCurrencyId,
+                equipmentStartPrice,
+                GetBuyoutPrice(auth, equipmentStartPrice, 5_000),
+                auth.DefaultListingDurationSeconds);
             if (materialListing.ResultCode != 0 || equipmentListing.ResultCode != 0)
             {
                 Console.Error.WriteLine("Cheat item listing validation failed.");
@@ -358,4 +373,10 @@ internal static class ClientSmokeTest
             return 1;
         }
     }
+
+	private static ulong GetListingPrice(AuctionAuthResult auth, ulong preferredPrice) =>
+		Math.Clamp(preferredPrice, auth.MinimumListingPrice, auth.MaximumListingPrice);
+
+	private static ulong GetBuyoutPrice(AuctionAuthResult auth, ulong startPrice, ulong preferredPrice) =>
+		Math.Clamp(preferredPrice, startPrice, auth.MaximumListingPrice);
 }

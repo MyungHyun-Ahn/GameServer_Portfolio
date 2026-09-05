@@ -1,6 +1,6 @@
 # C++ Coding Conventions
 
-이 문서는 `GameServerPortfolio`의 C++ 코드에 공통으로 적용하는 규칙을 정의한다. 규칙의 목적은 스타일 통일뿐 아니라 네트워크·콘텐츠·DB 스레드의 소유권과 실행 경계를 코드에서 명확하게 드러내는 것이다.
+이 문서는 `Portfolio`의 C++ 코드에 공통으로 적용하는 규칙을 정의한다. 규칙의 목적은 스타일 통일뿐 아니라 네트워크·콘텐츠·RPC·DB 스레드의 소유권과 실행 경계를 코드에서 명확하게 드러내는 것이다.
 
 ## 1. 언어와 파일
 
@@ -15,8 +15,8 @@
 
 | 대상 | 규칙 | 예시 |
 |---|---|---|
-| 클래스 | `F` + PascalCase | `FRioServer` |
-| 구조체 | `S` + PascalCase | `SServerConfig` |
+| 런타임 객체·서비스·공개 계약 타입 (`class`/`struct` 무관) | `F` + PascalCase | `FRioServer`, `FRpcTarget` |
+| 내부 상태·옵션·스냅샷 등 단순 값 묶음 | `S` + PascalCase | `SServerConfig` |
 | 인터페이스 | `I` + PascalCase | `IServer` |
 | 열거형 | `E` + PascalCase | `EBackendKind` |
 | 템플릿 타입 | `T` + PascalCase | `TPacket` |
@@ -27,6 +27,7 @@
 | bool | 상태 또는 질문을 나타내는 이름 | `isRunning`, `HasPendingWork()` |
 
 - 약어도 타입과 함수명에서는 단어처럼 취급한다. 예: `FIocpServer`, `GetRioSendMetrics()`.
+- `F`와 `S`는 C++의 `class`/`struct` 문법이 아니라 타입의 역할을 기준으로 구분한다.
 - 단위가 중요한 값은 이름에 단위를 포함한다. 예: `timeoutMilliseconds`, `queuedBytes`.
 - 의미 없는 `data`, `value`, `temp`는 범위가 매우 짧고 의미가 명확할 때만 사용한다.
 
@@ -62,7 +63,8 @@ powershell -ExecutionPolicy Bypass -File scripts/maintenance/Format-Cpp.ps1 -Che
 - 모든 `.cpp`의 첫 include는 해당 프로젝트 PCH여야 한다.
 - 포인터나 참조만 필요한 타입은 전방 선언한다.
 - 부모 인터페이스, 값 멤버, inline/template 본문에 필요한 안정 타입은 프로젝트 PCH에 둔다.
-- 구체 Content, Registry, Service, Repository와 Generated 코드는 PCH에 넣지 않는다.
+- 구체 Content, Registry, Service, Repository와 Generated Packet·Config·GameData 코드는 PCH에 넣지 않는다.
+- 변경이 드물고 lock 파일로 wire signature를 보호하는 Generated RPC contract는 프로젝트 PCH에 둘 수 있다.
 - MySQL 및 Redis SDK는 사용하는 구현 `.cpp`에서 include한다.
 - 다른 프로젝트의 PCH를 include하지 않는다.
 
@@ -87,14 +89,15 @@ powershell -ExecutionPolicy Bypass -File scripts/maintenance/Format-Cpp.ps1 -Che
 - 상세 원인이 필요한 경계에서는 `std::string& outError`를 함께 사용한다.
 - 예외는 초기화 실패나 복구할 수 없는 내부 불변식 위반처럼 예외적인 상황에 제한한다.
 - 예외를 잡고 무시하지 않는다. 복구하거나, 문맥을 기록한 뒤 다시 throw하거나, 명확한 실패 코드로 변환한다.
-- 로그는 `Foundation::ILogger::Log()`를 사용한다.
-- format overload는 가독성이 좋아지는 경우 사용한다. 기존 문자열 조합과 `std::ostringstream`도 복잡한 값 표현이나 기존 코드와의
-  일관성이 더 좋은 경우 허용하며, 형식 선택 자체를 결함으로 판정하지 않는다.
+- 로그는 `Foundation::ILogger::Log()`에 level, category와 message를 전달한다.
+- format overload, 문자열 조합과 `std::ostringstream` 중 값의 의미와 기존 코드의 흐름을 가장 명확하게 드러내는 형식을 선택한다.
 - 로그에는 `sessionId`, `userId`, `listingId`, `workerIndex`처럼 동작을 추적할 수 있는 식별자를 포함한다.
 - 인증 토큰, 비밀번호와 같은 비밀 값은 기록하지 않는다.
 
 ```cpp
-Log(Foundation::ELogLevel::Warn,
+logger.Log(
+	Foundation::ELogLevel::Warn,
+	"Network",
 	"send queue is growing. sessionId={} queuedBytes={}",
 	sessionId,
 	queuedBytes);
@@ -102,20 +105,22 @@ Log(Foundation::ELogLevel::Warn,
 
 ## 7. 비동기와 스레드 안전성
 
-- 세션 상태는 지정된 Owner Thread에서 변경한다.
-- 콘텐츠 상태는 해당 Content Thread의 single-writer 규칙을 따른다.
+- IOCP 세션은 atomic·lock-free 상태와 generation·reference count 수명 경계로 여러 completion worker의 동시 접근을 보호한다.
+- RIO Direct 전송 모드는 send ring을 세션별 mutex로 보호하고, RIO OwnerThread 전송 모드는 send ring 변경을 지정된 owner worker에 위임한다.
+- 콘텐츠 상태는 네트워크 backend와 독립적으로 해당 Content Thread의 mailbox에서 변경하며 single-writer 규칙을 따른다.
 - 네트워크 worker에서 동기 DB 작업을 실행하지 않는다.
 - DB connection은 연결을 획득한 콘텐츠 스레드에 귀속한다.
 - 공유 상태를 추가할 때 mutex, atomic, owner-thread 위임 중 어느 방식으로 보호하는지 명확히 한다.
 - mutex는 `std::lock_guard` 또는 `std::unique_lock`으로 관리한다.
-- atomic은 기본 `seq_cst` 사용을 허용한다. 완화된 memory order는 알고리즘의 happens-before 관계가 명확하고 성능상 필요할 때만
-  명시하며, x64 전용 구현에서 memory order 미지정 자체를 결함으로 판정하지 않는다.
+- atomic은 기본 `seq_cst`를 사용한다. 완화된 memory order는 알고리즘의 happens-before 관계와 성능상 필요성이 명확할 때 명시한다.
 - 락을 보유한 상태에서 외부 콜백, 네트워크 전송, DB 호출을 수행하지 않는다.
 - queue 제한은 개수인지 byte 크기인지 이름과 타입에서 구분한다.
+- RPC 응답 callback은 임의의 Worker에서 애플리케이션 상태를 바꾸지 않고 원 요청 Content mailbox로 재진입한다.
+- Sector Worker는 live entity·sector 상태를 직접 변경하지 않고 Result/Intent만 만든다. 4 Wave 실행과 최종 상태 반영은 Map Owner 경계를 지킨다.
 
 ## 8. 네트워크와 패킷
 
-- wire format은 직접 중복 구현하지 않고 PacketGenerator의 생성 타입을 사용한다.
+- wire format은 직접 중복 구현하지 않고 PacketGenerator와 RpcGenerator의 생성 타입을 사용한다.
 - 수신 payload는 역직렬화 성공과 길이를 검증한 후 사용한다.
 - 세션 종료, backpressure, slow consumer 정책은 로그와 결과 코드로 원인을 구분한다.
 - borrowed packet view는 유효 범위를 벗어나 보관하지 않는다.
@@ -126,9 +131,11 @@ Log(Foundation::ELogLevel::Warn,
 - 패킷 라우팅은 인증된 `userId`를 기준으로 동일 shard에 직렬화한다.
 - 콘텐츠 객체는 DB connection을 소유하지 않고 현재 콘텐츠 스레드의 DB context에서 획득한다.
 - Primary 쓰기와 Replica 읽기를 구분하고, Replica 연결 실패 시에만 정의된 Primary fallback을 사용한다.
+- 서비스 코드에서 GameDB를 직접 읽거나 변경하는 경계는 CacheServer로 한정한다. AuctionHouseServer는 AuctionDB만 직접 처리하고 GameDB 작업은 CacheServer RPC로 요청한다.
 - GameDB Stored Procedure는 `sp_gd_{crud}_{name}` 형식을 사용한다.
 - AuctionDB Stored Procedure는 `sp_ad_{crud}_{name}` 형식을 사용한다.
 - `{crud}`에는 `c`, `r`, `u`, `d` 또는 복합 동작인 `cu`처럼 실제 동작을 표시한다.
+- 일회성 스키마 보정 프로시저는 `sp_gd_migrate_{name}` 또는 `sp_ad_migrate_{name}` 형식을 사용하고 migration 완료 후 제거한다.
 - 두 DB에 걸친 부분 성공은 성공으로 숨기지 않고 식별 가능한 오류 로그를 남긴다.
 
 ## 10. 주석과 문서
@@ -137,3 +144,4 @@ Log(Foundation::ELogLevel::Warn,
 - 임시 우회는 `TODO`만 남기지 말고 제거 조건 또는 관련 문서를 함께 명시한다.
 - public API의 이름만으로 수명·스레드·오류 계약이 불분명하면 선언부에 짧게 설명한다.
 - 구현과 문서가 다르면 구현을 기준으로 문서를 즉시 갱신한다.
+- Packet·Config·RPC·GameData의 자동 생성 산출물(`.h`, `.cpp`, `.g.cs`, YAML, JSON)은 직접 수정하지 않고 입력 YAML·Excel 또는 생성기를 수정한 뒤 재생성한다. `GeneratedPackets.csproj`처럼 빌드 연결을 위한 프로젝트 파일은 수동으로 유지한다.

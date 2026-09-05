@@ -1,0 +1,143 @@
+content: Map
+
+messages:
+  - name: MapEnter
+    rq:
+      opcode: 5000
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: mapDataId, type: uint32 }
+    rp:
+      opcode: 5001
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: mapInstanceId, type: uint64 }
+        - { name: entityId, type: uint64 }
+        - { name: positionX, type: float }
+        - { name: positionY, type: float }
+        - { name: directionX, type: float }
+        - { name: directionY, type: float }
+        - { name: serverTick, type: uint64 }
+        - { name: characterId, type: uint64 }
+        - { name: characterDataId, type: uint32 }
+        - { name: level, type: uint32 }
+        - { name: exp, type: uint64 }
+        - { name: requiredExpToNextLevel, type: uint64 }
+        - { name: strStat, type: uint32 }
+        - { name: dexStat, type: uint32 }
+        - { name: intStat, type: uint32 }
+        - { name: lukStat, type: uint32 }
+        - { name: unspentStatPoints, type: uint32 }
+        - { name: progressVersion, type: uint64 }
+        - { name: statVersion, type: uint64 }
+        - { name: finalStr, type: uint32 }
+        - { name: finalDex, type: uint32 }
+        - { name: finalInt, type: uint32 }
+        - { name: finalLuk, type: uint32 }
+        - { name: currentHp, type: uint32 }
+        - { name: maxHp, type: uint32 }
+        - { name: currentMp, type: uint32 }
+        - { name: maxMp, type: uint32 }
+        - { name: attack, type: uint32 }
+        - { name: defense, type: uint32 }
+        - { name: moveSpeedMilli, type: uint32 }
+        - { name: equipmentVersion, type: uint64 }
+        - { name: statRevision, type: uint64 }
+  - name: ActorSpawn
+    noti:
+      opcode: 5002
+      fields:
+        - { name: entityId, type: uint64 }
+        - { name: actorKind, type: uint8 }
+        - { name: actorDataId, type: uint32 }
+        - { name: positionX, type: float }
+        - { name: positionY, type: float }
+        - { name: directionX, type: float }
+        - { name: directionY, type: float }
+        - { name: moveSequence, type: uint32 }
+        - { name: moveState, type: uint8 }
+        - { name: serverTick, type: uint64 }
+        - { name: currentHp, type: uint32 }
+        - { name: maxHp, type: uint32 }
+        - { name: lifeRevision, type: uint64 }
+  - name: ActorDespawn
+    noti:
+      opcode: 5003
+      fields:
+        - { name: entityId, type: uint64 }
+  - name: Move
+    rq:
+      opcode: 5004
+      fields:
+        - { name: sequence, type: uint32 }
+        - { name: moveState, type: uint8 }
+        - { name: clientPositionX, type: float }
+        - { name: clientPositionY, type: float }
+        - { name: directionX, type: float }
+        - { name: directionY, type: float }
+    rp:
+      opcode: 5005
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: sequence, type: uint32 }
+        - { name: moveState, type: uint8 }
+        - { name: acceptedPositionX, type: float }
+        - { name: acceptedPositionY, type: float }
+        - { name: directionX, type: float }
+        - { name: directionY, type: float }
+        - { name: isCorrected, type: bool }
+    noti:
+      opcode: 5006
+      fields:
+        - { name: entityId, type: uint64 }
+        - { name: sequence, type: uint32 }
+        - { name: moveState, type: uint8 }
+        - { name: positionX, type: float }
+        - { name: positionY, type: float }
+        - { name: directionX, type: float }
+        - { name: directionY, type: float }
+        - { name: serverTick, type: uint64 }
+  - name: ActorAttack
+    noti:
+      opcode: 5011
+      fields:
+        - { name: attackerEntityId, type: uint64 }
+        - { name: targetEntityId, type: uint64 }
+        - { name: damage, type: uint32 }
+        - { name: targetCurrentHp, type: uint32 }
+        - { name: targetMaxHp, type: uint32 }
+        - { name: serverTick, type: uint64 }
+  - name: ActorDeath
+    noti:
+      opcode: 5012
+      fields:
+        - { name: entityId, type: uint64 }
+        - { name: killerEntityId, type: uint64 }
+        - { name: lifeRevision, type: uint64 }
+        - { name: serverTick, type: uint64 }
+  - name: ActorRespawn
+    noti:
+      opcode: 5013
+      fields:
+        - { name: entityId, type: uint64 }
+        - { name: positionX, type: float }
+        - { name: positionY, type: float }
+        - { name: directionX, type: float }
+        - { name: directionY, type: float }
+        - { name: currentHp, type: uint32 }
+        - { name: maxHp, type: uint32 }
+        - { name: lifeRevision, type: uint64 }
+        - { name: serverTick, type: uint64 }
+  - name: BasicAttack
+    rq:
+      opcode: 5014
+      fields:
+        - { name: attackSequence, type: uint32 }
+        - { name: targetEntityId, type: uint64 }
+    rp:
+      opcode: 5015
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: attackSequence, type: uint32 }
+        - { name: serverTick, type: uint64 }

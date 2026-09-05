@@ -3,10 +3,10 @@
 #include "AuctionHouseServer/Contents/FAuctionContentRouter.h"
 
 #include "AuctionHouseServer/Contents/ContentTypes.h"
-#include "AuctionHouseServer/Contents/Session/FAuctionUserRegistry.h"
+#include "AuctionHouseServer/Contents/Session/FAuctionSessionRegistry.h"
 #include "AuctionHouseServer/Domain/AuctionResultCode.h"
 #include "ContentsRuntime/Bridge/IContentBridge.h"
-#include "Generated/Packets/Auction/AuctionPackets.h"
+#include "Generated/Packets/Cpp/Auction/AuctionPackets.h"
 
 #include <format>
 namespace AuctionHouseServer::Contents
@@ -23,11 +23,11 @@ namespace AuctionHouseServer::Contents
 	FAuctionContentRouter::FAuctionContentRouter(
 		std::shared_ptr<Foundation::ILogger> logger,
 		const ContentsRuntime::Core::FContentInstanceId contentInstanceId,
-		std::shared_ptr<FAuctionUserRegistry> userRegistry,
+		std::shared_ptr<FAuctionSessionRegistry> sessionRegistry,
 		std::vector<ContentsRuntime::Core::FContentInstanceId> commandShardInstanceIds)
 		: m_logger(std::move(logger))
 		, m_contentInstanceId(contentInstanceId)
-		, m_userRegistry(std::move(userRegistry))
+		, m_sessionRegistry(std::move(sessionRegistry))
 		, m_commandShardInstanceIds(std::move(commandShardInstanceIds))
 	{
 	}
@@ -91,7 +91,7 @@ namespace AuctionHouseServer::Contents
 			Generated::Auction::FAuctionAuthRq request;
 			if (ContentsRuntime::Bridge::DeserializeOwnedPacket(opcode, payload, request))
 			{
-				const auto authenticatedUserId = m_userRegistry->GetUserId(sessionId);
+				const auto authenticatedUserId = m_sessionRegistry->GetUserId(sessionId);
 				Generated::Auction::FAuctionAuthRp response;
 				response.resultCode =
 					static_cast<std::uint16_t>(authenticatedUserId.has_value() ? Domain::EAuctionResultCode::AlreadyAuthenticated
@@ -253,7 +253,7 @@ namespace AuctionHouseServer::Contents
 
 		if (opcode != Generated::Auction::FPingRq::kOpcode)
 		{
-			const auto authenticatedUserId = m_userRegistry->GetUserId(sessionId);
+			const auto authenticatedUserId = m_sessionRegistry->GetUserId(sessionId);
 			if (!authenticatedUserId.has_value())
 			{
 				Log(Foundation::ELogLevel::Warn, "router rejected a session without authenticated user state.");

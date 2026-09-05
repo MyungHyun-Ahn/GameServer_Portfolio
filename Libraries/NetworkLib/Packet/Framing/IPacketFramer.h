@@ -14,6 +14,8 @@ namespace NetworkLib::Packet::Framing
 		virtual bool TryExtractPacket(NetworkLib::Packet::Buffer::FRecvBuffer& ioBuffer, SFramedPacket& outPacket) const = 0;
 		virtual bool TryExtractPacketView(NetworkLib::Packet::Buffer::FRecvBuffer& ioBuffer,
 			NetworkLib::Packet::View::FPacketView& outPacketView) const = 0;
+		virtual bool HasInvalidPacketHeader(const std::vector<char>& ioBuffer) const noexcept = 0;
+		virtual bool HasInvalidPacketHeader(const NetworkLib::Packet::Buffer::FRecvBuffer& ioBuffer) const noexcept = 0;
 		virtual std::uint32_t GetHeaderSize() const noexcept = 0;
 	};
 }

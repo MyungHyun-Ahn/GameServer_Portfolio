@@ -13,6 +13,7 @@ param(
     [uint32]$ListingBuyoutMarkupMaximum = 1000,
     [int]$ResponseTimeoutMs = 5000,
     [int]$Port = 19106,
+    [int]$CachePort = 19103,
     [uint64]$UserIdBase = 800000,
     [switch]$KeepTestData,
     [switch]$SkipBuild
@@ -24,7 +25,8 @@ if ($VirtualUserCount -le 0 -or $ConnectsPerSecond -le 0 -or $RunSeconds -le 0 -
     $SearchWeight -le 0 -or $RegisterWeight -lt 0 -or $BidWeight -lt 0 -or $InitialGoldAmount -eq 0 -or
     $OutbidRefundPercent -lt 0 -or $OutbidRefundPercent -gt 100 -or $ExpireListingsAfterSeconds -lt 0 -or
     $ExpireListingCount -le 0 -or $ListingBuyoutMarkupMinimum -eq 0 -or
-    $ListingBuyoutMarkupMaximum -lt $ListingBuyoutMarkupMinimum -or $ResponseTimeoutMs -le 0)
+    $ListingBuyoutMarkupMaximum -lt $ListingBuyoutMarkupMinimum -or $ResponseTimeoutMs -le 0 -or
+    $Port -le 0 -or $Port -gt 65535 -or $CachePort -le 0 -or $CachePort -gt 65535 -or $Port -eq $CachePort)
 {
     throw "Load-test counts, duration and behavior weights are invalid."
 }
@@ -39,9 +41,14 @@ $repositoryRoot = Split-Path -Parent (Split-Path -Parent $scriptDirectory)
 $envFile = Join-Path $repositoryRoot ".env"
 $serverProject = Join-Path $repositoryRoot "Auction\AuctionHouseServer\AuctionHouseServer.vcxproj"
 $clientProject = Join-Path $repositoryRoot "Auction\AuctionDummyClient\AuctionDummyClient.vcxproj"
+$cacheProject = Join-Path $repositoryRoot "Cache\CacheServer\CacheServer.vcxproj"
 $serverExecutable = Join-Path $repositoryRoot "Out\AuctionHouseServer\Release\AuctionHouseServer.exe"
 $clientExecutable = Join-Path $repositoryRoot "Out\AuctionDummyClient\Release\AuctionDummyClient.exe"
-$redisContainer = "refactoringserver-chat-redis"
+$cacheExecutable = Join-Path $repositoryRoot "Out\CacheServer\Release\CacheServer.exe"
+$cacheConfigTemplate = Join-Path $repositoryRoot "Config\Server\CacheServer.yaml"
+$serverConfigTemplate = Join-Path $repositoryRoot "Config\Server\AuctionHouseServer.yaml"
+$redisContainer = "gameserverportfolio-chat-redis"
+. (Join-Path $repositoryRoot "scripts\common\ServerConfig.ps1")
 
 function Get-DotEnvValue([string]$Name)
 {
@@ -91,6 +98,110 @@ function Invoke-RootSql([string]$Container, [string]$Sql, [string]$RootPassword)
     {
         throw "SQL cleanup failed in $Container"
     }
+}
+
+function Wait-ListeningPort(
+    [int]$ListenPort,
+    [System.Diagnostics.Process]$Process,
+    [string]$ProcessName,
+    [string]$StandardErrorPath)
+{
+    $deadline = [DateTime]::UtcNow.AddSeconds(15)
+    while ([DateTime]::UtcNow -lt $deadline)
+    {
+        if ($Process.HasExited)
+        {
+            $processError = Get-Content -LiteralPath $StandardErrorPath -Raw -ErrorAction SilentlyContinue
+            throw "$ProcessName exited before listening on port $ListenPort. error=$processError"
+        }
+
+        $listener = Get-NetTCPConnection -LocalPort $ListenPort -State Listen -ErrorAction SilentlyContinue |
+            Where-Object { $_.OwningProcess -eq $Process.Id } |
+            Select-Object -First 1
+        if ($null -ne $listener)
+        {
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    }
+
+    throw "$ProcessName did not listen on port $ListenPort within 15 seconds."
+}
+
+function Wait-EstablishedConnection(
+    [int]$RemotePort,
+    [System.Diagnostics.Process]$Process,
+    [string]$ProcessName)
+{
+    $deadline = [DateTime]::UtcNow.AddSeconds(15)
+    while ([DateTime]::UtcNow -lt $deadline)
+    {
+        if ($Process.HasExited)
+        {
+            throw "$ProcessName exited before connecting to port $RemotePort."
+        }
+        $connection = Get-NetTCPConnection -OwningProcess $Process.Id -RemotePort $RemotePort -State Established -ErrorAction SilentlyContinue |
+            Select-Object -First 1
+        if ($null -ne $connection)
+        {
+            Start-Sleep -Milliseconds 250
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    }
+
+	throw "$ProcessName did not connect to port $RemotePort within 15 seconds."
+}
+
+function Stop-LoadTestProcess(
+    [AllowNull()]
+    [System.Diagnostics.Process]$Process,
+    [string]$ProcessName,
+    [int]$NaturalExitWaitMilliseconds)
+{
+    if ($null -eq $Process)
+    {
+        return
+    }
+
+    $Process.Refresh()
+    if ($Process.HasExited)
+    {
+        $Process.WaitForExit()
+        $Process.Refresh()
+        return
+    }
+
+    if ($NaturalExitWaitMilliseconds -gt 0 -and $Process.WaitForExit($NaturalExitWaitMilliseconds))
+    {
+        $Process.WaitForExit()
+        $Process.Refresh()
+        return
+    }
+
+    Write-Warning "$ProcessName did not exit within the graceful shutdown window. Forcing termination."
+    try
+    {
+        Stop-Process -Id $Process.Id -Force -ErrorAction Stop
+    }
+    catch
+    {
+        $Process.Refresh()
+        if (-not $Process.HasExited)
+        {
+            throw
+        }
+    }
+
+    if (-not $Process.HasExited)
+    {
+        if (-not $Process.WaitForExit(5000))
+        {
+            throw "$ProcessName did not exit after forced termination. pid=$($Process.Id)"
+        }
+    }
+    $Process.WaitForExit()
+    $Process.Refresh()
 }
 
 function Invoke-LoadTestLogicValidation(
@@ -163,20 +274,30 @@ if ($LASTEXITCODE -ne 0)
 
 if (-not $SkipBuild)
 {
-    $buildTemp = "E:\Procademy\build-temp"
-    $env:TEMP = $buildTemp
-    $env:TMP = $buildTemp
+    $buildTemp = Join-Path $repositoryRoot "Out\Temp"
+    $previousTemp = $env:TEMP
+    $previousTmp = $env:TMP
     New-Item -ItemType Directory -Path $buildTemp -Force | Out-Null
-    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-    $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-    $msbuild = Join-Path $visualStudioPath "MSBuild\Current\Bin\MSBuild.exe"
-    foreach ($project in @($serverProject, $clientProject))
+    try
     {
-        & $msbuild $project /t:Build /p:Configuration=Release /p:Platform=x64 /m /nologo /v:minimal
-        if ($LASTEXITCODE -ne 0)
+        $env:TEMP = $buildTemp
+        $env:TMP = $buildTemp
+        $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+        $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+        $msbuild = Join-Path $visualStudioPath "MSBuild\Current\Bin\MSBuild.exe"
+        foreach ($project in @($cacheProject, $serverProject, $clientProject))
         {
-            throw "Build failed: $project"
+            & $msbuild $project /t:Build /p:Configuration=Release /p:Platform=x64 /m /nologo /v:minimal
+            if ($LASTEXITCODE -ne 0)
+            {
+                throw "Build failed: $project"
+            }
         }
+    }
+    finally
+    {
+        $env:TEMP = $previousTemp
+        $env:TMP = $previousTmp
     }
 }
 
@@ -186,6 +307,8 @@ $ticketPath = Join-Path $testDirectory "Tickets.txt"
 $configPath = Join-Path $testDirectory "AuctionDummyClient.yaml"
 $serverStdout = Join-Path $testDirectory "server.stdout.log"
 $serverStderr = Join-Path $testDirectory "server.stderr.log"
+$cacheStdout = Join-Path $testDirectory "cache.stdout.log"
+$cacheStderr = Join-Path $testDirectory "cache.stderr.log"
 $clientStdout = Join-Path $testDirectory "client.stdout.log"
 $clientStderr = Join-Path $testDirectory "client.stderr.log"
 $tickets = [System.Collections.Generic.List[string]]::new()
@@ -232,7 +355,7 @@ AuctionDummy:
   BidIncrementMaximum: 100
   BidHotspotPercent: 80
   OutbidRefundPercent: $OutbidRefundPercent
-  InventoryListLimit: 100
+  InventoryListLimit: 20
   CheatItemDataIds: 1001,1002,1003,1004,2001,2002,3001,3002
   ListingStartPriceMinimum: 100
   ListingStartPriceMaximum: 1000
@@ -244,22 +367,56 @@ AuctionDummy:
 [System.IO.File]::WriteAllText($configPath, $configText, $utf8WithoutBom)
 
 $serverProcess = $null
+$cacheProcess = $null
 $expirationJob = $null
+$loadTestCompleted = $false
 $rootPassword = Get-DotEnvValue "MYSQL_ROOT_PASSWORD"
 try
 {
     Reset-LoadTestData $UserIdBase $lastUserId $rootPassword
     Invoke-RedisPipe $redisContainer ($redisSeed.ToString())
 
-    $env:MYSQL_PASSWORD = Get-DotEnvValue "MYSQL_PASSWORD"
+    $appPassword = Get-DotEnvValue "MYSQL_PASSWORD"
+    $env:MYSQL_PASSWORD = $appPassword
     $serverRunSeconds = $RunSeconds + [math]::Ceiling($VirtualUserCount / $ConnectsPerSecond) + 30
+    $cacheServerConfigPath = Join-Path $testDirectory "CacheServer.yaml"
+    New-ServerConfigFile -TemplatePath $cacheConfigTemplate -DestinationPath $cacheServerConfigPath -Overrides @{
+        "CacheServer.Backend" = "Iocp"
+        "CacheServer.Port" = $CachePort
+        "CacheServer.PlayerCacheShardCount" = 4
+        "CacheServer.DatabaseEnabled" = $true
+        "GameDatabase.Password" = (ConvertTo-ServerConfigYamlString $appPassword)
+        "CacheServer.LogOutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "cache-logs"))
+        "Debug.RunSeconds" = ($serverRunSeconds + 15)
+    } | Out-Null
+    $auctionServerConfigPath = Join-Path $testDirectory "AuctionHouseServer.yaml"
+    New-ServerConfigFile -TemplatePath $serverConfigTemplate -DestinationPath $auctionServerConfigPath -Overrides @{
+        "AuctionHouseServer.Port" = $Port
+        "AuctionHouseServer.RunSeconds" = $serverRunSeconds
+        "Logging.OutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction-logs"))
+        "Diagnostics.TimingCsvPath" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction_timing.csv"))
+        "Authentication.Enabled" = $true
+        "CacheRpc.Port" = $CachePort
+        "CacheRpc.ReconnectMilliseconds" = 100
+        "AuctionDatabase.Enabled" = $true
+        "AuctionDatabase.Password" = (ConvertTo-ServerConfigYamlString $appPassword)
+    } | Out-Null
+    $cacheProcess = Start-Process -FilePath $cacheExecutable `
+        -ArgumentList @("--config", $cacheServerConfigPath) `
+        -WorkingDirectory $testDirectory `
+        -RedirectStandardOutput $cacheStdout `
+        -RedirectStandardError $cacheStderr `
+        -WindowStyle Hidden -PassThru
+    Wait-ListeningPort -ListenPort $CachePort -Process $cacheProcess -ProcessName "CacheServer" -StandardErrorPath $cacheStderr
+
     $serverProcess = Start-Process -FilePath $serverExecutable `
-        -ArgumentList @("--port", "$Port", "--run-seconds", "$serverRunSeconds", "--database-enabled", "--redis-auth-enabled") `
+        -ArgumentList @("--config", $auctionServerConfigPath) `
         -WorkingDirectory (Split-Path -Parent $serverExecutable) `
         -RedirectStandardOutput $serverStdout `
         -RedirectStandardError $serverStderr `
         -WindowStyle Hidden -PassThru
-    Start-Sleep -Seconds 1
+    Wait-ListeningPort -ListenPort $Port -Process $serverProcess -ProcessName "AuctionHouseServer" -StandardErrorPath $serverStderr
+    Wait-EstablishedConnection -RemotePort $CachePort -Process $serverProcess -ProcessName "AuctionHouseServer"
 
     if ($ExpireListingsAfterSeconds -gt 0)
     {
@@ -287,7 +444,8 @@ try
     {
         $clientError = Get-Content -LiteralPath $clientStderr -Raw -ErrorAction SilentlyContinue
         $serverError = Get-Content -LiteralPath $serverStderr -Raw -ErrorAction SilentlyContinue
-        throw "Search load test failed. client=$clientError server=$serverError"
+        $cacheError = Get-Content -LiteralPath $cacheStderr -Raw -ErrorAction SilentlyContinue
+        throw "Search load test failed. client=$clientError server=$serverError cache=$cacheError"
     }
 
     Write-Host $clientOutput.Trim()
@@ -298,6 +456,7 @@ try
         -LastUserId $lastUserId `
         -OutputPath $integrityReportPath
     Write-Host "Logs: $testDirectory"
+    $loadTestCompleted = $true
 }
 finally
 {
@@ -310,10 +469,15 @@ finally
         Receive-Job -Job $expirationJob -ErrorAction SilentlyContinue | Write-Host
         Remove-Job -Job $expirationJob -Force
     }
-    if ($serverProcess -ne $null -and -not $serverProcess.HasExited)
+    $serverNaturalExitWaitMilliseconds = 3000
+    $cacheNaturalExitWaitMilliseconds = 3000
+    if ($loadTestCompleted)
     {
-        Stop-Process -Id $serverProcess.Id -Force
+        $serverNaturalExitWaitMilliseconds = 45000
+        $cacheNaturalExitWaitMilliseconds = 30000
     }
+    Stop-LoadTestProcess $serverProcess "AuctionHouseServer" $serverNaturalExitWaitMilliseconds
+    Stop-LoadTestProcess $cacheProcess "CacheServer" $cacheNaturalExitWaitMilliseconds
     try
     {
         Invoke-RedisPipe $redisContainer ($redisCleanup.ToString())

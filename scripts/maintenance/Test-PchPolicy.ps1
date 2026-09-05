@@ -9,7 +9,7 @@ $pchFiles = Get-ChildItem -LiteralPath $repositoryRoot -Recurse -File -Filter *P
 
 $forbiddenPatterns = @(
 	@{ Pattern = '#include\s+["<].*Pch\.h[">]'; Reason = "A project PCH must not include another project PCH." },
-	@{ Pattern = '#include\s+["<].*Generated[/\\]'; Reason = "Generated code changes frequently and must stay out of PCH." },
+	@{ Pattern = '#include\s+["<].*Generated[/\\](?!(Rpc|GameData|Packets)[/\\])'; Reason = "Only shared generated RPC, GameData, or packet contracts may live in PCH." },
 	@{ Pattern = '#include\s+["<].*[/\\]Service[/\\]'; Reason = "Service implementations must stay out of PCH." },
 	@{ Pattern = '#include\s+["<].*Repository\.h[">]'; Reason = "Repository implementations must stay out of PCH." },
 	@{ Pattern = '#include\s+<mysql\.h>'; Reason = "MySQL SDK belongs in its implementation cpp." },

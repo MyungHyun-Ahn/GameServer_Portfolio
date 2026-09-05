@@ -44,6 +44,8 @@
 
 // ContentsRuntime and shared library contracts
 #include "Core/ContentRuntimeTypes.h"
+#include "Session/RequestProcessingTypes.h"
+#include "Session/FContentSession.h"
 #include "../Foundation/Diagnostics/Timing/TimingTypes.h"
 #include "../Foundation/Diagnostics/Tls/FTlsCollectorRuntime.h"
 #include "../Foundation/Diagnostics/Timing/FTimingMetricsRuntime.h"
@@ -61,5 +63,6 @@
 #include "../NetworkLib/Servers/IServer.h"
 #include "../NetworkLib/Packet/Serialization/FPacketSerialization.h"
 #include "../NetworkLib/Packet/View/FBorrowedViewGuard.h"
+#include "../NetworkLib/Packet/Serialization/IContentPacket.h"
 #include "Bridge/IContentBridge.h"
 #include "../Foundation/Logging/LoggingTypes.h"

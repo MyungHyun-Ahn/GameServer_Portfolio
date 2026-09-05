@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Call">
+      <UniqueIdentifier>{46FF62A9-8DBC-2285-BA89-05CB24C1A8F1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Client">
+      <UniqueIdentifier>{FA17F0C2-EDA6-2B4F-166A-A30D536F51B7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dispatch">
+      <UniqueIdentifier>{1ECCF405-49B1-8E22-DFB0-F9761E1EEBFF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Protocol">
+      <UniqueIdentifier>{8252E8D3-D9E6-ACAB-E418-F163E1349017}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Routing">
+      <UniqueIdentifier>{ADDC14C1-4E90-7E76-5CD1-5434DEACE316}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Session">
+      <UniqueIdentifier>{C566279C-8DB2-51B8-9B14-F0D2B6BBC65D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Transport">
+      <UniqueIdentifier>{08863727-AB1C-94A0-87CE-7EE30C586CFA}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="RpcLibPch.cpp" />
+    <ClCompile Include="FRpcCommon.cpp" />
+    <ClCompile Include="Protocol\RpcMessageSerialization.cpp">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Protocol\RpcWirePacket.cpp">
+      <Filter>Protocol</Filter>
+    </ClCompile>
+    <ClCompile Include="Session\FRpcSession.cpp">
+      <Filter>Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Session\FRpcSessionRegistry.cpp">
+      <Filter>Session</Filter>
+    </ClCompile>
+    <ClCompile Include="Call\FRpcRequestIdGenerator.cpp">
+      <Filter>Call</Filter>
+    </ClCompile>
+    <ClCompile Include="Call\FRpcPendingCallManager.cpp">
+      <Filter>Call</Filter>
+    </ClCompile>
+    <ClCompile Include="Dispatch\FRpcMethodDispatcher.cpp">
+      <Filter>Dispatch</Filter>
+    </ClCompile>
+    <ClCompile Include="Transport\FServerRpcTransport.cpp">
+      <Filter>Transport</Filter>
+    </ClCompile>
+    <ClCompile Include="Transport\FClientRpcTransport.cpp">
+      <Filter>Transport</Filter>
+    </ClCompile>
+    <ClCompile Include="Client\FOutboundRpcClient.cpp">
+      <Filter>Client</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="RpcLibPch.h" />
+    <ClInclude Include="FRpcCommon.h" />
+    <ClInclude Include="Protocol\RpcTypes.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\RpcMessages.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\RpcArgumentSerialization.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\RpcMessageSerialization.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Protocol\RpcWirePacket.h">
+      <Filter>Protocol</Filter>
+    </ClInclude>
+    <ClInclude Include="Session\FRpcSession.h">
+      <Filter>Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Session\FRpcSessionRegistry.h">
+      <Filter>Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Call\FRpcRequestIdGenerator.h">
+      <Filter>Call</Filter>
+    </ClInclude>
+    <ClInclude Include="Call\FRpcPendingCallManager.h">
+      <Filter>Call</Filter>
+    </ClInclude>
+    <ClInclude Include="Transport\IRpcTransport.h">
+      <Filter>Transport</Filter>
+    </ClInclude>
+    <ClInclude Include="Transport\FServerRpcTransport.h">
+      <Filter>Transport</Filter>
+    </ClInclude>
+    <ClInclude Include="Transport\FClientRpcTransport.h">
+      <Filter>Transport</Filter>
+    </ClInclude>
+    <ClInclude Include="Client\FOutboundRpcClient.h">
+      <Filter>Client</Filter>
+    </ClInclude>
+    <ClInclude Include="Routing\IRpcContentRouter.h">
+      <Filter>Routing</Filter>
+    </ClInclude>
+    <ClInclude Include="Dispatch\FRpcCallContext.h">
+      <Filter>Dispatch</Filter>
+    </ClInclude>
+    <ClInclude Include="Dispatch\TRpcReply.h">
+      <Filter>Dispatch</Filter>
+    </ClInclude>
+    <ClInclude Include="Dispatch\FRpcMethodDispatcher.h">
+      <Filter>Dispatch</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

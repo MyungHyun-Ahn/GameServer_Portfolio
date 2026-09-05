@@ -1,0 +1,72 @@
+# Generated from ConfigSchema/Server/CacheServer.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+CacheServer:
+  # Allowed: Iocp, Rio
+  Backend: Iocp
+  # Allowed: Direct, OwnerThread
+  RioSendDispatchMode: Direct
+  BindIp: 127.0.0.1
+  Port: 19103
+  WorkerThreadCount: 2
+  MaxSessionCount: 128
+  RecvBufferSize: 65536
+  SocketSendBufferBytes: -1
+  RioSendRingSizeBytes: 65536
+  PacketKey: 55
+  ContentsWorkerThreadCount: 5
+  PlayerCacheShardCount: 4
+  MailboxCapacity: 1024
+  RpcServerInstanceId: 1
+  GameDataDirectory: GameData
+  DatabaseEnabled: false
+  ReplicaReconnectCooldownMilliseconds: 60000
+  # Allowed: Debug, Info, Warn, Error
+  LogMinimumLevel: Info
+  LogOutputDirectory: ""
+  LogConsoleEnabled: true
+  LogFileEnabled: true
+  LogIncludeThreadId: true
+
+GameDatabase:
+  Password: ""
+
+GamePrimary:
+  Host: 127.0.0.1
+  Port: 3310
+  User: appuser
+  Database: gamedb
+  ConnectTimeoutSeconds: 3
+
+GameReplica1:
+  Enabled: true
+  Host: 127.0.0.1
+  Port: 3311
+  User: appuser
+  Database: gamedb
+  ConnectTimeoutSeconds: 3
+
+GameReplica2:
+  Enabled: true
+  Host: 127.0.0.1
+  Port: 3312
+  User: appuser
+  Database: gamedb
+  ConnectTimeoutSeconds: 3
+
+CachePolicy:
+  GameOwnerLeaseMilliseconds: 30000
+  IdleEvictionMilliseconds: 300000
+  MaintenanceIntervalMilliseconds: 1000
+  RevokeTimeoutMilliseconds: 2000
+
+FaultInjection:
+  CreditBeforeDatabaseTransaction: false
+  CreditAfterCommitDisconnect: false
+  CreditBeforeDatabaseDelayMilliseconds: 0
+  CreditAfterCommitDelayMilliseconds: 0
+
+Debug:
+  RunSeconds: 0
+  Headless: false
+

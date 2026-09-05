@@ -1,0 +1,113 @@
+schema-version: 1
+namespace: ServerProtocol::UserPresence
+output: ServerProtocol/UserPresenceRpcMethods.h
+
+service:
+  name: UserPresence
+  id: 100
+  reserved-method-ids: []
+
+aliases:
+  - { name: FUserId, type: uint64 }
+  - { name: FLocalClientSessionId, type: uint64 }
+  - { name: FOwnerGeneration, type: uint64 }
+  - { name: FLeaseDurationMilliseconds, type: uint32 }
+
+enums:
+  - name: EEnterUserResult
+    underlying: uint8
+    values:
+      - { name: Entered, value: 0 }
+      - { name: AlreadyEntered, value: 1 }
+      - { name: ReplacedPreviousGameServer, value: 2 }
+      - { name: InvalidRequest, value: 3 }
+      - { name: UnauthorizedCaller, value: 4 }
+      - { name: UserLoadFailed, value: 5 }
+      - { name: ServerBusy, value: 6 }
+
+  - name: ELeaveUserResult
+    underlying: uint8
+    values:
+      - { name: Left, value: 0 }
+      - { name: AlreadyLeft, value: 1 }
+      - { name: StaleOwner, value: 2 }
+      - { name: InvalidRequest, value: 3 }
+      - { name: UnauthorizedCaller, value: 4 }
+
+  - name: ERenewUserResult
+    underlying: uint8
+    values:
+      - { name: Renewed, value: 0 }
+      - { name: OwnerNotFound, value: 1 }
+      - { name: StaleOwner, value: 2 }
+      - { name: InvalidRequest, value: 3 }
+      - { name: UnauthorizedCaller, value: 4 }
+
+  - name: ERevokeUserReason
+    underlying: uint8
+    values:
+      - { name: Unknown, value: 0 }
+      - { name: ReplacedByNewLogin, value: 1 }
+      - { name: LeaseExpired, value: 2 }
+
+  - name: ERevokeUserResult
+    underlying: uint8
+    values:
+      - { name: Revoked, value: 0 }
+      - { name: UserNotFound, value: 1 }
+      - { name: SessionMismatch, value: 2 }
+      - { name: StaleOwner, value: 3 }
+      - { name: InvalidRequest, value: 4 }
+      - { name: UnauthorizedCaller, value: 5 }
+
+methods:
+  - name: EnterUser
+    id: 1
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: localClientSessionId, type: FLocalClientSessionId }
+    response:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: result, type: EEnterUserResult }
+        - { name: ownerGeneration, type: FOwnerGeneration }
+        - { name: leaseDurationMilliseconds, type: FLeaseDurationMilliseconds }
+
+  - name: LeaveUser
+    id: 2
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: localClientSessionId, type: FLocalClientSessionId }
+        - { name: ownerGeneration, type: FOwnerGeneration }
+    response:
+      fields:
+        - { name: result, type: ELeaveUserResult }
+
+  - name: RenewUser
+    id: 3
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: localClientSessionId, type: FLocalClientSessionId }
+        - { name: ownerGeneration, type: FOwnerGeneration }
+    response:
+      fields:
+        - { name: result, type: ERenewUserResult }
+
+  - name: RevokeUser
+    id: 4
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: FUserId }
+        - { name: localClientSessionId, type: FLocalClientSessionId }
+        - { name: ownerGeneration, type: FOwnerGeneration }
+        - { name: reason, type: ERevokeUserReason }
+    response:
+      fields:
+        - { name: result, type: ERevokeUserResult }

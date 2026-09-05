@@ -21,8 +21,8 @@
 #include "ChattingServer/Contents/Room/FRoomRegistry.h"
 #include "ChattingServer/Contents/Session/FUserRegistry.h"
 #include "Generated/Config/ChattingServer/ChattingServerConfig.h"
-#include "Generated/Packets/Chatting/ChattingPackets.h"
-#include "Generated/Packets/Login/LoginPackets.h"
+#include "Generated/Packets/Cpp/Chatting/ChattingPackets.h"
+#include "Generated/Packets/Cpp/Login/LoginPackets.h"
 #include "Packet/Framing/FDefaultPacketFramer.h"
 #include "Servers/Core/BackendTypes.h"
 #include "Servers/Core/FServerFactory.h"
@@ -297,8 +297,6 @@ namespace
 				return NetworkLib::Core::EBackendKind::Iocp;
 			case Generated::Config::ChattingServer::EBackend::Rio:
 				return NetworkLib::Core::EBackendKind::Rio;
-			case Generated::Config::ChattingServer::EBackend::BoostAsio:
-				return NetworkLib::Core::EBackendKind::BoostAsio;
 		}
 
 		return NetworkLib::Core::EBackendKind::Iocp;
@@ -717,10 +715,6 @@ int ChattingServer::Application::RunChattingServer(
 			{
 				serverConfig.backendKind = NetworkLib::Core::EBackendKind::Rio;
 			}
-			else if (argument == "asio")
-			{
-				serverConfig.backendKind = NetworkLib::Core::EBackendKind::BoostAsio;
-			}
 			else if (argument == "--manual-dump")
 			{
 				requestManualDump = true;
@@ -947,6 +941,8 @@ int ChattingServer::Application::RunChattingServer(
 		NetworkLib::Core::SServerStats previousStats = server->GetStatsSnapshot();
 		ContentsRuntime::Core::SContentRuntimeStats previousContentStats = chattingApplication.GetContentStatsSnapshot();
 		SProcessMetricsSnapshot previousProcessMetrics = CaptureProcessMetricsSnapshot();
+		Foundation::FConsoleLogger::WriteLine(std::format("[BenchmarkReady] port={}", serverConfig.port));
+		compositeLogger->Flush();
 		while (true)
 		{
 			std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -1077,5 +1073,6 @@ int ChattingServer::Application::RunChattingServer(
 	std::cin.get();
 	server->Stop();
 	Foundation::FCrashDump::Shutdown();
+	compositeLogger->Flush();
 	return 0;
 }

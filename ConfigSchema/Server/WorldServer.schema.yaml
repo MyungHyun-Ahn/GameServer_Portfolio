@@ -1,0 +1,54 @@
+WorldServer:
+  Backend:
+    type: enum
+    default: Iocp
+    values: [Iocp, Rio]
+  RioSendDispatchMode:
+    type: enum
+    default: OwnerThread
+    values: [Direct, OwnerThread]
+  BindIp: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19200, required: true }
+  WorkerThreadCount: { type: int32, default: 2 }
+  MaxSessionCount: { type: int32, default: 1024 }
+  RecvBufferSize: { type: int32, default: 4096 }
+  SocketSendBufferBytes: { type: int32, default: -1 }
+  RioSendRingSizeBytes: { type: uint32, default: 65536 }
+  PacketKey: { type: uint32, default: 55 }
+  ContentsWorkerThreadCount: { type: int32, default: 4 }
+  SectorExecutorInstanceCount: { type: int32, default: 4 }
+  SectorTaskPumpBatchSize: { type: uint32, default: 16 }
+  MapContentShardCount: { type: int32, default: 4 }
+  MapTickFps: { type: uint32, default: 20 }
+  MovementCorrectionTolerance: { type: float, default: 64.0 }
+  GameDataDirectory: { type: string, default: GameData, required: true }
+  AuthMode:
+    type: enum
+    default: Disabled
+    values: [Disabled, Redis]
+  LoginRedisHost: { type: string, default: 127.0.0.1, required: true }
+  LoginRedisPort: { type: uint16, default: 6379, required: true }
+  LoginRedisPassword: { type: string, default: "" }
+  LoginRedisDatabase: { type: int32, default: 0 }
+  LoginRedisConnectTimeoutMilliseconds: { type: uint32, default: 3000 }
+  WorldTicketKeyPrefix: { type: string, default: "world:ticket:", required: true }
+  ActiveLoginKeyPrefix: { type: string, default: "chat:active-login:", required: true }
+  CacheEnabled: { type: bool, default: false }
+  CacheHost: { type: string, default: 127.0.0.1, required: true }
+  CachePort: { type: uint16, default: 19103, required: true }
+  CacheRpcPacketKey: { type: uint32, default: 55 }
+  RpcServerInstanceId: { type: uint32, default: 1 }
+  CacheServerInstanceId: { type: uint32, default: 1 }
+  CacheRpcTimeoutMilliseconds: { type: uint32, default: 3000 }
+  CacheReconnectMilliseconds: { type: uint32, default: 1000 }
+  LogMinimumLevel:
+    type: enum
+    default: Info
+    values: [Debug, Info, Warn, Error]
+  LogOutputDirectory: { type: string, default: "" }
+  LogConsoleEnabled: { type: bool, default: true }
+  LogFileEnabled: { type: bool, default: true }
+  LogIncludeThreadId: { type: bool, default: true }
+
+Debug:
+  Headless: { type: bool, default: false }

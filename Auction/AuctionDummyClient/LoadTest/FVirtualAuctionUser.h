@@ -16,7 +16,13 @@ namespace AuctionDummyClient::LoadTest
 		std::uint64_t authenticatedUserId = 0;
 		std::uint32_t maxActiveListings = 0;
 		std::uint32_t searchPageSize = 0;
+		std::uint32_t inventoryListPageSize = 0;
+		std::uint32_t mailListPageSize = 0;
 		std::uint32_t defaultListingDurationSeconds = 0;
+		std::uint16_t defaultCurrencyId = 0;
+		std::uint64_t minimumBidIncrement = 0;
+		std::uint64_t minimumListingPrice = 0;
+		std::uint64_t maximumListingPrice = 0;
 		std::uint32_t activeListingCount = 0;
 		std::uint64_t currencyBalance = 0;
 		EVirtualUserState state = EVirtualUserState::Disconnected;

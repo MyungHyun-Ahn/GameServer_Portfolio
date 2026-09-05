@@ -43,6 +43,19 @@ namespace NetworkLib::Packet::Serialization
 		}
 
 		bool Read(
+			bool& outValue) noexcept
+		{
+			std::uint8_t wireValue = 0;
+			if (!Read(wireValue) || wireValue > 1)
+			{
+				return false;
+			}
+
+			outValue = wireValue != 0;
+			return true;
+		}
+
+		bool Read(
 			std::string& outValue) noexcept
 		{
 			std::uint32_t length = 0;
@@ -93,13 +106,24 @@ namespace NetworkLib::Packet::Serialization
 				return false;
 			}
 
+			if (count > GetRemainingSize())
+			{
+				return false;
+			}
+
 			outValues.clear();
-			outValues.reserve(count);
 			if constexpr (CPacketReadableScalar<TValue>)
 			{
+				if (count > GetRemainingSize() / sizeof(TValue))
+				{
+					return false;
+				}
+
 				outValues.resize(count);
 				return ReadBytes(outValues.data(), sizeof(TValue) * outValues.size());
 			}
+
+			outValues.reserve(count);
 
 			for (std::uint32_t index = 0; index < count; ++index)
 			{
@@ -145,6 +169,11 @@ namespace NetworkLib::Packet::Serialization
 				return false;
 			}
 
+			if (count > GetRemainingSize())
+			{
+				return false;
+			}
+
 			outValues.clear();
 			for (std::uint32_t index = 0; index < count; ++index)
 			{
@@ -167,6 +196,11 @@ namespace NetworkLib::Packet::Serialization
 		{
 			std::uint32_t count = 0;
 			if (!Read(count))
+			{
+				return false;
+			}
+
+			if (count > GetRemainingSize())
 			{
 				return false;
 			}

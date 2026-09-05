@@ -13,11 +13,20 @@
     <Filter Include="Threading">
       <UniqueIdentifier>{8C49AA8C-606D-AFCF-19CF-18C130DCFAFB}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Session">
+      <UniqueIdentifier>{B9AE25C4-7F65-C656-A8B3-5F1CA7FD4674}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ContentsRuntimePch.cpp" />
+    <ClCompile Include="Bridge\FContentResponse.cpp">
+      <Filter>Bridge</Filter>
+    </ClCompile>
     <ClCompile Include="Core\FContentInstanceIdAllocator.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Session\FContentSession.cpp">
+      <Filter>Session</Filter>
     </ClCompile>
     <ClCompile Include="Routing\FContentRuntime.cpp">
       <Filter>Routing</Filter>
@@ -27,21 +36,27 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ContentsRuntimePch.h" />
     <ClInclude Include="Bridge\IContentBridge.h">
       <Filter>Bridge</Filter>
     </ClInclude>
-    <ClInclude Include="ContentsRuntimePch.h" />
+    <ClInclude Include="Core\FContentInstanceIdAllocator.h">
+      <Filter>Core</Filter>
+    </ClInclude>
     <ClInclude Include="Core\ContentExecutionState.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ContentRuntimeTypes.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\FContentInstanceIdAllocator.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\IContent.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Session\FContentSession.h">
+      <Filter>Session</Filter>
+    </ClInclude>
+    <ClInclude Include="Session\RequestProcessingTypes.h">
+      <Filter>Session</Filter>
     </ClInclude>
     <ClInclude Include="Routing\FContentRuntime.h">
       <Filter>Routing</Filter>

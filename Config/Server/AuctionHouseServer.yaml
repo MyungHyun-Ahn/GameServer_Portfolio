@@ -1,0 +1,87 @@
+# Generated from ConfigSchema/Server/AuctionHouseServer.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+AuctionHouseServer:
+  # Allowed: Iocp, Rio
+  Backend: Iocp
+  # Allowed: Direct, OwnerThread
+  RioSendDispatchMode: Direct
+  BindIp: 127.0.0.1
+  Port: 19102
+  WorkerThreadCount: 2
+  MaxSessionCount: 128
+  RecvBufferSize: 1024
+  SocketSendBufferBytes: -1
+  RioSendRingSizeBytes: 65536
+  EnablePagePool: true
+  PageSize: 4096
+  PacketKey: 55
+  RunSeconds: 0
+  CommandShardCount: 4
+  ContentsWorkerThreadCount: 7
+  CommandMailboxCapacity: 1024
+  ExpirationPollMilliseconds: 5000
+  GameDataDirectory: Config/GameData
+
+Logging:
+  # Allowed: Debug, Info, Warn, Error
+  MinimumLevel: Info
+  OutputDirectory: logs
+  ConsoleEnabled: true
+  FileEnabled: true
+  IncludeThreadId: true
+
+Diagnostics:
+  TimingMetricsFlushIntervalSeconds: 60
+  TimingCsvPath: logs/auction_timing.csv
+
+Authentication:
+  Enabled: false
+  RedisHost: 127.0.0.1
+  RedisPort: 6379
+  RedisPassword: ""
+  RedisDatabase: 0
+  RedisConnectTimeoutMilliseconds: 3000
+  TicketKeyPrefix: "auction:ticket:"
+  ActiveLoginKeyPrefix: "chat:active-login:"
+
+CacheRpc:
+  Host: 127.0.0.1
+  Port: 19103
+  LocalServerInstanceId: 1
+  RemoteServerInstanceId: 1
+  PacketKey: 55
+  RandomKey: 81
+  HandshakeTimeoutMilliseconds: 3000
+  ReconnectMilliseconds: 1000
+  NetworkWorkerThreadCount: 2
+  RecvScratchBufferSize: 65536
+
+AuctionDatabase:
+  Enabled: false
+  Password: ""
+  ReplicaReconnectCooldownMilliseconds: 60000
+  PrimaryHost: 127.0.0.1
+  PrimaryPort: 3320
+  PrimaryUser: appuser
+  PrimarySchema: auctiondb
+  PrimaryConnectTimeoutSeconds: 3
+  Replica1Enabled: true
+  Replica1Host: 127.0.0.1
+  Replica1Port: 3321
+  Replica1User: appuser
+  Replica1Schema: auctiondb
+  Replica1ConnectTimeoutSeconds: 3
+  Replica2Enabled: true
+  Replica2Host: 127.0.0.1
+  Replica2Port: 3322
+  Replica2User: appuser
+  Replica2Schema: auctiondb
+  Replica2ConnectTimeoutSeconds: 3
+
+Debug:
+  TestDelayShardIndex: -1
+  TestDelayMilliseconds: 0
+  FaultInjectListingRegisterAfterAuctionCommit: false
+  FaultInjectBidRefundBeforeComplete: false
+

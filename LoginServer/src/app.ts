@@ -7,20 +7,20 @@ import { closeMySqlPool, verifyMySqlConnection } from "./db/mysql";
 import { closeRedisClient, verifyRedisConnection } from "./db/redis";
 import { createAuthRouter } from "./routes/auth";
 import { AccountService } from "./services/account-service";
-import { ChatTicketService } from "./services/chat-ticket-service";
+import { LoginTicketService } from "./services/login-ticket-service";
 import { getOpenApiYamlPath, loadOpenApiDocument } from "./utils/openapi";
 
 function createApp(): express.Express {
   const app = express();
   const authController = new AuthController(
     new AccountService(),
-    new ChatTicketService(),
+    new LoginTicketService(),
   );
 
   app.use(express.json({ limit: "16kb" }));
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(loadOpenApiDocument(), {
     explorer: true,
-    customSiteTitle: "RefactoringServer LoginServer API",
+    customSiteTitle: "Game Server Portfolio LoginServer API",
   }));
 
   app.use("/auth", createAuthRouter(authController));

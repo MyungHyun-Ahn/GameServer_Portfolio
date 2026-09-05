@@ -90,4 +90,17 @@ namespace Foundation
 			categoryFile.outputFile.flush();
 		}
 	}
+
+	void FFileLogger::FlushLog()
+	{
+		const std::lock_guard<std::mutex> lock(m_state->mutex);
+		for (auto& [category, categoryFile] : m_state->categoryFiles)
+		{
+			(void)category;
+			if (categoryFile.outputFile.is_open())
+			{
+				categoryFile.outputFile.flush();
+			}
+		}
+	}
 }

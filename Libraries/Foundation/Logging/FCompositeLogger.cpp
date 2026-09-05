@@ -23,4 +23,12 @@ namespace Foundation
 			sink->Log(logLevel, category, message);
 		}
 	}
+
+	void FCompositeLogger::FlushLog()
+	{
+		for (const std::shared_ptr<ILogger>& sink : m_sinks)
+		{
+			sink->Flush();
+		}
+	}
 }

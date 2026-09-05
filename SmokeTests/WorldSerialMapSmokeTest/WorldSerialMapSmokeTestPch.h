@@ -1,0 +1,34 @@
+#pragma once
+
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <memory>
+#include <optional>
+#include <span>
+#include <stdexcept>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
+
+#include "WorldCore/WorldTypes.h"
+#include "WorldCore/Map/Sector/ISectorExecutor.h"
+#include "WorldCore/Entity/FActorEntity.h"
+#include "WorldCore/Entity/FEntityRegistry.h"
+#include "WorldCore/Entity/FMonsterEntity.h"
+#include "WorldCore/Entity/FPlayerEntity.h"
+#include "WorldCore/Map/FMapInputBuffer.h"
+#include "WorldCore/Map/FMapInstance.h"
+#include "WorldCore/Map/FMapInstanceFactory.h"
+#include "WorldCore/Map/FMapInstanceManager.h"
+#include "WorldCore/Map/FMapVisibilitySystem.h"
+#include "WorldCore/Map/Sector/FSectorDeferredCommandBuffer.h"
+#include "WorldCore/Map/Sector/FSectorGrid.h"
+#include "WorldCore/Map/Sector/FSectorTaskProcessor.h"
+#include "WorldCore/Map/Sector/FSectorTickPlan.h"
+#include "WorldCore/Map/Sector/FSerialSectorExecutor.h"

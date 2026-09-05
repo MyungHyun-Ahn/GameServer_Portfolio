@@ -38,9 +38,54 @@
   <ItemGroup>
     <ClCompile Include="GameDataPch.cpp"><PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader><PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader></ClCompile>
 	<ClCompile Include="Auction\FAuctionPolicyTable.cpp" />
+	<ClCompile Include="Character\FCharacterDataTable.cpp" />
+	<ClCompile Include="CharacterLevel\FCharacterLevelDataTable.cpp" />
+	<ClCompile Include="CombatFormulaPolicy\FCombatFormulaPolicyTable.cpp" />
+	<ClCompile Include="Currency\FCurrencyDataTable.cpp" />
+	<ClCompile Include="InventoryPolicy\FInventoryPolicyTable.cpp" />
     <ClCompile Include="Item\FItemDataTable.cpp" />
+	<ClCompile Include="MailPolicy\FMailPolicyTable.cpp" />
+	<ClCompile Include="MailTemplate\FMailTemplateTable.cpp" />
+	<ClCompile Include="Map\FMapDataTable.cpp" />
+	<ClCompile Include="Monster\FMonsterDataTable.cpp" />
+	<ClCompile Include="MonsterSpawner\FMonsterSpawnerDataTable.cpp" />
+	<ClCompile Include="SpawnArea\FSpawnAreaDataTable.cpp" />
+	<ClCompile Include="StatConversion\FStatConversionTable.cpp" />
   </ItemGroup>
-  <ItemGroup><ClInclude Include="GameDataPch.h" /><ClInclude Include="Auction\FAuctionPolicyTable.h" /><ClInclude Include="Auction\AuctionPolicyTypes.h" /><ClInclude Include="Item\FItemDataTable.h" /><ClInclude Include="Item\ItemTypes.h" /></ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="GameDataPch.h" />
+    <ClInclude Include="Auction\FAuctionPolicyTable.h" />
+    <ClInclude Include="Auction\AuctionPolicyTypes.h" />
+    <ClInclude Include="Character\FCharacterDataTable.h" />
+    <ClInclude Include="CharacterLevel\FCharacterLevelDataTable.h" />
+    <ClInclude Include="CombatFormulaPolicy\FCombatFormulaPolicyTable.h" />
+    <ClInclude Include="Common\TGameDataRow.h" />
+    <ClInclude Include="Currency\FCurrencyDataTable.h" />
+    <ClInclude Include="InventoryPolicy\FInventoryPolicyTable.h" />
+    <ClInclude Include="Item\FItemDataTable.h" />
+    <ClInclude Include="MailPolicy\FMailPolicyTable.h" />
+    <ClInclude Include="MailTemplate\FMailTemplateTable.h" />
+    <ClInclude Include="Map\FMapDataTable.h" />
+    <ClInclude Include="Monster\FMonsterDataTable.h" />
+    <ClInclude Include="MonsterSpawner\FMonsterSpawnerDataTable.h" />
+    <ClInclude Include="SpawnArea\FSpawnAreaDataTable.h" />
+    <ClInclude Include="StatConversion\FStatConversionTable.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Common\GameDataEnums.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Item\ItemData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\AuctionPolicy\AuctionPolicyData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Map\MapData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Monster\MonsterData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\SpawnArea\SpawnAreaData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\MonsterSpawner\MonsterSpawnerData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Character\CharacterData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\CharacterLevel\CharacterLevelData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\CombatFormulaPolicy\CombatFormulaPolicyData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\StatConversion\StatConversionData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\InventoryPolicy\InventoryPolicyData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Currency\CurrencyData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\MailPolicy\MailPolicyData.g.h" />
+    <ClInclude Include="..\..\Generated\GameData\Cpp\MailTemplate\MailTemplateData.g.h" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Foundation\Foundation.vcxproj"><Project>{1E3B65A5-5AE3-4AA0-9471-88AB92F756D4}</Project><ReferenceOutputAssembly>false</ReferenceOutputAssembly></ProjectReference>
   </ItemGroup>

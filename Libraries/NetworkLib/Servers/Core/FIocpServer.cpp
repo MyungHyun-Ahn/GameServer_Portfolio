@@ -154,27 +154,44 @@ namespace NetworkLib::Core
 				m_acceptContextCount);
 		}
 		m_applicationHandler->OnServerStarted(*this);
+		for (std::uint32_t acceptSlotIndex = 0; acceptSlotIndex < m_acceptContextCount; ++acceptSlotIndex)
+		{
+			if (!PostAccept(acceptSlotIndex))
+			{
+				Log(Foundation::ELogLevel::Error, "Initial AcceptEx post failed. slot={}", acceptSlotIndex);
+				Stop();
+				return false;
+			}
+		}
 		return true;
 	}
 
 	void FIocpServer::Stop()
 	{
-		if (!m_isRunning.exchange(false))
+		if (!m_isRunning.load(std::memory_order_acquire))
 		{
 			return;
 		}
 
-		Log(Foundation::ELogLevel::Info, "Server stop requested.");
-
-		CloseListenSocket();
-
-		for (std::uint32_t slotIndex = 0; slotIndex < m_serverConfig.maxSessionCount; ++slotIndex)
 		{
-			FIocpSession* sessionContext = m_sessionSlots[slotIndex].exchange(nullptr);
-			if (sessionContext != nullptr)
+			std::lock_guard lifecycleLock(m_sessionLifecycleMutex);
+			if (!m_isRunning.exchange(false, std::memory_order_acq_rel))
 			{
-				CloseSession(*sessionContext);
-				ReleaseSession(sessionContext);
+				return;
+			}
+
+			Log(Foundation::ELogLevel::Info, "Server stop requested.");
+
+			CloseListenSocket();
+
+			for (std::uint32_t slotIndex = 0; slotIndex < m_serverConfig.maxSessionCount; ++slotIndex)
+			{
+				FIocpSession* sessionContext = m_sessionSlots[slotIndex].exchange(nullptr);
+				if (sessionContext != nullptr)
+				{
+					CloseSession(*sessionContext);
+					ReleaseSession(sessionContext);
+				}
 			}
 		}
 
@@ -292,7 +309,7 @@ namespace NetworkLib::Core
 
 		for (std::uint32_t slotIndex = 0; slotIndex < m_serverConfig.maxSessionCount; ++slotIndex)
 		{
-			FIocpSession* sessionContext = m_sessionSlots[slotIndex].load(std::memory_order_relaxed);
+			FIocpSession* sessionContext = AcquireSessionBySlotIndex(slotIndex);
 			if (sessionContext == nullptr)
 			{
 				continue;
@@ -301,6 +318,7 @@ namespace NetworkLib::Core
 			snapshotInput.session.queuedSendBufferCount += sessionContext->GetQueuedSendBufferCount();
 			snapshotInput.session.maxObservedQueuedSendBufferCount = std::max<std::uint64_t>(
 				snapshotInput.session.maxObservedQueuedSendBufferCount, sessionContext->GetMaxObservedQueuedSendBufferCount());
+			ReleaseSession(sessionContext);
 		}
 		return m_monitoring.BuildSnapshot(snapshotInput);
 	}
@@ -408,11 +426,6 @@ namespace NetworkLib::Core
 			m_acceptContexts[acceptSlotIndex].slotIndex = acceptSlotIndex;
 			m_acceptContexts[acceptSlotIndex].acceptedSocket = INVALID_SOCKET;
 			m_acceptContexts[acceptSlotIndex].ResetOverlapped();
-
-			if (!PostAccept(acceptSlotIndex))
-			{
-				return false;
-			}
 		}
 
 		return true;
@@ -641,6 +654,13 @@ namespace NetworkLib::Core
 						FPacketView packetView;
 						if (!m_packetFramer->TryExtractPacketView(sessionContext->GetRecvBuffer(), packetView))
 						{
+							if (m_packetFramer->HasInvalidPacketHeader(sessionContext->GetRecvBuffer()))
+							{
+								Log(Foundation::ELogLevel::Warn,
+									"Oversized packet header rejected. sessionId={}",
+									sessionContext->GetSessionId());
+								CloseSession(*sessionContext);
+							}
 							break;
 						}
 
@@ -823,11 +843,13 @@ namespace NetworkLib::Core
 		{
 			return;
 		}
+		sessionContext.AcquireRef();
 
 		shutdown(sessionContext.GetSocket(), SD_BOTH);
 		closesocket(sessionContext.GetSocket());
 		sessionContext.SetSocket(INVALID_SOCKET);
-		m_sessionSlots[sessionContext.GetSlotIndex()].store(nullptr);
+		FIocpSession* expectedSession = &sessionContext;
+		const bool releasedSlotReference = m_sessionSlots[sessionContext.GetSlotIndex()].compare_exchange_strong(expectedSession, nullptr);
 		m_monitoring.OnSessionClosed();
 		{
 			Log(Foundation::ELogLevel::Info,
@@ -837,10 +859,17 @@ namespace NetworkLib::Core
 				sessionContext.GetMaxObservedConcurrentSendIoCount());
 		}
 		m_applicationHandler->OnClientDisconnected(sessionContext.GetSessionId());
+		if (releasedSlotReference)
+		{
+			// Return the initial reference owned by the session slot.
+			ReleaseSession(&sessionContext);
+		}
+		// Return the temporary reference that protects this close callback path.
+		ReleaseSession(&sessionContext);
 	}
 
 	void FIocpServer::ReleaseSession(
-		FIocpSession* sessionContext)
+		FIocpSession* sessionContext) const
 	{
 		if (sessionContext == nullptr)
 		{
@@ -853,6 +882,29 @@ namespace NetworkLib::Core
 		}
 	}
 
+	FIocpSession* FIocpServer::AcquireSessionBySlotIndex(
+		std::uint32_t slotIndex) const
+	{
+		if (slotIndex >= m_serverConfig.maxSessionCount)
+		{
+			return nullptr;
+		}
+
+		FIocpSession* sessionContext = m_sessionSlots[slotIndex].load(std::memory_order_acquire);
+		if (sessionContext == nullptr || !sessionContext->TryAcquireRef())
+		{
+			return nullptr;
+		}
+
+		if (m_sessionSlots[slotIndex].load(std::memory_order_acquire) != sessionContext || sessionContext->IsClosing())
+		{
+			ReleaseSession(sessionContext);
+			return nullptr;
+		}
+
+		return sessionContext;
+	}
+
 	FIocpSession* FIocpServer::AcquireSession(
 		std::uint64_t sessionId)
 	{
@@ -862,14 +914,13 @@ namespace NetworkLib::Core
 			return nullptr;
 		}
 
-		FIocpSession* sessionContext = m_sessionSlots[slotIndex].load();
-		if (sessionContext == nullptr || sessionContext->GetSessionId() != sessionId || sessionContext->IsClosing())
+		FIocpSession* sessionContext = AcquireSessionBySlotIndex(slotIndex);
+		if (sessionContext == nullptr)
 		{
 			return nullptr;
 		}
 
-		sessionContext->AcquireRef();
-		if (sessionContext->GetSessionId() != sessionId || sessionContext->IsClosing())
+		if (sessionContext->GetSessionId() != sessionId)
 		{
 			ReleaseSession(sessionContext);
 			return nullptr;
@@ -881,6 +932,12 @@ namespace NetworkLib::Core
 	bool FIocpServer::AttachAcceptedSocket(
 		SOCKET clientSocket)
 	{
+		std::lock_guard lifecycleLock(m_sessionLifecycleMutex);
+		if (!m_isRunning.load(std::memory_order_acquire))
+		{
+			return false;
+		}
+
 		if (setsockopt(clientSocket,
 				SOL_SOCKET,
 				SO_UPDATE_ACCEPT_CONTEXT,
@@ -898,6 +955,12 @@ namespace NetworkLib::Core
 				Log(Foundation::ELogLevel::Error, errorMessage);
 				return false;
 			}
+		}
+
+		if (CreateIoCompletionPort(reinterpret_cast<HANDLE>(clientSocket), m_iocpHandle, 0, 0) == nullptr)
+		{
+			Log(Foundation::ELogLevel::Error, "CreateIoCompletionPort attach failed. error={}", GetLastError());
+			return false;
 		}
 
 		FIocpSession* newSessionContext = nullptr;
@@ -918,7 +981,7 @@ namespace NetworkLib::Core
 				break;
 			}
 
-			FIocpSession::Destroy(candidateSession);
+			ReleaseSession(candidateSession);
 		}
 
 		if (newSessionContext == nullptr)
@@ -927,27 +990,20 @@ namespace NetworkLib::Core
 			return false;
 		}
 
-		if (CreateIoCompletionPort(reinterpret_cast<HANDLE>(clientSocket), m_iocpHandle, 0, 0) == nullptr)
-		{
-			Log(Foundation::ELogLevel::Error, "CreateIoCompletionPort attach failed. error={}", GetLastError());
-			m_sessionSlots[newSessionContext->GetSlotIndex()].store(nullptr);
-			FIocpSession::Destroy(newSessionContext);
-			return false;
-		}
-
 		{
 			Log(Foundation::ELogLevel::Info, "Client connected. sessionId={}", newSessionContext->GetSessionId());
 		}
 		m_monitoring.OnSessionAccepted();
+		newSessionContext->AcquireRef();
 		m_applicationHandler->OnClientConnected(newSessionContext->GetSessionId());
-		if (!PostRecv(*newSessionContext))
+		const bool recvPosted = PostRecv(*newSessionContext);
+		if (!recvPosted)
 		{
 			CloseSession(*newSessionContext);
-			ReleaseSession(newSessionContext);
-			return false;
 		}
+		ReleaseSession(newSessionContext);
 
-		return true;
+		return recvPosted;
 	}
 
 	std::uint64_t FIocpServer::ComposeSessionId(

@@ -1,5 +1,10 @@
 #pragma once
 
+namespace Generated::Auction
+{
+	class FListingSearchRp;
+}
+
 namespace AuctionDummyClient::LoadTest
 {
 	class FAuctionLoadTestRunner final

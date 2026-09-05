@@ -16,6 +16,10 @@ export interface ChatServerEndpoint {
 
 export type AuctionServerEndpoint = ChatServerEndpoint;
 
+export interface WorldServerEndpoint extends ChatServerEndpoint {
+  instanceId: number;
+}
+
 export interface RegisterResponse {
   success: true;
   userId: number;
@@ -28,8 +32,11 @@ export interface LoginResponse {
   nickname: string;
   ticket: string;
   auctionTicket: string;
+  worldTicket: string;
+  ticketExpiresInSeconds: number;
   chatServer: ChatServerEndpoint;
-	auctionServer: AuctionServerEndpoint;
+  auctionServer: AuctionServerEndpoint;
+  worldServer: WorldServerEndpoint;
 }
 
 export interface ErrorResponse {

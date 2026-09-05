@@ -2,34 +2,244 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Auction">
-      <UniqueIdentifier>{09DA48F5-2EA6-08C8-2FA2-DCCA5AAB7E88}</UniqueIdentifier>
+      <UniqueIdentifier>{55398653-7862-4FD4-A2DC-B80C98C257A4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Character">
+      <UniqueIdentifier>{C8D90D29-7E38-4804-A393-76BC552CBF40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CharacterLevel">
+      <UniqueIdentifier>{5F9A2E94-015D-4DD5-8C4E-5BDA0A43DCED}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CombatFormulaPolicy">
+      <UniqueIdentifier>{A7341BE6-B61A-4E1C-877A-EC6D68FA7C92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{51D32A66-E5F4-42CE-A5F0-B3500AA803A1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Currency">
+      <UniqueIdentifier>{88ACECF7-940B-4585-AE94-D4FA0B2346DE}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InventoryPolicy">
+      <UniqueIdentifier>{8918BE93-3405-45D7-905C-6324D9E22D5B}</UniqueIdentifier>
     </Filter>
     <Filter Include="Item">
-      <UniqueIdentifier>{6F505AF4-675C-2E83-A38A-7E52DB9ACE32}</UniqueIdentifier>
+      <UniqueIdentifier>{680F8A71-95BA-4F43-BED6-B8E61BCBC944}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MailPolicy">
+      <UniqueIdentifier>{24F85E79-DBA4-4B74-B94B-A205DFD7AF6F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MailTemplate">
+      <UniqueIdentifier>{25DC7B13-2B56-4D1A-A5E8-5407B5B158EB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Map">
+      <UniqueIdentifier>{454E49C7-CACA-4342-BE35-14874160372A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Monster">
+      <UniqueIdentifier>{1E310E6B-549A-4C0D-8591-7E6BD7B7A92E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MonsterSpawner">
+      <UniqueIdentifier>{30C874C6-DF5E-4A8C-8F84-5E2A90F8F540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SpawnArea">
+      <UniqueIdentifier>{CC944E0B-45F8-47FB-904E-61E1E079AF1D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="StatConversion">
+      <UniqueIdentifier>{54BDF382-1600-40BC-8506-960C4CE2A2A6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{5082329B-915C-432B-8C25-DDA9BBF78A6B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData">
+      <UniqueIdentifier>{53A8A286-EFD7-FCF0-57A7-2F34BF89595E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp">
+      <UniqueIdentifier>{55C6933F-2BD5-43A0-8382-B7852890B222}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\AuctionPolicy">
+      <UniqueIdentifier>{39832AA2-324D-0F19-1EE8-8C86AED5390F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\Character">
+      <UniqueIdentifier>{74311C4A-9281-C6DB-24A1-4F4443BAA4F9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\CharacterLevel">
+      <UniqueIdentifier>{F26A10BB-5901-6525-5CE6-753C2506DF40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\CombatFormulaPolicy">
+      <UniqueIdentifier>{3B7BAC21-73E7-035A-2766-E1654D0DC171}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\Common">
+      <UniqueIdentifier>{61D9A975-4A02-D6F3-0F13-BD63F51408FA}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\Currency">
+      <UniqueIdentifier>{5E847D55-1D00-F5D8-14B5-FE18E467BE50}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\InventoryPolicy">
+      <UniqueIdentifier>{E46DEC06-E21F-7FE3-D604-923A025B981E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\Item">
+      <UniqueIdentifier>{30BE1EDB-9575-1AE3-AFDA-F604F519F783}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\MailPolicy">
+      <UniqueIdentifier>{A9A47A39-8C5C-2F0B-9738-647E95A5AA41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\MailTemplate">
+      <UniqueIdentifier>{0D236AC5-584A-3E62-1345-08280B51DF56}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\Map">
+      <UniqueIdentifier>{FD123363-0FF8-B63A-8DA0-1300E021F2E4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\Monster">
+      <UniqueIdentifier>{088AEC02-4BBF-0E17-6D9A-C4DD0D8DC186}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\MonsterSpawner">
+      <UniqueIdentifier>{2749DFC9-388F-22F9-6774-D3C25E850449}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\SpawnArea">
+      <UniqueIdentifier>{FE6A6AAB-E3A3-C43C-17F5-B78A3FC5C078}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\GameData\Cpp\StatConversion">
+      <UniqueIdentifier>{0CDB19DA-BF1B-2D44-1869-593322742F44}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GameDataPch.cpp" />
     <ClCompile Include="Auction\FAuctionPolicyTable.cpp">
       <Filter>Auction</Filter>
     </ClCompile>
-    <ClCompile Include="GameDataPch.cpp" />
+    <ClCompile Include="Character\FCharacterDataTable.cpp">
+      <Filter>Character</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterLevel\FCharacterLevelDataTable.cpp">
+      <Filter>CharacterLevel</Filter>
+    </ClCompile>
+    <ClCompile Include="CombatFormulaPolicy\FCombatFormulaPolicyTable.cpp">
+      <Filter>CombatFormulaPolicy</Filter>
+    </ClCompile>
+    <ClCompile Include="Currency\FCurrencyDataTable.cpp">
+      <Filter>Currency</Filter>
+    </ClCompile>
+    <ClCompile Include="InventoryPolicy\FInventoryPolicyTable.cpp">
+      <Filter>InventoryPolicy</Filter>
+    </ClCompile>
     <ClCompile Include="Item\FItemDataTable.cpp">
       <Filter>Item</Filter>
     </ClCompile>
+    <ClCompile Include="MailPolicy\FMailPolicyTable.cpp">
+      <Filter>MailPolicy</Filter>
+    </ClCompile>
+    <ClCompile Include="MailTemplate\FMailTemplateTable.cpp">
+      <Filter>MailTemplate</Filter>
+    </ClCompile>
+    <ClCompile Include="Map\FMapDataTable.cpp">
+      <Filter>Map</Filter>
+    </ClCompile>
+    <ClCompile Include="Monster\FMonsterDataTable.cpp">
+      <Filter>Monster</Filter>
+    </ClCompile>
+    <ClCompile Include="MonsterSpawner\FMonsterSpawnerDataTable.cpp">
+      <Filter>MonsterSpawner</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnArea\FSpawnAreaDataTable.cpp">
+      <Filter>SpawnArea</Filter>
+    </ClCompile>
+    <ClCompile Include="StatConversion\FStatConversionTable.cpp">
+      <Filter>StatConversion</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Auction\AuctionPolicyTypes.h">
-      <Filter>Auction</Filter>
-    </ClInclude>
+    <ClInclude Include="GameDataPch.h" />
     <ClInclude Include="Auction\FAuctionPolicyTable.h">
       <Filter>Auction</Filter>
     </ClInclude>
-    <ClInclude Include="GameDataPch.h" />
+    <ClInclude Include="Auction\AuctionPolicyTypes.h">
+      <Filter>Auction</Filter>
+    </ClInclude>
+    <ClInclude Include="Character\FCharacterDataTable.h">
+      <Filter>Character</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterLevel\FCharacterLevelDataTable.h">
+      <Filter>CharacterLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="CombatFormulaPolicy\FCombatFormulaPolicyTable.h">
+      <Filter>CombatFormulaPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\TGameDataRow.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Currency\FCurrencyDataTable.h">
+      <Filter>Currency</Filter>
+    </ClInclude>
+    <ClInclude Include="InventoryPolicy\FInventoryPolicyTable.h">
+      <Filter>InventoryPolicy</Filter>
+    </ClInclude>
     <ClInclude Include="Item\FItemDataTable.h">
       <Filter>Item</Filter>
     </ClInclude>
-    <ClInclude Include="Item\ItemTypes.h">
-      <Filter>Item</Filter>
+    <ClInclude Include="MailPolicy\FMailPolicyTable.h">
+      <Filter>MailPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="MailTemplate\FMailTemplateTable.h">
+      <Filter>MailTemplate</Filter>
+    </ClInclude>
+    <ClInclude Include="Map\FMapDataTable.h">
+      <Filter>Map</Filter>
+    </ClInclude>
+    <ClInclude Include="Monster\FMonsterDataTable.h">
+      <Filter>Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="MonsterSpawner\FMonsterSpawnerDataTable.h">
+      <Filter>MonsterSpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnArea\FSpawnAreaDataTable.h">
+      <Filter>SpawnArea</Filter>
+    </ClInclude>
+    <ClInclude Include="StatConversion\FStatConversionTable.h">
+      <Filter>StatConversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Common\GameDataEnums.g.h">
+      <Filter>Generated\GameData\Cpp\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Item\ItemData.g.h">
+      <Filter>Generated\GameData\Cpp\Item</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\AuctionPolicy\AuctionPolicyData.g.h">
+      <Filter>Generated\GameData\Cpp\AuctionPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Map\MapData.g.h">
+      <Filter>Generated\GameData\Cpp\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Monster\MonsterData.g.h">
+      <Filter>Generated\GameData\Cpp\Monster</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\SpawnArea\SpawnAreaData.g.h">
+      <Filter>Generated\GameData\Cpp\SpawnArea</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\MonsterSpawner\MonsterSpawnerData.g.h">
+      <Filter>Generated\GameData\Cpp\MonsterSpawner</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Character\CharacterData.g.h">
+      <Filter>Generated\GameData\Cpp\Character</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\CharacterLevel\CharacterLevelData.g.h">
+      <Filter>Generated\GameData\Cpp\CharacterLevel</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\CombatFormulaPolicy\CombatFormulaPolicyData.g.h">
+      <Filter>Generated\GameData\Cpp\CombatFormulaPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\StatConversion\StatConversionData.g.h">
+      <Filter>Generated\GameData\Cpp\StatConversion</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\InventoryPolicy\InventoryPolicyData.g.h">
+      <Filter>Generated\GameData\Cpp\InventoryPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\Currency\CurrencyData.g.h">
+      <Filter>Generated\GameData\Cpp\Currency</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\MailPolicy\MailPolicyData.g.h">
+      <Filter>Generated\GameData\Cpp\MailPolicy</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Generated\GameData\Cpp\MailTemplate\MailTemplateData.g.h">
+      <Filter>Generated\GameData\Cpp\MailTemplate</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

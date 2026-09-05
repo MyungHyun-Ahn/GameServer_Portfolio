@@ -141,7 +141,6 @@ namespace NetworkLib::Core
 			return false;
 		}
 
-		m_acceptThread = std::thread(&FRioServer::AcceptLoop, this);
 		{
 			Log(Foundation::ELogLevel::Info,
 
@@ -153,6 +152,7 @@ namespace NetworkLib::Core
 				m_serverConfig.rioSendRingSizeBytes);
 		}
 		m_applicationHandler->OnServerStarted(*this);
+		m_acceptThread = std::thread(&FRioServer::AcceptLoop, this);
 		return true;
 	}
 
@@ -270,7 +270,7 @@ namespace NetworkLib::Core
 
 		for (std::uint32_t slotIndex = 0; slotIndex < m_serverConfig.maxSessionCount; ++slotIndex)
 		{
-			FRioSession* sessionContext = m_sessionSlots[slotIndex].load(std::memory_order_relaxed);
+			FRioSession* sessionContext = AcquireSessionBySlotIndex(slotIndex);
 			if (sessionContext == nullptr)
 			{
 				continue;
@@ -288,6 +288,7 @@ namespace NetworkLib::Core
 				std::max<std::uint32_t>(snapshotInput.session.maxCurrentSendRingUsedBytes, sessionContext->GetSendRingUsedBytes());
 			snapshotInput.session.maxObservedSendRingUsedBytes = std::max<std::uint32_t>(
 				snapshotInput.session.maxObservedSendRingUsedBytes, sessionContext->GetMaxObservedSendRingUsedBytes());
+			ReleaseSession(sessionContext);
 		}
 		return m_monitoring.BuildSnapshot(snapshotInput);
 	}
@@ -1174,7 +1175,7 @@ namespace NetworkLib::Core
 				"RIORegisterBuffer failed for session send ring. sessionId={} error={}",
 				sessionId,
 				errorCode);
-			FRioSession::Destroy(newSessionContext);
+			ReleaseSession(newSessionContext);
 			return false;
 		}
 
@@ -1184,7 +1185,7 @@ namespace NetworkLib::Core
 		{
 			const int errorCode = WSAGetLastError();
 			Log(Foundation::ELogLevel::Error, "RIORegisterBuffer failed for recv staging buffer. error={}", errorCode);
-			FRioSession::Destroy(newSessionContext);
+			ReleaseSession(newSessionContext);
 			return false;
 		}
 		newSessionContext->SetRecvBufferId(recvBufferId);
@@ -1201,8 +1202,7 @@ namespace NetworkLib::Core
 		{
 			const int errorCode = WSAGetLastError();
 			Log(Foundation::ELogLevel::Error, "RIOCreateRequestQueue failed. error={}", errorCode);
-			newSessionContext->ReleaseRioResources(m_rioFunctionTable);
-			FRioSession::Destroy(newSessionContext);
+			ReleaseSession(newSessionContext);
 			return false;
 		}
 		newSessionContext->SetRequestQueue(requestQueue);
@@ -1211,8 +1211,7 @@ namespace NetworkLib::Core
 		if (!m_sessionSlots[slotIndex].compare_exchange_strong(expected, newSessionContext))
 		{
 			Log(Foundation::ELogLevel::Warn, "Free session slot was lost before RIO session attach completed.");
-			newSessionContext->ReleaseRioResources(m_rioFunctionTable);
-			FRioSession::Destroy(newSessionContext);
+			ReleaseSession(newSessionContext);
 			return false;
 		}
 
@@ -1224,15 +1223,16 @@ namespace NetworkLib::Core
 		}
 		m_workers[workerIndex]->activeSessionCount.fetch_add(1, std::memory_order_relaxed);
 		m_monitoring.OnSessionAccepted();
+		newSessionContext->AcquireRef();
 		m_applicationHandler->OnClientConnected(newSessionContext->GetSessionId());
-		if (!PostRecv(*newSessionContext))
+		const bool recvPosted = PostRecv(*newSessionContext);
+		if (!recvPosted)
 		{
 			CloseSession(*newSessionContext);
-			ReleaseSession(newSessionContext);
-			return false;
 		}
+		ReleaseSession(newSessionContext);
 
-		return true;
+		return recvPosted;
 	}
 
 	bool FRioServer::PostRecv(
@@ -1348,6 +1348,11 @@ namespace NetworkLib::Core
 				FPacketView packetView;
 				if (!m_packetFramer->TryExtractPacketView(sessionContext.GetRecvBuffer(), packetView))
 				{
+					if (m_packetFramer->HasInvalidPacketHeader(sessionContext.GetRecvBuffer()))
+					{
+						Log(Foundation::ELogLevel::Warn, "Oversized packet header rejected. sessionId={}", sessionContext.GetSessionId());
+						CloseSession(sessionContext);
+					}
 					break;
 				}
 
@@ -1448,6 +1453,7 @@ namespace NetworkLib::Core
 		{
 			return;
 		}
+		sessionContext.AcquireRef();
 
 		{
 			std::scoped_lock<std::mutex> requestQueueLock(sessionContext.GetRequestQueueMutex());
@@ -1460,7 +1466,8 @@ namespace NetworkLib::Core
 			sessionContext.SetRequestQueue(RIO_INVALID_RQ);
 		}
 
-		m_sessionSlots[sessionContext.GetSlotIndex()].store(nullptr);
+		FRioSession* expectedSession = &sessionContext;
+		const bool releasedSlotReference = m_sessionSlots[sessionContext.GetSlotIndex()].compare_exchange_strong(expectedSession, nullptr);
 		m_monitoring.OnSessionClosed();
 		if (sessionContext.GetOwnerWorkerIndex() < m_workers.size())
 		{
@@ -1477,10 +1484,17 @@ namespace NetworkLib::Core
 				sessionContext.GetOwnerWorkerIndex());
 		}
 		m_applicationHandler->OnClientDisconnected(sessionContext.GetSessionId());
+		if (releasedSlotReference)
+		{
+			// Return the initial reference owned by the session slot.
+			ReleaseSession(&sessionContext);
+		}
+		// Return the temporary reference that protects this close callback path.
+		ReleaseSession(&sessionContext);
 	}
 
 	void FRioServer::ReleaseSession(
-		FRioSession* sessionContext)
+		FRioSession* sessionContext) const
 	{
 		if (sessionContext == nullptr)
 		{
@@ -1494,6 +1508,29 @@ namespace NetworkLib::Core
 		}
 	}
 
+	FRioSession* FRioServer::AcquireSessionBySlotIndex(
+		std::uint32_t slotIndex) const
+	{
+		if (slotIndex >= m_serverConfig.maxSessionCount)
+		{
+			return nullptr;
+		}
+
+		FRioSession* sessionContext = m_sessionSlots[slotIndex].load(std::memory_order_acquire);
+		if (sessionContext == nullptr || !sessionContext->TryAcquireRef())
+		{
+			return nullptr;
+		}
+
+		if (m_sessionSlots[slotIndex].load(std::memory_order_acquire) != sessionContext || sessionContext->IsClosing())
+		{
+			ReleaseSession(sessionContext);
+			return nullptr;
+		}
+
+		return sessionContext;
+	}
+
 	FRioSession* FRioServer::AcquireSession(
 		std::uint64_t sessionId)
 	{
@@ -1503,14 +1540,13 @@ namespace NetworkLib::Core
 			return nullptr;
 		}
 
-		FRioSession* sessionContext = m_sessionSlots[slotIndex].load();
-		if (sessionContext == nullptr || sessionContext->GetSessionId() != sessionId || sessionContext->IsClosing())
+		FRioSession* sessionContext = AcquireSessionBySlotIndex(slotIndex);
+		if (sessionContext == nullptr)
 		{
 			return nullptr;
 		}
 
-		sessionContext->AcquireRef();
-		if (sessionContext->GetSessionId() != sessionId || sessionContext->IsClosing())
+		if (sessionContext->GetSessionId() != sessionId)
 		{
 			ReleaseSession(sessionContext);
 			return nullptr;

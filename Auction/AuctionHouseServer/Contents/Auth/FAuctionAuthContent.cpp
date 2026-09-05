@@ -3,13 +3,15 @@
 #include "AuctionHouseServer/Contents/Auth/FAuctionAuthContent.h"
 
 #include "AuctionHouseServer/Contents/ContentTypes.h"
-#include "AuctionHouseServer/Contents/Session/FAuctionUserRegistry.h"
+#include "AuctionHouseServer/Contents/Session/FAuctionSessionRegistry.h"
 #include "AuctionHouseServer/Database/FAuctionRepository.h"
 #include "AuctionHouseServer/Database/FContentThreadDbContext.h"
 #include "AuctionHouseServer/Domain/AuctionResultCode.h"
 #include "ContentsRuntime/Bridge/IContentBridge.h"
-#include "Generated/Packets/Auction/AuctionPackets.h"
+#include "Generated/Packets/Cpp/Auction/AuctionPackets.h"
 #include "GameData/Auction/FAuctionPolicyTable.h"
+#include "GameData/InventoryPolicy/FInventoryPolicyTable.h"
+#include "GameData/MailPolicy/FMailPolicyTable.h"
 
 #include <format>
 namespace AuctionHouseServer::Contents
@@ -17,17 +19,25 @@ namespace AuctionHouseServer::Contents
 	FAuctionAuthContent::FAuctionAuthContent(
 		std::shared_ptr<Foundation::ILogger> logger,
 		const ContentsRuntime::Core::FContentInstanceId contentInstanceId,
-		std::shared_ptr<FAuctionUserRegistry> userRegistry,
+		std::shared_ptr<FAuctionSessionRegistry> sessionRegistry,
 		std::shared_ptr<Connector::ILoginTicketStore> ticketStore,
 		std::shared_ptr<const GameData::Auction::FAuctionPolicyTable> auctionPolicyTable,
+		std::shared_ptr<const GameData::InventoryPolicy::FInventoryPolicyTable> inventoryPolicyTable,
+		std::shared_ptr<const GameData::MailPolicy::FMailPolicyTable> mailPolicyTable,
 		Database::SAuctionDatabaseConfig databaseConfig)
 		: m_logger(std::move(logger))
 		, m_contentInstanceId(contentInstanceId)
-		, m_userRegistry(std::move(userRegistry))
+		, m_sessionRegistry(std::move(sessionRegistry))
 		, m_ticketStore(std::move(ticketStore))
 		, m_auctionPolicyTable(std::move(auctionPolicyTable))
+		, m_inventoryPolicyTable(std::move(inventoryPolicyTable))
+		, m_mailPolicyTable(std::move(mailPolicyTable))
 		, m_databaseConfig(std::move(databaseConfig))
 	{
+		if (m_auctionPolicyTable == nullptr || m_inventoryPolicyTable == nullptr || m_mailPolicyTable == nullptr)
+		{
+			throw std::invalid_argument("auction authentication policy table is null.");
+		}
 	}
 
 	ContentsRuntime::Core::FContentId FAuctionAuthContent::GetContentId() const noexcept
@@ -76,6 +86,17 @@ namespace AuctionHouseServer::Contents
 
 		Generated::Auction::FAuctionAuthRp response;
 		response.requestId = request.requestId;
+		const auto& policy = m_auctionPolicyTable->Get();
+		const auto& inventoryPolicy = m_inventoryPolicyTable->Get();
+		const auto& mailPolicy = m_mailPolicyTable->Get();
+		if (policy.defaultCurrencyDataId > std::numeric_limits<std::uint16_t>::max())
+		{
+			response.resultCode = static_cast<std::uint16_t>(Domain::EAuctionResultCode::InternalError);
+			ContentsRuntime::Bridge::SendContentPacket(bridge, sessionId, response);
+			Log(Foundation::ELogLevel::Error, "AuctionAuth policy DefaultCurrencyDataId exceeds the packet currencyId range.");
+			return;
+		}
+
 		Connector::SConsumedLoginTicket consumedTicket{};
 		std::string error;
 		const bool consumed = m_ticketStore != nullptr && m_ticketStore->TryConsumeLoginTicket(request.ticket, consumedTicket, error);
@@ -88,10 +109,18 @@ namespace AuctionHouseServer::Contents
 		}
 
 		const std::uint64_t userId = consumedTicket.userId;
-		const auto previousSessionId = m_userRegistry->Bind(sessionId, userId, consumedTicket.loginId);
+		std::optional<std::uint64_t> previousSessionId;
+		if (!m_sessionRegistry->Bind(sessionId, userId, consumedTicket.loginId, previousSessionId))
+		{
+			response.resultCode = static_cast<std::uint16_t>(Domain::EAuctionResultCode::InternalError);
+			ContentsRuntime::Bridge::SendContentPacket(bridge, sessionId, response);
+			bridge.DisconnectSession(sessionId);
+			Log(Foundation::ELogLevel::Error, "AuctionAuth session bind failed.");
+			return;
+		}
 		if (!bridge.MoveSession(sessionId, kRouterContentId))
 		{
-			m_userRegistry->Remove(sessionId);
+			m_sessionRegistry->Remove(sessionId);
 			response.resultCode = static_cast<std::uint16_t>(Domain::EAuctionResultCode::InternalError);
 			ContentsRuntime::Bridge::SendContentPacket(bridge, sessionId, response);
 			Log(Foundation::ELogLevel::Error, "AuctionAuth move to router failed.");
@@ -105,15 +134,20 @@ namespace AuctionHouseServer::Contents
 
 		response.resultCode = static_cast<std::uint16_t>(Domain::EAuctionResultCode::Success);
 		response.userId = userId;
-		const auto& policy = m_auctionPolicyTable->Get();
 		response.maxActiveListings = policy.maxActiveListings;
 		response.searchPageSize = policy.searchPageSize;
+		response.inventoryListPageSize = inventoryPolicy.inventoryListPageSize;
+		response.mailListPageSize = mailPolicy.mailListPageSize;
 		response.minimumListingDurationSeconds = policy.minimumListingDurationSeconds;
 		response.maximumListingDurationSeconds = policy.maximumListingDurationSeconds;
 		response.defaultListingDurationSeconds = policy.defaultListingDurationSeconds;
+		response.defaultCurrencyId = static_cast<std::uint16_t>(policy.defaultCurrencyDataId);
+		response.minimumBidIncrement = policy.minimumBidIncrement;
+		response.minimumListingPrice = policy.minimumListingPrice;
+		response.maximumListingPrice = policy.maximumListingPrice;
 		if (!ContentsRuntime::Bridge::SendContentPacket(bridge, sessionId, response))
 		{
-			m_userRegistry->Remove(sessionId);
+			m_sessionRegistry->Remove(sessionId);
 			bridge.DisconnectSession(sessionId);
 			Log(Foundation::ELogLevel::Error, "AuctionAuth response send failed.");
 			return;
@@ -141,7 +175,7 @@ namespace AuctionHouseServer::Contents
 		auto& context = Database::FContentThreadDbContext::Get(m_databaseConfig);
 		auto* connection = context.GetAuctionPrimary(error);
 		std::vector<Database::SOutbidClaimable> bids;
-		if (connection == nullptr || !Database::FAuctionRepository(*connection).GetOutbidClaimable(userId, 100, bids, error))
+		if (connection == nullptr || !Database::FAuctionRepository(*connection).GetOutbidClaimable(userId, bids, error))
 		{
 			Log(Foundation::ELogLevel::Warn, "outbid catch-up query failed: " + error);
 			return;

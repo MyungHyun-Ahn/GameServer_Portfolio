@@ -48,6 +48,7 @@ namespace NetworkLib::Session
 		bool TryMarkClosing() noexcept override;
 
 		long AcquireRef() noexcept override;
+		bool TryAcquireRef() noexcept;
 		long ReleaseRef() noexcept override;
 
 		void BuildRecvWsabufs(WSABUF (&outBuffers)[2], DWORD& outBufferCount) noexcept;
@@ -78,10 +79,10 @@ namespace NetworkLib::Session
 		inline static constexpr std::uint32_t kSendInFlightFlag = 1u << 0;
 		inline static constexpr std::uint32_t kSendPendingFlag = 1u << 1;
 		SOCKET m_socket = INVALID_SOCKET;
-		std::uint64_t m_sessionId = 0;
+		std::atomic<std::uint64_t> m_sessionId = 0;
 		std::uint32_t m_slotIndex = 0;
 		std::uint32_t m_generation = 0;
-		std::atomic<long> m_refCount = 1;
+		std::atomic<long> m_refCount = 0;
 		std::atomic<bool> m_closing = false;
 		SIoContext m_recvContext{};
 		SIoContext m_sendContext{};

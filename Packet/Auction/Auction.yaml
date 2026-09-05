@@ -15,9 +15,15 @@ messages:
         - { name: userId, type: uint64 }
         - { name: maxActiveListings, type: uint32 }
         - { name: searchPageSize, type: uint32 }
+        - { name: inventoryListPageSize, type: uint32 }
+        - { name: mailListPageSize, type: uint32 }
         - { name: minimumListingDurationSeconds, type: uint32 }
         - { name: maximumListingDurationSeconds, type: uint32 }
         - { name: defaultListingDurationSeconds, type: uint32 }
+        - { name: defaultCurrencyId, type: uint16 }
+        - { name: minimumBidIncrement, type: uint64 }
+        - { name: minimumListingPrice, type: uint64 }
+        - { name: maximumListingPrice, type: uint64 }
   - name: Ping
     rq:
       opcode: 4000

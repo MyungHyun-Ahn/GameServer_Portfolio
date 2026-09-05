@@ -1,8 +1,9 @@
 #include "AuctionDummyClientPch.h"
 
-#include "Generated/Config/AuctionDummyClient/AuctionDummyClientConfig.h"
-#include "Generated/Packets/Auction/AuctionPackets.h"
 #include "LoadTest/FAuctionLoadTestRunner.h"
+
+#include "Generated/Config/AuctionDummyClient/AuctionDummyClientConfig.h"
+#include "Generated/Packets/Cpp/Auction/AuctionPackets.h"
 
 namespace
 {
@@ -269,7 +270,7 @@ namespace AuctionDummyClient::LoadTest
 	{
 		Generated::Auction::FInventoryListRq request;
 		request.requestId = user.IssueRequestId();
-		request.limit = m_config.inventoryListLimit;
+		request.limit = std::min(m_config.inventoryListLimit, user.inventoryListPageSize);
 		if (!m_client->SendPacket(user.sessionId, request, kRandomKey, outError))
 		{
 			MarkUserFailed(user, outError, true);
@@ -294,7 +295,7 @@ namespace AuctionDummyClient::LoadTest
 	{
 		Generated::Auction::FMyBidListRq request;
 		request.requestId = user.IssueRequestId();
-		request.limit = 100;
+		request.limit = user.searchPageSize;
 		if (!m_client->SendPacket(user.sessionId, request, kRandomKey, outError))
 		{
 			MarkUserFailed(user, outError, true);
@@ -378,20 +379,25 @@ namespace AuctionDummyClient::LoadTest
 			return SendItemCheat(user, now, outError);
 
 		std::uniform_int_distribution<std::size_t> itemDistribution(0, user.inventoryItems.size() - 1);
-		std::uniform_int_distribution<std::uint32_t> startPriceDistribution(
-			m_config.listingStartPriceMinimum, m_config.listingStartPriceMaximum);
-		std::uniform_int_distribution<std::uint32_t> markupDistribution(
+		const std::uint64_t minimumStartPrice =
+			std::clamp<std::uint64_t>(m_config.listingStartPriceMinimum, user.minimumListingPrice, user.maximumListingPrice);
+		const std::uint64_t maximumStartPrice =
+			std::clamp<std::uint64_t>(m_config.listingStartPriceMaximum, minimumStartPrice, user.maximumListingPrice);
+		std::uniform_int_distribution<std::uint64_t> startPriceDistribution(minimumStartPrice, maximumStartPrice);
+		std::uniform_int_distribution<std::uint64_t> markupDistribution(
 			m_config.listingBuyoutMarkupMinimum, m_config.listingBuyoutMarkupMaximum);
 		const SInventoryItem& item = user.inventoryItems[itemDistribution(m_random)];
 		const std::uint64_t startPrice = startPriceDistribution(m_random);
+		const std::uint64_t markup = markupDistribution(m_random);
+		const std::uint64_t buyoutPrice = startPrice + std::min(markup, user.maximumListingPrice - startPrice);
 
 		Generated::Auction::FListingRegisterRq request;
 		request.requestId = user.IssueRequestId();
 		request.itemInstanceId = item.itemInstanceId;
 		request.expectedItemVersion = item.version;
-		request.currencyId = 1;
+		request.currencyId = user.defaultCurrencyId;
 		request.startPrice = startPrice;
-		request.buyoutPrice = startPrice + markupDistribution(m_random);
+		request.buyoutPrice = buyoutPrice;
 		request.durationSeconds = user.defaultListingDurationSeconds;
 		if (!m_client->SendPacket(user.sessionId, request, kRandomKey, outError))
 		{
@@ -445,10 +451,20 @@ namespace AuctionDummyClient::LoadTest
 		if (!user.pendingBidCandidate)
 			return false;
 		SListingCandidate& candidate = *user.pendingBidCandidate;
-		std::uniform_int_distribution<std::uint32_t> incrementDistribution(m_config.bidIncrementMinimum, m_config.bidIncrementMaximum);
+		const std::uint64_t minimumIncrement = std::max<std::uint64_t>(m_config.bidIncrementMinimum, user.minimumBidIncrement);
+		const std::uint64_t maximumIncrement = std::max<std::uint64_t>(m_config.bidIncrementMaximum, minimumIncrement);
+		std::uniform_int_distribution<std::uint64_t> incrementDistribution(minimumIncrement, maximumIncrement);
 		const std::uint64_t increment = incrementDistribution(m_random);
-		const std::uint64_t minimumBid = candidate.currentBidPrice == 0 ? candidate.startPrice : candidate.currentBidPrice + 1;
-		std::uint64_t bidAmount = std::max(candidate.startPrice, candidate.currentBidPrice + increment);
+		if (candidate.currentBidPrice != 0 && candidate.currentBidPrice > std::numeric_limits<std::uint64_t>::max() - increment)
+		{
+			user.pendingBidCandidate.reset();
+			return false;
+		}
+		const std::uint64_t minimumBid =
+			candidate.currentBidPrice == 0 ? candidate.startPrice : candidate.currentBidPrice + user.minimumBidIncrement;
+		const std::uint64_t bidAmountBase =
+			candidate.currentBidPrice == 0 ? std::max(candidate.startPrice, increment) : candidate.currentBidPrice + increment;
+		std::uint64_t bidAmount = std::max(minimumBid, bidAmountBase);
 		if (candidate.buyoutPrice != 0)
 		{
 			if (minimumBid >= candidate.buyoutPrice)
@@ -637,8 +653,10 @@ namespace AuctionDummyClient::LoadTest
 				return;
 			}
 			const bool succeeded = response.resultCode == kSuccess && response.userId != 0 && response.maxActiveListings != 0 &&
-								   response.searchPageSize != 0 && response.searchPageSize < 100 &&
-								   response.defaultListingDurationSeconds != 0;
+								   response.searchPageSize != 0 && response.searchPageSize < 100 && response.inventoryListPageSize != 0 &&
+								   response.mailListPageSize != 0 && response.defaultListingDurationSeconds != 0 &&
+								   response.defaultCurrencyId != 0 && response.minimumBidIncrement != 0 &&
+								   response.minimumListingPrice != 0 && response.minimumListingPrice <= response.maximumListingPrice;
 			m_metrics.RecordResponse(operationName, succeeded, now - pending.sentAt);
 			user.pendingRequest.reset();
 			if (!succeeded)
@@ -649,7 +667,13 @@ namespace AuctionDummyClient::LoadTest
 			user.authenticatedUserId = response.userId;
 			user.maxActiveListings = response.maxActiveListings;
 			user.searchPageSize = response.searchPageSize;
+			user.inventoryListPageSize = response.inventoryListPageSize;
+			user.mailListPageSize = response.mailListPageSize;
 			user.defaultListingDurationSeconds = response.defaultListingDurationSeconds;
+			user.defaultCurrencyId = response.defaultCurrencyId;
+			user.minimumBidIncrement = response.minimumBidIncrement;
+			user.minimumListingPrice = response.minimumListingPrice;
+			user.maximumListingPrice = response.maximumListingPrice;
 			m_authenticatedUserIds.insert(response.userId);
 			user.needsInitialGoldCheat = true;
 			user.needsMyListingsRefresh = true;
@@ -1334,7 +1358,7 @@ namespace AuctionDummyClient::LoadTest
 			source.BidWeight < 0 || source.BidWeight > 100000 || source.InitialGoldAmount == 0 || source.BidIncrementMinimum == 0 ||
 			source.BidIncrementMaximum < source.BidIncrementMinimum || source.BidHotspotPercent < 0 || source.BidHotspotPercent > 100 ||
 			source.OutbidRefundPercent < 0 || source.OutbidRefundPercent > 100 || source.InventoryListLimit <= 0 ||
-			source.InventoryListLimit > 100 || source.ListingStartPriceMinimum == 0 ||
+			source.InventoryListLimit > 20 || source.ListingStartPriceMinimum == 0 ||
 			source.ListingStartPriceMaximum < source.ListingStartPriceMinimum || source.ListingBuyoutMarkupMinimum == 0 ||
 			source.ListingBuyoutMarkupMaximum < source.ListingBuyoutMarkupMinimum)
 		{

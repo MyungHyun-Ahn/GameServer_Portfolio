@@ -35,6 +35,8 @@ namespace AuctionHouseServer::Domain
 		HighestBidExists = 28,
 		ExpireNotAvailable = 29,
 		ListingLimitExceeded = 30,
-		BidStateInvalid = 31
+		BidStateInvalid = 31,
+		RequestInProgress = 32,
+		BidRequiresBuyout = 33
 	};
 }

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="World">
+      <UniqueIdentifier>{ADB53A74-3CF7-867D-3B46-0B5A8A54E218}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\WorldServer">
+      <UniqueIdentifier>{DCD559D7-A94F-C13A-204A-AA7F2FB5677E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="World\WorldServer\Domain">
+      <UniqueIdentifier>{B9E58E88-6CD6-B207-52B7-082EE4761A7F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PlayerStatCalculatorSmokeTestPch.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="..\..\World\WorldServer\Domain\FPlayerStatCalculator.cpp">
+      <Filter>World\WorldServer\Domain</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PlayerStatCalculatorSmokeTestPch.h" />
+  </ItemGroup>
+</Project>

@@ -119,16 +119,32 @@ foreach ($container in $containers) {
     Wait-ContainerHealthy -ContainerName $container
 }
 
-$gameMigration = Join-Path $repositoryRoot "Auction\Database\GameDB\003_migrate_item_data_id.sql"
-$gameInventoryProcedures = Join-Path $repositoryRoot "Auction\Database\GameDB\004_inventory_procedures.sql"
-$gameAuctionRegistration = Join-Path $repositoryRoot "Auction\Database\GameDB\005_inventory_auction_registration.sql"
-$gameMailProcedures = Join-Path $repositoryRoot "Auction\Database\GameDB\006_mail_procedures.sql"
-$auctionMigration = Join-Path $repositoryRoot "Auction\Database\AuctionDB\003_migrate_item_search_columns.sql"
-$auctionSearchSortingMigration = Join-Path $repositoryRoot "Auction\Database\AuctionDB\008_search_sorting.sql"
-$auctionSearchSortIndexMigration = Join-Path $repositoryRoot "Auction\Database\AuctionDB\009_migrate_search_sort_index_directions.sql"
-$auctionProcedures = Join-Path $repositoryRoot "Auction\Database\AuctionDB\002_listing_bid_procedures.sql"
+$gameMigration = Join-Path $repositoryRoot "Database\GameDB\003_migrate_item_data_id.sql"
+$gameCurrencyProcedures = Join-Path $repositoryRoot "Database\GameDB\002_currency_procedures.sql"
+$gameInventoryProcedures = Join-Path $repositoryRoot "Database\GameDB\004_inventory_procedures.sql"
+$gameAuctionRegistration = Join-Path $repositoryRoot "Database\GameDB\005_inventory_auction_registration.sql"
+$gameMailProcedures = Join-Path $repositoryRoot "Database\GameDB\006_mail_procedures.sql"
+$gamePlayerCacheProcedures = Join-Path $repositoryRoot "Database\GameDB\007_player_cache_procedures.sql"
+$gameMailItemUniquenessMigration = Join-Path $repositoryRoot "Database\GameDB\008_migrate_mail_item_uniqueness.sql"
+$gamePlayerCharacterMigration = Join-Path $repositoryRoot "Database\GameDB\009_migrate_player_characters.sql"
+$gamePlayerCharacterProcedures = Join-Path $repositoryRoot "Database\GameDB\010_player_character_procedures.sql"
+$gamePlayerEquipmentProcedures = Join-Path $repositoryRoot "Database\GameDB\011_player_equipment_procedures.sql"
+$auctionMigration = Join-Path $repositoryRoot "Database\AuctionDB\003_migrate_item_search_columns.sql"
+$auctionSearchSortingMigration = Join-Path $repositoryRoot "Database\AuctionDB\008_search_sorting.sql"
+$auctionSearchSortIndexMigration = Join-Path $repositoryRoot "Database\AuctionDB\009_migrate_search_sort_index_directions.sql"
+$auctionProcedures = Join-Path $repositoryRoot "Database\AuctionDB\002_listing_bid_procedures.sql"
 
-foreach ($sqlFile in @($gameMigration, $gameInventoryProcedures, $gameAuctionRegistration, $gameMailProcedures)) {
+foreach ($sqlFile in @(
+    $gameMigration,
+    $gameMailItemUniquenessMigration,
+    $gamePlayerCharacterMigration,
+    $gameCurrencyProcedures,
+    $gameInventoryProcedures,
+    $gameAuctionRegistration,
+    $gameMailProcedures,
+    $gamePlayerCacheProcedures,
+    $gamePlayerCharacterProcedures,
+    $gamePlayerEquipmentProcedures)) {
     Get-Content -LiteralPath $sqlFile -Raw |
         docker exec -i -e "MYSQL_PWD=$rootPassword" gameserverportfolio-game-db-primary mysql -uroot
     if ($LASTEXITCODE -ne 0) {

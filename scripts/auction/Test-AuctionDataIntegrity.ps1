@@ -21,7 +21,7 @@ if ($FirstUserId -eq 0 -or $LastUserId -lt $FirstUserId)
 $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $scriptDirectory)
 $envFile = Join-Path $repositoryRoot ".env"
-$auctionPolicyPath = Join-Path $repositoryRoot "Config\GameData\Auction.yaml"
+$auctionPolicyPath = Join-Path $repositoryRoot "Generated\GameData\Data\Server\AuctionPolicy.yaml"
 
 function Get-DotEnvValue([string]$Name)
 {

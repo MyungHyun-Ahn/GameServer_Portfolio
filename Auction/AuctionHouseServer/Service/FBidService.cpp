@@ -4,7 +4,6 @@
 
 #include "AuctionHouseServer/Database/FAuctionRepository.h"
 #include "AuctionHouseServer/Database/FContentThreadDbContext.h"
-#include "AuctionHouseServer/Database/FGameRepository.h"
 
 namespace AuctionHouseServer::Service
 {
@@ -16,6 +15,10 @@ namespace AuctionHouseServer::Service
 			if (error.find("BID_TOO_LOW") != std::string::npos)
 			{
 				return Domain::EAuctionResultCode::BidTooLow;
+			}
+			if (error.find("BID_REQUIRES_BUYOUT") != std::string::npos)
+			{
+				return Domain::EAuctionResultCode::BidRequiresBuyout;
 			}
 			if (error.find("SELLER_CANNOT_BID") != std::string::npos)
 			{
@@ -34,17 +37,19 @@ namespace AuctionHouseServer::Service
 	}
 
 	FBidService::FBidService(
-		Database::SAuctionDatabaseConfig config)
+		Database::SAuctionDatabaseConfig config,
+		const std::uint64_t minimumBidIncrement)
 		: m_config(std::move(config))
+		, m_minimumBidIncrement(minimumBidIncrement)
 	{
 	}
 
-	Domain::EAuctionResultCode FBidService::Execute(
+	Domain::EAuctionResultCode FBidService::Prepare(
 		const std::uint64_t bidderUserId,
 		const std::uint64_t listingId,
 		const std::uint64_t bidAmount,
 		const std::uint64_t expectedListingVersion,
-		Database::SBidResult& outResult,
+		Database::SBidPrepareResult& outResult,
 		std::string& outError) const
 	{
 		if (bidderUserId == 0 || listingId == 0 || bidAmount == 0 || expectedListingVersion == 0)
@@ -52,71 +57,90 @@ namespace AuctionHouseServer::Service
 			outError = "invalid bid request.";
 			return Domain::EAuctionResultCode::InvalidRequest;
 		}
+		if (m_minimumBidIncrement == 0)
+		{
+			outError = "auction policy MinimumBidIncrement must be greater than zero.";
+			return Domain::EAuctionResultCode::InternalError;
+		}
 
 		auto& context = Database::FContentThreadDbContext::Get(m_config);
 		auto* auctionConnection = context.GetAuctionPrimary(outError);
-		auto* gameConnection = context.GetGamePrimary(outError);
-		if (auctionConnection == nullptr || gameConnection == nullptr)
+		if (auctionConnection == nullptr)
 		{
 			return Domain::EAuctionResultCode::DatabaseUnavailable;
 		}
 
 		Database::FAuctionRepository auctionRepository(*auctionConnection);
-		Database::FGameRepository gameRepository(*gameConnection);
 		Connector::MySql::FMySqlTransaction auctionTransaction(*auctionConnection);
 		if (!auctionTransaction.Begin(outError))
 		{
 			return Domain::EAuctionResultCode::DatabaseUnavailable;
 		}
-		Database::SBidPrepareResult prepared;
-		if (!auctionRepository.PrepareBid(listingId, bidderUserId, bidAmount, expectedListingVersion, prepared, outError))
+		if (!auctionRepository.PrepareBid(
+				listingId, bidderUserId, bidAmount, expectedListingVersion, m_minimumBidIncrement, outResult, outError))
 		{
+			auctionTransaction.Rollback();
 			return MapPrepareError(outError);
 		}
-
-		Connector::MySql::FMySqlTransaction gameTransaction(*gameConnection);
-		if (!gameTransaction.Begin(outError))
-		{
-			return Domain::EAuctionResultCode::DatabaseUnavailable;
-		}
-		std::uint64_t currencyBalance = 0;
-		if (!gameRepository.DebitCurrency(bidderUserId, prepared.currencyId, prepared.additionalDebit, currencyBalance, outError))
-		{
-			return outError.find("INSUFFICIENT_CURRENCY") != std::string::npos ? Domain::EAuctionResultCode::InsufficientCurrency
-																			   : Domain::EAuctionResultCode::DatabaseUnavailable;
-		}
-
 		if (!auctionTransaction.Commit(outError))
-		{
-			return Domain::EAuctionResultCode::DatabaseUnavailable;
-		}
-		if (!gameTransaction.Commit(outError))
 		{
 			return Domain::EAuctionResultCode::PartialCommit;
 		}
+		return Domain::EAuctionResultCode::Success;
+	}
 
+	Domain::EAuctionResultCode FBidService::Complete(
+		const std::uint64_t bidderUserId,
+		const std::uint64_t listingId,
+		const std::uint64_t bidAmount,
+		const std::uint64_t preparedListingVersion,
+		std::uint64_t& outBidId,
+		std::uint64_t& outListingVersion,
+		std::string& outError) const
+	{
+		auto& context = Database::FContentThreadDbContext::Get(m_config);
+		auto* auctionConnection = context.GetAuctionPrimary(outError);
+		if (auctionConnection == nullptr)
+		{
+			return Domain::EAuctionResultCode::PartialCommit;
+		}
+		Database::FAuctionRepository auctionRepository(*auctionConnection);
 		Connector::MySql::FMySqlTransaction completionTransaction(*auctionConnection);
 		if (!completionTransaction.Begin(outError))
 		{
 			return Domain::EAuctionResultCode::PartialCommit;
 		}
-		std::uint64_t listingVersion = 0;
 		if (!auctionRepository.CompleteBid(
-				listingId, prepared.bidId, bidderUserId, prepared.preparedListingVersion, listingVersion, outError) ||
+				listingId, bidderUserId, bidAmount, preparedListingVersion, outBidId, outListingVersion, outError) ||
 			!completionTransaction.Commit(outError))
 		{
 			return Domain::EAuctionResultCode::PartialCommit;
 		}
-
-		outResult.bidId = prepared.bidId;
-		outResult.bidAmount = bidAmount;
-		outResult.additionalDebit = prepared.additionalDebit;
-		outResult.currencyBalance = currencyBalance;
-		outResult.listingVersion = listingVersion;
-		outResult.previousHighestBidId = prepared.previousHighestBidId;
-		outResult.previousHighestBidderUserId = prepared.previousHighestBidderUserId;
-		outResult.previousHighestAmount = prepared.previousHighestAmount;
 		outError.clear();
 		return Domain::EAuctionResultCode::Success;
+	}
+
+	bool FBidService::Revert(
+		const std::uint64_t listingId,
+		const std::uint64_t preparedListingVersion,
+		std::string& outError) const
+	{
+		auto& context = Database::FContentThreadDbContext::Get(m_config);
+		auto* connection = context.GetAuctionPrimary(outError);
+		if (connection == nullptr)
+		{
+			return false;
+		}
+		Connector::MySql::FMySqlTransaction transaction(*connection);
+		if (!transaction.Begin(outError))
+		{
+			return false;
+		}
+		if (!Database::FAuctionRepository(*connection).RevertBid(listingId, preparedListingVersion, outError))
+		{
+			transaction.Rollback();
+			return false;
+		}
+		return transaction.Commit(outError);
 	}
 }

@@ -12,10 +12,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\CSharp\ClientNetwork\ClientNetwork.csproj" />
+    <ProjectReference Include="..\..\Generated\GameData\CSharp\GeneratedGameData.csproj" />
+    <ProjectReference Include="..\..\Generated\Packets\CSharp\GeneratedPackets.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ClientAdaptersCSharpSmokeTest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\..\Config\GameData\Items.yaml" Link="Items.yaml">
+    <None Include="..\..\Generated\GameData\Data\Client\Item.json" Link="GameData\Item.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\..\Generated\GameData\Data\Client\Currency.json" Link="GameData\Currency.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

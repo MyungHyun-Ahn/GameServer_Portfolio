@@ -44,10 +44,12 @@ namespace Connector
 			const std::string_view value,
 			std::uint32_t& outUserId,
 			std::uint64_t& outLoginVersion,
+			std::uint32_t& outTargetServerInstanceId,
 			std::string& outLoginId) noexcept
 		{
 			outUserId = 0;
 			outLoginVersion = 0;
+			outTargetServerInstanceId = 0;
 			outLoginId.clear();
 
 			const std::size_t firstDelimiter = value.find(':');
@@ -71,7 +73,24 @@ namespace Connector
 				return true;
 			}
 
-			const std::string_view encodedLoginId = value.substr(secondDelimiter + 1);
+			const std::size_t thirdDelimiter = value.find(':', secondDelimiter + 1);
+			std::string_view encodedLoginId;
+			if (thirdDelimiter == std::string_view::npos)
+			{
+				// Legacy Chat/Auction payload: userId:loginVersion:hexLoginId.
+				encodedLoginId = value.substr(secondDelimiter + 1);
+			}
+			else
+			{
+				// Targeted payload: userId:loginVersion:targetServerInstanceId:hexLoginId.
+				const std::string_view targetServerInstanceIdText = value.substr(secondDelimiter + 1, thirdDelimiter - secondDelimiter - 1);
+				if (!TryParseUserId(targetServerInstanceIdText, outTargetServerInstanceId))
+				{
+					return false;
+				}
+				encodedLoginId = value.substr(thirdDelimiter + 1);
+			}
+
 			if (encodedLoginId.empty() || encodedLoginId.size() > 128 || encodedLoginId.size() % 2 != 0)
 			{
 				return false;
@@ -160,7 +179,8 @@ namespace Connector
 				return false;
 			}
 
-			if (!TryParseTicketPayload(reply.as_string(), outTicket.userId, outTicket.loginVersion, outTicket.loginId))
+			if (!TryParseTicketPayload(
+					reply.as_string(), outTicket.userId, outTicket.loginVersion, outTicket.targetServerInstanceId, outTicket.loginId))
 			{
 				outError = "login ticket payload is invalid.";
 				return false;

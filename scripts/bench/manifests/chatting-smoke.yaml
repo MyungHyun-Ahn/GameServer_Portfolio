@@ -13,6 +13,7 @@ Defaults:
     Executable: Out/ChattingServer/Release/ChattingServer.exe
     ConfigTemplate: Config/Server/ChattingServer.yaml
     Overrides:
+      LoginAuth.Mode: Disabled
       ChattingServer.Port: 19100
       Debug.Headless: true
   Client:

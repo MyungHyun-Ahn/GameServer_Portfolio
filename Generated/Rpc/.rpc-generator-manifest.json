@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "files": [
+    "Cache/CacheRpcMethods.h",
+    "RpcMethodCatalog.h",
+    "ServerProtocol/UserPresenceRpcMethods.h"
+  ]
+}

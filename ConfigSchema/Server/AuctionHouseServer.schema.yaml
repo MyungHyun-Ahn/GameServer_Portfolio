@@ -1,0 +1,89 @@
+AuctionHouseServer:
+  Backend:
+    type: enum
+    default: Iocp
+    values: [Iocp, Rio]
+  RioSendDispatchMode:
+    type: enum
+    default: Direct
+    values: [Direct, OwnerThread]
+  BindIp: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19102, required: true }
+  WorkerThreadCount: { type: int32, default: 2 }
+  MaxSessionCount: { type: int32, default: 128 }
+  RecvBufferSize: { type: int32, default: 1024 }
+  SocketSendBufferBytes: { type: int32, default: -1 }
+  RioSendRingSizeBytes: { type: uint32, default: 65536 }
+  EnablePagePool: { type: bool, default: true }
+  PageSize: { type: uint32, default: 4096 }
+  PacketKey: { type: uint32, default: 55 }
+  RunSeconds: { type: int32, default: 0 }
+  CommandShardCount: { type: uint32, default: 4 }
+  ContentsWorkerThreadCount: { type: int32, default: 7 }
+  CommandMailboxCapacity: { type: uint64, default: 1024 }
+  ExpirationPollMilliseconds: { type: uint32, default: 5000 }
+  GameDataDirectory: { type: string, default: "Config/GameData", required: true }
+
+Logging:
+  MinimumLevel:
+    type: enum
+    default: Info
+    values: [Debug, Info, Warn, Error]
+  OutputDirectory: { type: string, default: logs, required: true }
+  ConsoleEnabled: { type: bool, default: true }
+  FileEnabled: { type: bool, default: true }
+  IncludeThreadId: { type: bool, default: true }
+
+Diagnostics:
+  TimingMetricsFlushIntervalSeconds: { type: int32, default: 60 }
+  TimingCsvPath: { type: string, default: "logs/auction_timing.csv", required: true }
+
+Authentication:
+  Enabled: { type: bool, default: false }
+  RedisHost: { type: string, default: 127.0.0.1, required: true }
+  RedisPort: { type: uint16, default: 6379, required: true }
+  RedisPassword: { type: string, default: "" }
+  RedisDatabase: { type: int32, default: 0 }
+  RedisConnectTimeoutMilliseconds: { type: uint32, default: 3000 }
+  TicketKeyPrefix: { type: string, default: "auction:ticket:", required: true }
+  ActiveLoginKeyPrefix: { type: string, default: "chat:active-login:", required: true }
+
+CacheRpc:
+  Host: { type: string, default: 127.0.0.1, required: true }
+  Port: { type: uint16, default: 19103, required: true }
+  LocalServerInstanceId: { type: uint32, default: 1 }
+  RemoteServerInstanceId: { type: uint32, default: 1 }
+  PacketKey: { type: uint32, default: 55 }
+  RandomKey: { type: uint32, default: 81 }
+  HandshakeTimeoutMilliseconds: { type: uint32, default: 3000 }
+  ReconnectMilliseconds: { type: uint32, default: 1000 }
+  NetworkWorkerThreadCount: { type: uint32, default: 2 }
+  RecvScratchBufferSize: { type: uint64, default: 65536 }
+
+AuctionDatabase:
+  Enabled: { type: bool, default: false }
+  Password: { type: string, default: "" }
+  ReplicaReconnectCooldownMilliseconds: { type: uint32, default: 60000 }
+  PrimaryHost: { type: string, default: 127.0.0.1, required: true }
+  PrimaryPort: { type: uint16, default: 3320, required: true }
+  PrimaryUser: { type: string, default: appuser, required: true }
+  PrimarySchema: { type: string, default: auctiondb, required: true }
+  PrimaryConnectTimeoutSeconds: { type: uint32, default: 3 }
+  Replica1Enabled: { type: bool, default: true }
+  Replica1Host: { type: string, default: 127.0.0.1, required: true }
+  Replica1Port: { type: uint16, default: 3321, required: true }
+  Replica1User: { type: string, default: appuser, required: true }
+  Replica1Schema: { type: string, default: auctiondb, required: true }
+  Replica1ConnectTimeoutSeconds: { type: uint32, default: 3 }
+  Replica2Enabled: { type: bool, default: true }
+  Replica2Host: { type: string, default: 127.0.0.1, required: true }
+  Replica2Port: { type: uint16, default: 3322, required: true }
+  Replica2User: { type: string, default: appuser, required: true }
+  Replica2Schema: { type: string, default: auctiondb, required: true }
+  Replica2ConnectTimeoutSeconds: { type: uint32, default: 3 }
+
+Debug:
+  TestDelayShardIndex: { type: int32, default: -1 }
+  TestDelayMilliseconds: { type: uint32, default: 0 }
+  FaultInjectListingRegisterAfterAuctionCommit: { type: bool, default: false }
+  FaultInjectBidRefundBeforeComplete: { type: bool, default: false }

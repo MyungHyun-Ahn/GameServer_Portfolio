@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Generated">
+      <UniqueIdentifier>{0C53A3AA-6D99-E3C5-FEEF-AE8BA192CC7F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Rpc">
+      <UniqueIdentifier>{40671BF3-D2C8-5F84-42AA-0B4BE810E321}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Generated\Rpc\ServerProtocol">
+      <UniqueIdentifier>{0AB6964D-5FB0-9B7D-FEF0-9D98D780C1B3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ServerProtocolPch.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ServerProtocolPch.h" />
+    <ClInclude Include="..\..\Generated\Rpc\ServerProtocol\UserPresenceRpcMethods.h">
+      <Filter>Generated\Rpc\ServerProtocol</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

@@ -82,17 +82,21 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Bridge\FContentResponse.cpp" />
     <ClCompile Include="Core\FContentInstanceIdAllocator.cpp" />
+    <ClCompile Include="Session\FContentSession.cpp" />
     <ClCompile Include="Routing\FContentRuntime.cpp" />
     <ClCompile Include="Threading\FContentThread.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ContentsRuntimePch.h" />
     <ClInclude Include="Bridge\IContentBridge.h" />
-    <ClInclude Include="Core\ContentExecutionState.h" />
     <ClInclude Include="Core\FContentInstanceIdAllocator.h" />
+    <ClInclude Include="Core\ContentExecutionState.h" />
     <ClInclude Include="Core\ContentRuntimeTypes.h" />
     <ClInclude Include="Core\IContent.h" />
+    <ClInclude Include="Session\FContentSession.h" />
+    <ClInclude Include="Session\RequestProcessingTypes.h" />
     <ClInclude Include="Routing\FContentRuntime.h" />
     <ClInclude Include="Threading\FContentThread.h" />
   </ItemGroup>

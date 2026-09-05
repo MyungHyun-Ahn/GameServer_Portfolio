@@ -34,6 +34,15 @@ function getNumber(name: string, defaultValue: number): number {
   return value;
 }
 
+function getUInt32(name: string, defaultValue: number): number {
+  const value = getNumber(name, defaultValue);
+  if (value < 1 || value > 0xffff_ffff) {
+    throw new Error(`Environment variable must be in the uint32 range: ${name}`);
+  }
+
+  return value;
+}
+
 export const appEnv = {
   server: {
     host: getRequiredString("LOGIN_SERVER_HOST", "127.0.0.1"),
@@ -62,9 +71,15 @@ export const appEnv = {
     ip: getRequiredString("AUCTION_SERVER_IP", "127.0.0.1"),
     port: getNumber("AUCTION_SERVER_PORT", 19102),
   },
+  worldServer: {
+    ip: getRequiredString("WORLD_SERVER_IP", "127.0.0.1"),
+    port: getNumber("WORLD_SERVER_PORT", 19200),
+    instanceId: getUInt32("WORLD_SERVER_INSTANCE_ID", 1),
+  },
   ticket: {
     keyPrefix: getRequiredString("CHAT_TICKET_KEY_PREFIX", "chat:ticket:"),
     auctionKeyPrefix: getRequiredString("AUCTION_TICKET_KEY_PREFIX", "auction:ticket:"),
+    worldKeyPrefix: getRequiredString("WORLD_TICKET_KEY_PREFIX", "world:ticket:"),
     ttlSeconds: getNumber("CHAT_TICKET_TTL_SECONDS", 60),
   },
   argon2: {

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{61CBB7FA-7F5E-40CB-A28F-D7E7B0AF8312}</ProjectGuid>
+    <RootNamespace>WorldCore</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>WorldCorePch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>WorldCorePch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+	<ClCompile Include="Entity\FActorEntity.cpp" />
+    <ClCompile Include="Entity\FEntityRegistry.cpp" />
+	<ClCompile Include="Entity\FMonsterEntity.cpp" />
+    <ClCompile Include="Entity\FPlayerEntity.cpp" />
+    <ClCompile Include="Map\FMapInputBuffer.cpp" />
+    <ClCompile Include="Map\FMapInstance.cpp" />
+    <ClCompile Include="Map\FMapInstanceFactory.cpp" />
+    <ClCompile Include="Map\FMapInstanceManager.cpp" />
+	<ClCompile Include="Map\FMapTickExecution.cpp" />
+	<ClCompile Include="Map\FMapVisibilitySystem.cpp" />
+	<ClCompile Include="Map\Spawn\FDeterministicSpawnSampler.cpp" />
+	<ClCompile Include="Map\Spawn\FMonsterSpawnSystem.cpp" />
+	<ClCompile Include="Map\Spawn\FPlayerRespawnSystem.cpp" />
+    <ClCompile Include="Map\Sector\FSectorDeferredCommandBuffer.cpp" />
+    <ClCompile Include="Map\Sector\FSectorGrid.cpp" />
+    <ClCompile Include="Map\Sector\FSerialSectorExecutor.cpp" />
+    <ClCompile Include="Map\Sector\FSectorTaskProcessor.cpp" />
+    <ClCompile Include="Map\Sector\FSectorTickPlan.cpp" />
+	<ClCompile Include="Map\Sector\FSectorUpdatePipeline.cpp" />
+		<ClCompile Include="Map\Sector\Systems\FPlayerMovementSystem.cpp" />
+		<ClCompile Include="Map\Sector\Systems\FPlayerAttackSystem.cpp" />
+		<ClCompile Include="Map\Sector\Systems\FMonsterAiSystem.cpp" />
+    <ClCompile Include="WorldCorePch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="WorldTypes.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+	<ClInclude Include="Entity\FActorEntity.h" />
+    <ClInclude Include="Entity\FEntityRegistry.h" />
+	<ClInclude Include="Entity\FMonsterEntity.h" />
+    <ClInclude Include="Entity\FPlayerEntity.h" />
+    <ClInclude Include="Map\FMapInputBuffer.h" />
+    <ClInclude Include="Map\FMapInstance.h" />
+    <ClInclude Include="Map\FMapInstanceFactory.h" />
+    <ClInclude Include="Map\FMapInstanceManager.h" />
+	<ClInclude Include="Map\FMapTickExecution.h" />
+	<ClInclude Include="Map\FMapVisibilitySystem.h" />
+	<ClInclude Include="Map\Spawn\FDeterministicSpawnSampler.h" />
+	<ClInclude Include="Map\Spawn\FMonsterSpawnSystem.h" />
+	<ClInclude Include="Map\Spawn\FPlayerRespawnSystem.h" />
+    <ClInclude Include="Map\Sector\FSectorDeferredCommandBuffer.h" />
+    <ClInclude Include="Map\Sector\FSectorGrid.h" />
+    <ClInclude Include="Map\Sector\FSerialSectorExecutor.h" />
+    <ClInclude Include="Map\Sector\FSectorTaskProcessor.h" />
+    <ClInclude Include="Map\Sector\FSectorTickPlan.h" />
+	<ClInclude Include="Map\Sector\FSectorUpdateContext.h" />
+	<ClInclude Include="Map\Sector\FSectorUpdatePipeline.h" />
+    <ClInclude Include="Map\Sector\ISectorExecutor.h" />
+		<ClInclude Include="Map\Sector\Systems\FPlayerMovementSystem.h" />
+		<ClInclude Include="Map\Sector\Systems\FPlayerAttackSystem.h" />
+		<ClInclude Include="Map\Sector\Systems\FMonsterAiSystem.h" />
+    <ClInclude Include="WorldCorePch.h" />
+    <ClInclude Include="WorldTypes.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

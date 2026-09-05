@@ -23,12 +23,16 @@ services:
       - "3310:3306"
     volumes:
       - game_db_primary_data:/var/lib/mysql
-      - ../Auction/Database/docker/primary-init/001_replication_user.sh:/docker-entrypoint-initdb.d/001-replication-user.sh:ro
-      - ../Auction/Database/GameDB/001_schema.sql:/docker-entrypoint-initdb.d/010-game-schema.sql:ro
-      - ../Auction/Database/GameDB/003_migrate_item_data_id.sql:/docker-entrypoint-initdb.d/015-game-migrate-item-data-id.sql:ro
-      - ../Auction/Database/GameDB/002_currency_procedures.sql:/docker-entrypoint-initdb.d/020-game-procedures.sql:ro
-      - ../Auction/Database/GameDB/004_inventory_procedures.sql:/docker-entrypoint-initdb.d/025-game-inventory-procedures.sql:ro
-      - ../Auction/Database/GameDB/005_inventory_auction_registration.sql:/docker-entrypoint-initdb.d/030-game-auction-registration.sql:ro
+      - ../Database/docker/primary-init/001_replication_user.sh:/docker-entrypoint-initdb.d/001-replication-user.sh:ro
+      - ../Database/GameDB/001_schema.sql:/docker-entrypoint-initdb.d/010-game-schema.sql:ro
+      - ../Database/GameDB/003_migrate_item_data_id.sql:/docker-entrypoint-initdb.d/015-game-migrate-item-data-id.sql:ro
+      - ../Database/GameDB/009_migrate_player_characters.sql:/docker-entrypoint-initdb.d/018-game-migrate-player-characters.sql:ro
+      - ../Database/GameDB/002_currency_procedures.sql:/docker-entrypoint-initdb.d/020-game-procedures.sql:ro
+      - ../Database/GameDB/004_inventory_procedures.sql:/docker-entrypoint-initdb.d/025-game-inventory-procedures.sql:ro
+      - ../Database/GameDB/005_inventory_auction_registration.sql:/docker-entrypoint-initdb.d/030-game-auction-registration.sql:ro
+      - ../Database/GameDB/007_player_cache_procedures.sql:/docker-entrypoint-initdb.d/040-game-player-cache-procedures.sql:ro
+      - ../Database/GameDB/010_player_character_procedures.sql:/docker-entrypoint-initdb.d/045-game-player-character-procedures.sql:ro
+      - ../Database/GameDB/011_player_equipment_procedures.sql:/docker-entrypoint-initdb.d/046-game-player-equipment-procedures.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
@@ -120,10 +124,10 @@ services:
       - "3320:3306"
     volumes:
       - auction_db_primary_data:/var/lib/mysql
-      - ../Auction/Database/docker/primary-init/001_replication_user.sh:/docker-entrypoint-initdb.d/001-replication-user.sh:ro
-      - ../Auction/Database/AuctionDB/001_schema.sql:/docker-entrypoint-initdb.d/010-auction-schema.sql:ro
-      - ../Auction/Database/AuctionDB/003_migrate_item_search_columns.sql:/docker-entrypoint-initdb.d/015-auction-migrate-item-search.sql:ro
-      - ../Auction/Database/AuctionDB/002_listing_bid_procedures.sql:/docker-entrypoint-initdb.d/020-auction-procedures.sql:ro
+      - ../Database/docker/primary-init/001_replication_user.sh:/docker-entrypoint-initdb.d/001-replication-user.sh:ro
+      - ../Database/AuctionDB/001_schema.sql:/docker-entrypoint-initdb.d/010-auction-schema.sql:ro
+      - ../Database/AuctionDB/003_migrate_item_search_columns.sql:/docker-entrypoint-initdb.d/015-auction-migrate-item-search.sql:ro
+      - ../Database/AuctionDB/002_listing_bid_procedures.sql:/docker-entrypoint-initdb.d/020-auction-procedures.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s

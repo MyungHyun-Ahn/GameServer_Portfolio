@@ -1,0 +1,14 @@
+[
+  {
+    "MonsterDataId": 1001,
+    "Name": "Training Slime",
+    "MonsterType": "Normal",
+    "SpriteAssetKey": "Actor/Monsters/TrainingSlime.png"
+  },
+  {
+    "MonsterDataId": 1002,
+    "Name": "Training Boss",
+    "MonsterType": "Boss",
+    "SpriteAssetKey": "Actor/Monsters/TrainingBoss.png"
+  }
+]

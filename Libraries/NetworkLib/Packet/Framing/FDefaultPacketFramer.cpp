@@ -30,7 +30,7 @@ namespace NetworkLib::Packet::Framing
 		SFramedPacketBufferParts& outPacketParts) const
 	{
 		if ((packet.payload == nullptr && packet.payloadLength > 0) || packet.payloadLength < 0 ||
-			packet.payloadLength > static_cast<std::int32_t>(std::numeric_limits<std::uint16_t>::max()))
+			packet.payloadLength > static_cast<std::int32_t>(kMaxTransportPayloadSizeBytes))
 		{
 			return false;
 		}
@@ -50,6 +50,11 @@ namespace NetworkLib::Packet::Framing
 		SFramedPacket& outPacket) const
 	{
 		if (ioBuffer.size() < sizeof(SPacketHeader))
+		{
+			return false;
+		}
+
+		if (HasInvalidPacketHeader(ioBuffer))
 		{
 			return false;
 		}
@@ -81,6 +86,11 @@ namespace NetworkLib::Packet::Framing
 		SFramedPacket& outPacket) const
 	{
 		if (ioBuffer.GetUsedSize() < sizeof(SPacketHeader))
+		{
+			return false;
+		}
+
+		if (HasInvalidPacketHeader(ioBuffer))
 		{
 			return false;
 		}
@@ -121,6 +131,11 @@ namespace NetworkLib::Packet::Framing
 			return false;
 		}
 
+		if (HasInvalidPacketHeader(ioBuffer))
+		{
+			return false;
+		}
+
 		SPacketHeader packetHeader{};
 		if (!ioBuffer.Peek(&packetHeader, sizeof(SPacketHeader)))
 		{
@@ -151,6 +166,31 @@ namespace NetworkLib::Packet::Framing
 		outPacketView.payloadLength = static_cast<std::int32_t>(packetHeader.payloadLength);
 
 		return true;
+	}
+
+	bool FDefaultPacketFramer::HasInvalidPacketHeader(
+		const std::vector<char>& ioBuffer) const noexcept
+	{
+		if (ioBuffer.size() < sizeof(SPacketHeader))
+		{
+			return false;
+		}
+
+		SPacketHeader packetHeader{};
+		std::memcpy(&packetHeader, ioBuffer.data(), sizeof(SPacketHeader));
+		return packetHeader.payloadLength > kMaxTransportPayloadSizeBytes;
+	}
+
+	bool FDefaultPacketFramer::HasInvalidPacketHeader(
+		const NetworkLib::Packet::Buffer::FRecvBuffer& ioBuffer) const noexcept
+	{
+		if (ioBuffer.GetUsedSize() < sizeof(SPacketHeader))
+		{
+			return false;
+		}
+
+		SPacketHeader packetHeader{};
+		return ioBuffer.Peek(&packetHeader, sizeof(SPacketHeader)) && packetHeader.payloadLength > kMaxTransportPayloadSizeBytes;
 	}
 
 	std::uint32_t FDefaultPacketFramer::GetHeaderSize() const noexcept

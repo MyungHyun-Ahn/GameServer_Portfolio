@@ -7,6 +7,8 @@
 #include <cassert>
 #include <charconv>
 #include <chrono>
+#include <cctype>
+#include <cmath>
 #include <concepts>
 #include <condition_variable>
 #include <cstddef>
@@ -38,6 +40,26 @@
 #include <utility>
 #include <vector>
 
-// GameData contracts
+// GameData runtime and generated contracts
+#include "Common/TGameDataRow.h"
+#include "../../Generated/GameData/Cpp/Common/GameDataEnums.g.h"
+#include "../../Generated/GameData/Cpp/Item/ItemData.g.h"
+#include "../../Generated/GameData/Cpp/AuctionPolicy/AuctionPolicyData.g.h"
+#include "../../Generated/GameData/Cpp/Map/MapData.g.h"
+#include "../../Generated/GameData/Cpp/Monster/MonsterData.g.h"
+#include "../../Generated/GameData/Cpp/SpawnArea/SpawnAreaData.g.h"
+#include "../../Generated/GameData/Cpp/MonsterSpawner/MonsterSpawnerData.g.h"
+#include "../../Generated/GameData/Cpp/Character/CharacterData.g.h"
+#include "../../Generated/GameData/Cpp/CharacterLevel/CharacterLevelData.g.h"
+#include "../../Generated/GameData/Cpp/CombatFormulaPolicy/CombatFormulaPolicyData.g.h"
+#include "../../Generated/GameData/Cpp/StatConversion/StatConversionData.g.h"
+#include "../../Generated/GameData/Cpp/InventoryPolicy/InventoryPolicyData.g.h"
+#include "../../Generated/GameData/Cpp/Currency/CurrencyData.g.h"
+#include "../../Generated/GameData/Cpp/MailPolicy/MailPolicyData.g.h"
+#include "../../Generated/GameData/Cpp/MailTemplate/MailTemplateData.g.h"
 #include "Auction/AuctionPolicyTypes.h"
-#include "Item/ItemTypes.h"
+#include "Character/FCharacterDataTable.h"
+#include "CharacterLevel/FCharacterLevelDataTable.h"
+#include "Monster/FMonsterDataTable.h"
+#include "MonsterSpawner/FMonsterSpawnerDataTable.h"
+#include "SpawnArea/FSpawnAreaDataTable.h"

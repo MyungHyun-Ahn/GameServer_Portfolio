@@ -43,7 +43,7 @@ internal sealed class MainForm : Form
 
     private readonly Label m_userLabel = new() { AutoSize = true };
     private readonly Label m_connectionLabel = new() { Text = "● 연결 안 됨", AutoSize = true };
-    private readonly Label m_balanceLabel = new() { Text = "골드 -", AutoSize = true };
+    private readonly Label m_balanceLabel = new() { Text = "재화 -", AutoSize = true };
     private readonly NavigationButton m_auctionButton = new() { Text = "⚒  경매장" };
     private readonly NavigationButton m_saleHistoryButton = new() { Text = "▤  판매 이력" };
     private readonly NavigationButton m_myListingsButton = new() { Text = "▣  내 판매" };
@@ -153,6 +153,10 @@ internal sealed class MainForm : Form
 	private int m_activeListingCount;
 	private uint m_maxActiveListings;
 	private int m_searchPageSize;
+	private ushort m_defaultCurrencyId;
+	private ulong m_minimumBidIncrement;
+	private ulong m_minimumListingPrice;
+	private ulong m_maximumListingPrice;
     private ulong m_userId;
     private string m_nickname = string.Empty;
 
@@ -919,7 +923,7 @@ internal sealed class MainForm : Form
                     {
                         throw new InvalidOperationException(
                             "AuctionServer가 Redis 인증 모드로 실행되지 않았습니다. " +
-                            "서버를 --database-enabled --redis-auth-enabled 옵션으로 실행해 주세요.");
+                            "Config/Server/AuctionHouseServer.yaml의 Authentication.Enabled를 true로 설정해 주세요.");
                     }
                     throw new InvalidOperationException($"AuctionAuth 실패: {GetResultText(auth.ResultCode)}");
                 }
@@ -1224,7 +1228,7 @@ internal sealed class MainForm : Form
 			ulong maximum = visibleHistory.Max(sale => sale.FinalPrice);
 			decimal average = visibleHistory.Average(sale => (decimal)sale.FinalPrice);
             m_historySummaryLabel.Text =
-				$"페이지 {m_historyPageIndex + 1:N0} · {visibleHistory.Count:N0}건  ·  최저 {minimum:N0}  ·  평균 {average:N0}  ·  최고 {maximum:N0} 골드";
+				$"페이지 {m_historyPageIndex + 1:N0} · {visibleHistory.Count:N0}건  ·  최저 {minimum:N0}  ·  평균 {average:N0}  ·  최고 {maximum:N0} {GetCurrencyName(m_defaultCurrencyId)}";
             await LoadSelectedSaleHistoryAsync();
 		}, "판매 이력을 갱신했습니다.");
 	}
@@ -1431,7 +1435,7 @@ internal sealed class MainForm : Form
             EnsureSuccess(result.ResultCode, "치트 실행");
             if (cheatType == 1)
             {
-                m_balanceLabel.Text = $"골드 {result.CurrencyBalance:N0}";
+                m_balanceLabel.Text = $"{GetCurrencyName(m_defaultCurrencyId)} {result.CurrencyBalance:N0}";
             }
             else
             {
@@ -1457,8 +1461,7 @@ internal sealed class MainForm : Form
             m_detailStatsLabel.Text = $"장비 능력치\r\nSTR  +{m_selectedListing.Strength}\r\nDEX  +{m_selectedListing.Dexterity}\r\nINT  +{m_selectedListing.Intelligence}\r\nLUK  +{m_selectedListing.Luck}";
 			ulong displayedCurrentPrice = GetDisplayedCurrentPrice(m_selectedListing.StartPrice, m_selectedListing.CurrentBidPrice);
             m_detailPriceLabel.Text = $"현재가  {displayedCurrentPrice:N0}\r\n즉시 구매가  {m_selectedListing.BuyoutPrice:N0}\r\n남은 시간  {FormatRemaining(m_selectedListing.ExpiresAtUnixMs)}";
-			ulong minimumBid = m_selectedListing.CurrentBidPrice == 0 ? m_selectedListing.StartPrice : m_selectedListing.CurrentBidPrice + 1;
-            m_bidAmountInput.Value = Math.Min(m_bidAmountInput.Maximum, minimumBid);
+			ConfigureBidInput(m_selectedListing);
         }, "매물 상세를 불러왔습니다.", showErrorOnly: true);
     }
 
@@ -1476,8 +1479,8 @@ internal sealed class MainForm : Form
         {
             BidResult result = await m_client.BidAsync(m_selectedListing.ListingId, (ulong)m_bidAmountInput.Value, m_selectedListing.Version);
             EnsureSuccess(result.ResultCode, "입찰");
-            m_balanceLabel.Text = $"골드 {result.CurrencyBalance:N0}";
-            ShowToast($"입찰에 성공했습니다  ·  {result.BidAmount:N0} 골드");
+            m_balanceLabel.Text = $"{GetCurrencyName(m_selectedListing.CurrencyId)} {result.CurrencyBalance:N0}";
+            ShowToast($"입찰에 성공했습니다  ·  {result.BidAmount:N0} {GetCurrencyName(m_selectedListing.CurrencyId)}");
             await LoadSelectedListingAsync();
         }, "입찰 완료");
     }
@@ -1489,7 +1492,7 @@ internal sealed class MainForm : Form
         {
             BuyoutResult result = await m_client.BuyoutAsync(m_selectedListing.ListingId, m_selectedListing.Version);
             EnsureSuccess(result.ResultCode, "즉시 구매");
-            m_balanceLabel.Text = $"골드 {result.CurrencyBalance:N0}";
+            m_balanceLabel.Text = $"{GetCurrencyName(m_selectedListing.CurrencyId)} {result.CurrencyBalance:N0}";
             m_mailButton.HasNotification = true;
             ShowToast($"즉시 구매 완료  ·  우편 {result.ItemMailId:N0} 도착");
             await SearchAsync();
@@ -1523,8 +1526,8 @@ internal sealed class MainForm : Form
         {
             BidRefundResult result = await m_client.RefundBidAsync(bid);
             EnsureSuccess(result.ResultCode, "입찰 재화 회수");
-            m_balanceLabel.Text = $"골드 {result.CurrencyBalance:N0}";
-            ShowToast($"입찰 재화 {result.RefundedAmount:N0} 골드를 회수했습니다.");
+            m_balanceLabel.Text = $"{GetCurrencyName(bid.CurrencyId)} {result.CurrencyBalance:N0}";
+            ShowToast($"입찰 재화 {result.RefundedAmount:N0} {GetCurrencyName(bid.CurrencyId)}를 회수했습니다.");
             await RefreshBidsAsync();
         }, "재화 회수 완료");
     }
@@ -1615,7 +1618,8 @@ internal sealed class MainForm : Form
         {
             MailClaimResult result = await m_client.ClaimMailAsync(m_selectedMail.MailId, attachment.AttachmentId);
             EnsureSuccess(result.ResultCode, "첨부물 수령");
-            if (result.AttachmentType == 2) m_balanceLabel.Text = $"골드 {result.CurrencyBalance:N0}";
+            if (result.AttachmentType == 2)
+                m_balanceLabel.Text = $"{GetCurrencyName(result.CurrencyId)} {result.CurrencyBalance:N0}";
             ShowToast("첨부물을 수령했습니다.");
 			await RefreshMailAsync();
         }, "첨부물 수령 완료");
@@ -1737,15 +1741,19 @@ internal sealed class MainForm : Form
         if (m_inventoryGrid.CurrentRow?.Tag is not InventoryItem item) return;
 		ulong startPrice = (ulong)m_startPriceInput.Value;
 		ulong buyoutPrice = (ulong)m_buyoutPriceInput.Value;
-		if (startPrice == 0)
-		{
-			MessageBox.Show(this, "시작가는 1 이상이어야 합니다.", "판매 등록", MessageBoxButtons.OK, MessageBoxIcon.Information);
-			return;
-		}
-		if (buyoutPrice != 0 && buyoutPrice < startPrice)
+		if (startPrice < m_minimumListingPrice || startPrice > m_maximumListingPrice)
 		{
 			MessageBox.Show(this,
-				"즉시구매가는 0(사용 안 함)이거나 시작가 이상이어야 합니다.",
+				$"시작가는 {m_minimumListingPrice:N0} 이상 {m_maximumListingPrice:N0} 이하여야 합니다.",
+				"판매 등록",
+				MessageBoxButtons.OK,
+				MessageBoxIcon.Information);
+			return;
+		}
+		if (buyoutPrice != 0 && (buyoutPrice < startPrice || buyoutPrice > m_maximumListingPrice))
+		{
+			MessageBox.Show(this,
+				$"즉시구매가는 0(사용 안 함)이거나 시작가 이상 {m_maximumListingPrice:N0} 이하여야 합니다.",
 				"판매 등록",
 				MessageBoxButtons.OK,
 				MessageBoxIcon.Information);
@@ -1754,7 +1762,7 @@ internal sealed class MainForm : Form
         await RunUiOperationAsync(async () =>
         {
             ListingRegisterResult result = await m_client.RegisterListingAsync(
-				item, 1, startPrice, buyoutPrice, (uint)m_durationInput.Value);
+				item, m_defaultCurrencyId, startPrice, buyoutPrice, (uint)m_durationInput.Value);
             EnsureSuccess(result.ResultCode, "경매 등록");
 			UpdateListingLimit(m_activeListingCount + 1);
             ShowToast($"경매 등록 완료  ·  매물 {result.ListingId:N0}");
@@ -1777,20 +1785,79 @@ internal sealed class MainForm : Form
 	{
 		if (auth.MaxActiveListings == 0 || auth.MaxActiveListings >= 100 ||
 			auth.SearchPageSize == 0 || auth.SearchPageSize >= 100 ||
+			auth.InventoryListPageSize == 0 ||
+			auth.MailListPageSize == 0 ||
 			auth.MinimumListingDurationSeconds == 0 ||
 			auth.MinimumListingDurationSeconds > auth.MaximumListingDurationSeconds ||
 			auth.DefaultListingDurationSeconds < auth.MinimumListingDurationSeconds ||
-			auth.DefaultListingDurationSeconds > auth.MaximumListingDurationSeconds)
+			auth.DefaultListingDurationSeconds > auth.MaximumListingDurationSeconds ||
+			auth.DefaultCurrencyId == 0 ||
+			auth.MinimumBidIncrement == 0 ||
+			auth.MinimumListingPrice == 0 ||
+			auth.MinimumListingPrice > auth.MaximumListingPrice)
 		{
 			throw new InvalidDataException("AuctionServer가 잘못된 경매장 기획 데이터를 전달했습니다.");
 		}
 
 		m_maxActiveListings = auth.MaxActiveListings;
 		m_searchPageSize = checked((int)auth.SearchPageSize);
+		m_defaultCurrencyId = auth.DefaultCurrencyId;
+		m_minimumBidIncrement = auth.MinimumBidIncrement;
+		m_minimumListingPrice = auth.MinimumListingPrice;
+		m_maximumListingPrice = auth.MaximumListingPrice;
 		m_durationInput.Minimum = auth.MinimumListingDurationSeconds;
 		m_durationInput.Maximum = auth.MaximumListingDurationSeconds;
 		m_durationInput.Value = auth.DefaultListingDurationSeconds;
+
+		decimal minimumPrice = auth.MinimumListingPrice;
+		decimal maximumPrice = auth.MaximumListingPrice;
+		decimal bidIncrement = auth.MinimumBidIncrement;
+		m_startPriceInput.Maximum = maximumPrice;
+		m_startPriceInput.Minimum = minimumPrice;
+		m_startPriceInput.Value = minimumPrice;
+		m_buyoutPriceInput.Minimum = 0;
+		m_buyoutPriceInput.Maximum = maximumPrice;
+		m_buyoutPriceInput.Value = 0;
+		m_bidAmountInput.Minimum = minimumPrice;
+		m_bidAmountInput.Maximum = ulong.MaxValue;
+		m_bidAmountInput.Increment = bidIncrement;
+		m_bidAmountInput.Value = minimumPrice;
+		m_balanceLabel.Text = $"{GetCurrencyName(m_defaultCurrencyId)} -";
 		UpdateListingLimit(0);
+	}
+
+	private void ConfigureBidInput(ListingDetail listing)
+	{
+		ulong maximumBid = ulong.MaxValue;
+		if (listing.BuyoutPrice > 0)
+			maximumBid = Math.Min(maximumBid, listing.BuyoutPrice - 1);
+
+		if (listing.CurrentBidPrice != 0 && listing.CurrentBidPrice > ulong.MaxValue - m_minimumBidIncrement)
+		{
+			m_bidAmountInput.Minimum = 0;
+			m_bidAmountInput.Maximum = ulong.MaxValue;
+			m_bidAmountInput.Value = ulong.MaxValue;
+			m_bidButton.Enabled = false;
+			return;
+		}
+
+		ulong minimumBid = listing.CurrentBidPrice == 0
+			? Math.Max(listing.StartPrice, m_minimumListingPrice)
+			: listing.CurrentBidPrice + m_minimumBidIncrement;
+
+		m_bidAmountInput.Minimum = 0;
+		m_bidAmountInput.Maximum = maximumBid;
+		m_bidAmountInput.Increment = m_minimumBidIncrement;
+		if (minimumBid > maximumBid)
+		{
+			m_bidAmountInput.Value = maximumBid;
+			m_bidButton.Enabled = false;
+			return;
+		}
+
+		m_bidAmountInput.Minimum = minimumBid;
+		m_bidAmountInput.Value = minimumBid;
+		m_bidButton.Enabled = true;
 	}
 
     private async Task RunUiOperationAsync(Func<Task> operation, string successMessage, bool showErrorOnly = false)
@@ -1897,8 +1964,10 @@ internal sealed class MainForm : Form
 		28 => "HIGHEST_BID_EXISTS",
 		29 => "EXPIRE_NOT_AVAILABLE",
 		30 => "LISTING_LIMIT_EXCEEDED",
-		31 => "BID_STATE_INVALID",
-        _ => "UNKNOWN_ERROR"
+            31 => "BID_STATE_INVALID",
+            32 => "REQUEST_IN_PROGRESS",
+            33 => "BID_REQUIRES_BUYOUT",
+            _ => "UNKNOWN_ERROR"
     };
 
     private static string GetBidStateText(byte state) => state switch
@@ -1932,11 +2001,7 @@ internal sealed class MainForm : Form
 	private static ulong GetDisplayedCurrentPrice(ulong startPrice, ulong currentBidPrice) =>
 		currentBidPrice == 0 ? startPrice : currentBidPrice;
 
-    private static string GetCurrencyName(ushort currencyId) => currencyId switch
-    {
-        1 => "골드",
-        _ => $"재화 {currencyId}"
-    };
+    private static string GetCurrencyName(ushort currencyId) => CurrencyCatalog.GetName(currencyId);
 
     private static string FormatItemStatsInline(string itemData)
     {

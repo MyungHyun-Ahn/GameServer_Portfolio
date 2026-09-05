@@ -76,7 +76,8 @@ namespace NetworkLib::Core
 		void HandleRecvCompletion(NetworkLib::Session::FRioSession& sessionContext, const RIORESULT& completionResult);
 		void HandleSendCompletion(NetworkLib::Session::FRioSession& sessionContext, const RIORESULT& completionResult);
 		void CloseSession(NetworkLib::Session::FRioSession& sessionContext);
-		void ReleaseSession(NetworkLib::Session::FRioSession* sessionContext);
+		void ReleaseSession(NetworkLib::Session::FRioSession* sessionContext) const;
+		NetworkLib::Session::FRioSession* AcquireSessionBySlotIndex(std::uint32_t slotIndex) const;
 		NetworkLib::Session::FRioSession* AcquireSession(std::uint64_t sessionId);
 		std::uint32_t ChooseLeastLoadedWorkerIndex() const noexcept;
 		std::uint64_t ComposeSessionId(std::uint32_t slotIndex, std::uint32_t generation) const noexcept;

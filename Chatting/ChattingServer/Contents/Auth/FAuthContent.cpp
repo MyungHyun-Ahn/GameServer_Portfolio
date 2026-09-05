@@ -4,7 +4,7 @@
 
 #include "ChattingServer/Contents/Session/FUserRegistry.h"
 #include "ContentsRuntime/Bridge/IContentBridge.h"
-#include "Generated/Packets/Login/LoginPackets.h"
+#include "Generated/Packets/Cpp/Login/LoginPackets.h"
 
 #include <format>
 namespace ChattingServer::Contents

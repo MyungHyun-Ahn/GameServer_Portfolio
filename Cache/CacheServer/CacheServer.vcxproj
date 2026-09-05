@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{C06B3C7A-190E-46CD-AF37-2D7107050479}</ProjectGuid>
+    <RootNamespace>CacheServer</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="Shared" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>$(ProjectDir)..\..\Out\$(ProjectName)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)Intermediate\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>CacheServerPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\..\Libraries\NetworkLib;$(ProjectDir)..\..\Libraries;$(ProjectDir)..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;Ws2_32.lib;Secur32.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>CacheServerPch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(ProjectDir)..;$(ProjectDir)..\..\Libraries\NetworkLib;$(ProjectDir)..\..\Libraries;$(ProjectDir)..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libmysql.lib;Ws2_32.lib;Secur32.lib;Crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="CacheServerPch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\..\Generated\Config\CacheServer\CacheServerConfig.cpp" />
+    <ClCompile Include="Application\FCacheServerBootstrap.cpp" />
+    <ClCompile Include="Contents\FPlayerCacheContent.cpp" />
+    <ClCompile Include="Contents\FRpcRouterContent.cpp" />
+    <ClCompile Include="Database\FContentThreadDbContext.cpp" />
+    <ClCompile Include="Database\FPlayerCacheRepository.cpp" />
+    <ClCompile Include="Domain\FCacheUser.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Generated\Config\CacheServer\CacheServerConfig.h" />
+    <ClInclude Include="..\..\Generated\Rpc\Cache\CacheRpcMethods.h" />
+    <ClInclude Include="Application\FCacheServerBootstrap.h" />
+    <ClInclude Include="CacheServerPch.h" />
+    <ClInclude Include="Contents\ContentTypes.h" />
+    <ClInclude Include="Contents\FPlayerCacheContent.h" />
+    <ClInclude Include="Contents\FRpcRouterContent.h" />
+    <ClInclude Include="Database\CacheDatabaseTypes.h" />
+    <ClInclude Include="Database\FContentThreadDbContext.h" />
+    <ClInclude Include="Database\FPlayerCacheRepository.h" />
+    <ClInclude Include="Domain\FCacheUser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Libraries\ContentsRuntime\ContentsRuntime.vcxproj">
+      <Project>{6DDA23C4-7151-41D4-8C7A-2CEB33453FD6}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\Connector\Connector.vcxproj">
+      <Project>{EAC7B36B-6D0A-4981-8B82-9D95C9C777A1}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\Foundation\Foundation.vcxproj">
+      <Project>{1E3B65A5-5AE3-4AA0-9471-88AB92F756D4}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\GameData\GameData.vcxproj">
+      <Project>{C47A6418-992B-4A72-B302-85B735C0B184}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\NetworkLib\NetworkLib.vcxproj">
+      <Project>{4C95AD3B-6399-48B6-B9C9-62714E37B650}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\RpcLib\RpcLib.vcxproj">
+      <Project>{7E71E1D1-24AA-4BD3-A68E-598954A27B19}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Libraries\ServerProtocol\ServerProtocol.vcxproj">
+      <Project>{4F48A30D-5DD5-4A65-91B4-40FF8282F13D}</Project>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <CacheServerRuntimeConfig Include="$(ProjectDir)..\..\Config\Server\CacheServer.yaml" />
+    <CacheServerLocalRuntimeConfig Include="$(ProjectDir)..\..\Config\Server\CacheServer.local.yaml" Condition="Exists('$(ProjectDir)..\..\Config\Server\CacheServer.local.yaml')" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\Item.yaml" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\Character.yaml" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\CharacterLevel.yaml" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\InventoryPolicy.yaml" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\Currency.yaml" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\MailPolicy.yaml" />
+    <CacheServerRuntimeGameData Include="$(ProjectDir)..\..\Generated\GameData\Data\Server\MailTemplate.yaml" />
+  </ItemGroup>
+  <Target Name="CopyMySqlRuntime" AfterTargets="Build">
+    <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libmysql.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libcrypto-3-x64.dll" DestinationFolder="$(OutDir)" />
+    <Copy SourceFiles="$(ProjectDir)..\..\ThirdParty\mysql-client-8.0.46\bin\libssl-3-x64.dll" DestinationFolder="$(OutDir)" />
+  </Target>
+  <Target Name="CopyCacheServerRuntimeAssets" AfterTargets="Build">
+    <MakeDir Directories="$(OutDir)Config\Server;$(OutDir)Config\GameData" />
+    <Copy SourceFiles="@(CacheServerRuntimeConfig)" DestinationFolder="$(OutDir)Config\Server" Condition="'@(CacheServerLocalRuntimeConfig)' == ''" />
+    <Copy SourceFiles="@(CacheServerLocalRuntimeConfig)" DestinationFiles="$(OutDir)Config\Server\CacheServer.yaml" Condition="'@(CacheServerLocalRuntimeConfig)' != ''" />
+    <Copy SourceFiles="@(CacheServerLocalRuntimeConfig)" DestinationFolder="$(OutDir)Config\Server" Condition="'@(CacheServerLocalRuntimeConfig)' != ''" />
+    <Delete Files="$(OutDir)Config\Server\CacheServer.local.yaml" Condition="!Exists('$(ProjectDir)..\..\Config\Server\CacheServer.local.yaml') And Exists('$(OutDir)Config\Server\CacheServer.local.yaml')" />
+    <Copy SourceFiles="@(CacheServerRuntimeGameData)" DestinationFolder="$(OutDir)Config\GameData" SkipUnchangedFiles="true" />
+  </Target>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

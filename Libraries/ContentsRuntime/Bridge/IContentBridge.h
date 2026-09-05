@@ -5,9 +5,17 @@ namespace ContentsRuntime::Core
 	using FTransitionCompletionCallback = std::function<void()>;
 }
 
+namespace ContentsRuntime::Session
+{
+	class FContentRequestContext;
+	class FContentSession;
+	struct FRequestProcessingToken;
+}
+
 namespace NetworkLib::Packet::Serialization
 {
 	class FOutgoingContentPacket;
+	class IResponsePacket;
 }
 
 namespace ContentsRuntime::Bridge
@@ -25,6 +33,7 @@ namespace ContentsRuntime::Bridge
 			Core::FContentInstanceId targetContentInstanceId,
 			std::uint16_t opcode,
 			std::span<const char> payload) = 0;
+		virtual bool EnqueueCompletionToInstance(Core::FContentInstanceId contentInstanceId, std::function<void()> completion) = 0;
 		virtual bool MoveSession(std::uint64_t sessionId, Core::FContentId targetContentId) = 0;
 		virtual bool MoveSessionToInstance(std::uint64_t sessionId, Core::FContentInstanceId targetContentInstanceId) = 0;
 		virtual bool MoveSessionWithCompletion(std::uint64_t sessionId,
@@ -48,6 +57,15 @@ namespace ContentsRuntime::Bridge
 	{
 		return bridge.SendPacket(sessionId, NetworkLib::Packet::Serialization::BuildOutgoingContentPacket(packet));
 	}
+
+	bool SendContentPacket(IContentBridge& bridge,
+		Session::FContentSession& session,
+		const Session::FRequestProcessingToken& requestToken,
+		const NetworkLib::Packet::Serialization::IResponsePacket& response);
+
+	bool SendContentPacket(IContentBridge& bridge,
+		Session::FContentRequestContext& requestContext,
+		const NetworkLib::Packet::Serialization::IResponsePacket& response);
 
 	template <typename TPacket>
 	inline bool DeserializeOwnedPacket(

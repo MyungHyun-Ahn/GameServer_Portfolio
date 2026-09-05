@@ -5,12 +5,8 @@ namespace AuctionHouseServer::Database
 	struct SAuctionDatabaseConfig
 	{
 		bool enabled = false;
-		Connector::MySql::SMySqlConnectionConfig gamePrimary;
-		std::vector<Connector::MySql::SMySqlConnectionConfig> gameReplicas;
 		Connector::MySql::SMySqlConnectionConfig auctionPrimary;
 		std::vector<Connector::MySql::SMySqlConnectionConfig> auctionReplicas;
-		std::uint64_t maxCurrencyAmount = 999999999999ULL;
-		std::uint32_t maxInventorySlots = 100;
 		std::uint32_t replicaReconnectCooldownMilliseconds = 60000;
 	};
 
@@ -209,52 +205,6 @@ namespace AuctionHouseServer::Database
 		std::uint64_t previousHighestBidId = 0;
 		std::uint64_t previousHighestBidderUserId = 0;
 		std::uint64_t previousHighestAmount = 0;
-	};
-
-	struct SMailSummary
-	{
-		std::uint64_t mailId = 0;
-		std::uint8_t mailType = 0;
-		std::string subject;
-		std::uint8_t state = 0;
-		std::uint64_t expiresAtUnixMs = 0;
-		std::uint64_t createdAtUnixMs = 0;
-	};
-
-	struct SMailAttachment
-	{
-		std::uint64_t attachmentId = 0;
-		std::uint8_t attachmentType = 0;
-		std::uint64_t itemInstanceId = 0;
-		std::uint32_t itemDataId = 0;
-		std::uint32_t quantity = 0;
-		std::string itemDataJson;
-		std::uint16_t currencyId = 0;
-		std::uint64_t currencyAmount = 0;
-		std::uint8_t state = 0;
-	};
-
-	struct SMailDetail
-	{
-		std::uint64_t mailId = 0;
-		std::uint8_t mailType = 0;
-		std::string subject;
-		std::string body;
-		std::uint8_t state = 0;
-		std::uint64_t expiresAtUnixMs = 0;
-		std::vector<SMailAttachment> attachments;
-	};
-
-	struct SMailClaimResult
-	{
-		std::uint8_t attachmentType = 0;
-		std::uint64_t itemInstanceId = 0;
-		std::uint32_t itemDataId = 0;
-		std::uint32_t quantity = 0;
-		std::uint16_t currencyId = 0;
-		std::uint64_t currencyAmount = 0;
-		std::uint64_t currencyBalance = 0;
-		std::uint8_t mailState = 0;
 	};
 
 	struct SListingCancelPrepareResult

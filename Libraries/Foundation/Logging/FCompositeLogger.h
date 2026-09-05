@@ -9,6 +9,7 @@ namespace Foundation
 
 	private:
 		void WriteLog(ELogLevel logLevel, std::string_view category, std::string_view message) override;
+		void FlushLog() override;
 
 		std::vector<std::shared_ptr<ILogger>> m_sinks;
 	};

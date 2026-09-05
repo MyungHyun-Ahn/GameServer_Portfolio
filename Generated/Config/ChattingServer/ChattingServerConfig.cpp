@@ -10,8 +10,8 @@
 
 namespace Generated::Config::ChattingServer
 {
-	constexpr std::array<Foundation::Config::SConfigEnumValue<EBackend>, 3> kChattingServerBackendEnumValues = {
-		{{"Iocp", EBackend::Iocp}, {"Rio", EBackend::Rio}, {"BoostAsio", EBackend::BoostAsio}}};
+	constexpr std::array<Foundation::Config::SConfigEnumValue<EBackend>, 2> kChattingServerBackendEnumValues = {
+		{{"Iocp", EBackend::Iocp}, {"Rio", EBackend::Rio}}};
 
 	constexpr std::array<Foundation::Config::SConfigEnumValue<ERioSendDispatchMode>, 2> kChattingServerRioSendDispatchModeEnumValues = {
 		{{"Direct", ERioSendDispatchMode::Direct}, {"OwnerThread", ERioSendDispatchMode::OwnerThread}}};

@@ -1,0 +1,50 @@
+[
+  {
+    "ItemDataId": 1001,
+    "Name": "Warrior Sword",
+    "Category": "Equipment",
+    "EquipmentSlot": "Weapon"
+  },
+  {
+    "ItemDataId": 1002,
+    "Name": "Ranger Bow",
+    "Category": "Equipment",
+    "EquipmentSlot": "Weapon"
+  },
+  {
+    "ItemDataId": 1003,
+    "Name": "Sage Staff",
+    "Category": "Equipment",
+    "EquipmentSlot": "Weapon"
+  },
+  {
+    "ItemDataId": 1004,
+    "Name": "Lucky Dagger",
+    "Category": "Equipment",
+    "EquipmentSlot": "Weapon"
+  },
+  {
+    "ItemDataId": 2001,
+    "Name": "Health Potion",
+    "Category": "Consumable",
+    "EquipmentSlot": "None"
+  },
+  {
+    "ItemDataId": 2002,
+    "Name": "Mana Potion",
+    "Category": "Consumable",
+    "EquipmentSlot": "None"
+  },
+  {
+    "ItemDataId": 3001,
+    "Name": "Iron Ore",
+    "Category": "Material",
+    "EquipmentSlot": "None"
+  },
+  {
+    "ItemDataId": 3002,
+    "Name": "Magic Cloth",
+    "Category": "Material",
+    "EquipmentSlot": "None"
+  }
+]

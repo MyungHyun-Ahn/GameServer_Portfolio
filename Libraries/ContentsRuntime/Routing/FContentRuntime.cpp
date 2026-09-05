@@ -214,15 +214,18 @@ namespace ContentsRuntime::Routing
 		std::atomic<std::uint64_t> enterSessionCallCount = 0;
 		std::atomic<std::uint64_t> leaveSessionCallCount = 0;
 		std::atomic<std::uint64_t> enqueuePacketCallCount = 0;
+		std::atomic<std::uint64_t> enqueueCompletionCallCount = 0;
 		std::atomic<std::uint64_t> moveSessionCount = 0;
 		std::atomic<std::uint64_t> enqueueFailureCount = 0;
 		std::atomic<std::uint64_t> enterSessionLockWaitNs = 0;
 		std::atomic<std::uint64_t> leaveSessionLockWaitNs = 0;
 		std::atomic<std::uint64_t> enqueuePacketLockWaitNs = 0;
+		std::atomic<std::uint64_t> enqueueCompletionLockWaitNs = 0;
 		std::atomic<std::uint64_t> moveSessionLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxEnterSessionLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxLeaveSessionLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxEnqueuePacketLockWaitNs = 0;
+		std::atomic<std::uint64_t> maxEnqueueCompletionLockWaitNs = 0;
 		std::atomic<std::uint64_t> maxMoveSessionLockWaitNs = 0;
 		std::atomic<std::uint64_t> raceInjectionCounter = 0;
 	};
@@ -430,15 +433,18 @@ namespace ContentsRuntime::Routing
 		stats.enterSessionCallCount = m_impl->enterSessionCallCount.load(std::memory_order_relaxed);
 		stats.leaveSessionCallCount = m_impl->leaveSessionCallCount.load(std::memory_order_relaxed);
 		stats.enqueuePacketCallCount = m_impl->enqueuePacketCallCount.load(std::memory_order_relaxed);
+		stats.enqueueCompletionCallCount = m_impl->enqueueCompletionCallCount.load(std::memory_order_relaxed);
 		stats.moveSessionCount = m_impl->moveSessionCount.load(std::memory_order_relaxed);
 		stats.enqueueFailureCount = m_impl->enqueueFailureCount.load(std::memory_order_relaxed);
 		stats.enterSessionLockWaitNs = m_impl->enterSessionLockWaitNs.load(std::memory_order_relaxed);
 		stats.leaveSessionLockWaitNs = m_impl->leaveSessionLockWaitNs.load(std::memory_order_relaxed);
 		stats.enqueuePacketLockWaitNs = m_impl->enqueuePacketLockWaitNs.load(std::memory_order_relaxed);
+		stats.enqueueCompletionLockWaitNs = m_impl->enqueueCompletionLockWaitNs.load(std::memory_order_relaxed);
 		stats.moveSessionLockWaitNs = m_impl->moveSessionLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxEnterSessionLockWaitNs = m_impl->maxEnterSessionLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxLeaveSessionLockWaitNs = m_impl->maxLeaveSessionLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxEnqueuePacketLockWaitNs = m_impl->maxEnqueuePacketLockWaitNs.load(std::memory_order_relaxed);
+		stats.maxEnqueueCompletionLockWaitNs = m_impl->maxEnqueueCompletionLockWaitNs.load(std::memory_order_relaxed);
 		stats.maxMoveSessionLockWaitNs = m_impl->maxMoveSessionLockWaitNs.load(std::memory_order_relaxed);
 		return stats;
 	}
@@ -519,6 +525,7 @@ namespace ContentsRuntime::Routing
 		Threading::FContentThread* targetWorker = nullptr;
 		std::uint64_t routeGeneration = 0;
 		Core::FContentInstanceId currentContentInstanceId = Core::kInvalidContentInstanceId;
+		bool leaveAlreadyQueuedByMove = false;
 		const std::uint32_t slotIndex = DecodeSessionSlotIndex(sessionId);
 		RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
 		const auto lockWaitStart = std::chrono::steady_clock::now();
@@ -540,6 +547,7 @@ namespace ContentsRuntime::Routing
 			currentContentInstanceId = route.contentInstanceId;
 			routeGeneration = route.routeGeneration;
 			targetWorker = route.worker;
+			leaveAlreadyQueuedByMove = route.moveState == SSessionRoute::EMoveState::Pending;
 			route = {};
 			m_impl->activeSessionCount.fetch_sub(1, std::memory_order_relaxed);
 
@@ -553,7 +561,7 @@ namespace ContentsRuntime::Routing
 			}
 		}
 
-		if (targetWorker != nullptr)
+		if (targetWorker != nullptr && !leaveAlreadyQueuedByMove)
 		{
 			RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
 			targetWorker->EnqueueLeave({sessionId, routeGeneration, currentContentInstanceId});
@@ -753,6 +761,39 @@ namespace ContentsRuntime::Routing
 		}
 
 		return enqueueResult;
+	}
+
+	bool FContentRuntime::EnqueueCompletionToInstance(
+		const Core::FContentInstanceId contentInstanceId,
+		std::function<void()> completion)
+	{
+		m_impl->enqueueCompletionCallCount.fetch_add(1, std::memory_order_relaxed);
+		if (!Core::IsValidContentInstanceId(contentInstanceId) || !completion)
+		{
+			m_impl->enqueueFailureCount.fetch_add(1, std::memory_order_relaxed);
+			return false;
+		}
+
+		RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
+		const auto lockWaitStart = std::chrono::steady_clock::now();
+		std::shared_lock<std::shared_mutex> lock(m_impl->lock);
+		const std::uint64_t lockWaitNs = ToNanoseconds(std::chrono::steady_clock::now() - lockWaitStart);
+		m_impl->enqueueCompletionLockWaitNs.fetch_add(lockWaitNs, std::memory_order_relaxed);
+		UpdateMaxAtomic(m_impl->maxEnqueueCompletionLockWaitNs, lockWaitNs);
+
+		const auto contentIt = m_impl->contentSlots.find(contentInstanceId);
+		if (contentIt == m_impl->contentSlots.end() || contentIt->second.worker == nullptr)
+		{
+			m_impl->enqueueFailureCount.fetch_add(1, std::memory_order_relaxed);
+			return false;
+		}
+
+		if (!contentIt->second.worker->EnqueueCompletion(contentInstanceId, std::move(completion)))
+		{
+			m_impl->enqueueFailureCount.fetch_add(1, std::memory_order_relaxed);
+			return false;
+		}
+		return true;
 	}
 
 	bool FContentRuntime::MoveSession(
@@ -1048,7 +1089,8 @@ namespace ContentsRuntime::Routing
 
 			const std::uint64_t queueDepth = executionState.enterQueueDepth.load(std::memory_order_relaxed) +
 											 executionState.leaveQueueDepth.load(std::memory_order_relaxed) +
-											 executionState.packetQueueDepth.load(std::memory_order_relaxed);
+											 executionState.packetQueueDepth.load(std::memory_order_relaxed) +
+											 executionState.completionQueueDepth.load(std::memory_order_relaxed);
 			if (queueDepth < m_impl->config.ownershipTransferContentQueueDepthThreshold)
 			{
 				continue;
@@ -1276,6 +1318,15 @@ namespace ContentsRuntime::Routing
 			}
 
 			sourceRouteGeneration = route.routeGeneration;
+			if (sourceWorker == nullptr)
+			{
+				if (m_impl->config.failFastOnRuntimeError)
+				{
+					FailFastRuntime("ContentsRuntime move failed: source content worker missing.");
+				}
+				return false;
+			}
+
 			targetRouteGeneration = sourceRouteGeneration + 1;
 			targetWorkerIndex = targetIt->second.workerIndex;
 			{
@@ -1381,6 +1432,96 @@ namespace ContentsRuntime::Routing
 			replayPendingMovePackets(pendingPackets);
 		};
 
+		auto isPendingMoveCurrent = [this,
+										sessionId,
+										slotIndex,
+										sourceContentId,
+										sourceContentInstanceId,
+										sourceWorkerIndex,
+										sourceWorker,
+										sourceRouteGeneration,
+										targetContentId,
+										targetContentInstanceId,
+										targetWorkerIndex,
+										targetWorker,
+										targetRouteGeneration]()
+		{
+			std::shared_lock<std::shared_mutex> lock(m_impl->lock);
+			if (slotIndex >= m_impl->sessionRoutes.size())
+			{
+				return false;
+			}
+
+			const SSessionRoute& route = m_impl->sessionRoutes[slotIndex];
+			return route.sessionId == sessionId && route.moveState == SSessionRoute::EMoveState::Pending &&
+				   route.contentId == sourceContentId && route.contentInstanceId == sourceContentInstanceId &&
+				   route.workerIndex == sourceWorkerIndex && route.worker == sourceWorker &&
+				   route.routeGeneration == sourceRouteGeneration && route.pendingTargetContentId == targetContentId &&
+				   route.pendingTargetContentInstanceId == targetContentInstanceId && route.pendingTargetWorkerIndex == targetWorkerIndex &&
+				   route.pendingTargetWorker == targetWorker && route.pendingTargetRouteGeneration == targetRouteGeneration;
+		};
+
+		auto failPendingMoveAfterSourceLeave = [this,
+												   sessionId,
+												   slotIndex,
+												   sourceContentId,
+												   sourceContentInstanceId,
+												   sourceWorkerIndex,
+												   sourceWorker,
+												   sourceRouteGeneration,
+												   targetContentId,
+												   targetContentInstanceId,
+												   targetWorkerIndex,
+												   targetWorker,
+												   targetRouteGeneration](const char* reason)
+		{
+			NetworkLib::IServer* server = nullptr;
+			std::size_t droppedPacketCount = 0;
+			bool routeCleared = false;
+			{
+				std::unique_lock<std::shared_mutex> lock(m_impl->lock);
+				if (slotIndex < m_impl->sessionRoutes.size())
+				{
+					SSessionRoute& route = m_impl->sessionRoutes[slotIndex];
+					if (route.sessionId == sessionId && route.moveState == SSessionRoute::EMoveState::Pending &&
+						route.contentId == sourceContentId && route.contentInstanceId == sourceContentInstanceId &&
+						route.workerIndex == sourceWorkerIndex && route.worker == sourceWorker &&
+						route.routeGeneration == sourceRouteGeneration && route.pendingTargetContentId == targetContentId &&
+						route.pendingTargetContentInstanceId == targetContentInstanceId &&
+						route.pendingTargetWorkerIndex == targetWorkerIndex && route.pendingTargetWorker == targetWorker &&
+						route.pendingTargetRouteGeneration == targetRouteGeneration)
+					{
+						droppedPacketCount = route.pendingPackets.size();
+						route = {};
+						m_impl->activeSessionCount.fetch_sub(1, std::memory_order_relaxed);
+						m_impl->enqueueFailureCount.fetch_add(1, std::memory_order_relaxed);
+						server = m_impl->server;
+						routeCleared = true;
+					}
+				}
+			}
+
+			TraceRuntime(m_impl->config,
+				sessionId,
+				"move failed after source leave. sessionId={} reason={} targetContentInstanceId={} droppedPacketCount={} "
+				"routeCleared={}",
+				sessionId,
+				(reason != nullptr ? reason : "unknown"),
+				targetContentInstanceId,
+				droppedPacketCount,
+				(routeCleared ? 1 : 0));
+
+			if (routeCleared && server != nullptr)
+			{
+				server->Disconnect(sessionId);
+			}
+
+			if (routeCleared && m_impl->config.failFastOnRuntimeError)
+			{
+				FailFastRuntime("ContentsRuntime move failed after source leave.");
+			}
+		};
+
 		Core::FTransitionCompletionCallback wrappedOnCompleted = [this,
 																	 sessionId,
 																	 slotIndex,
@@ -1407,7 +1548,10 @@ namespace ContentsRuntime::Routing
 					if (route.sessionId == sessionId && route.moveState == SSessionRoute::EMoveState::Pending &&
 						route.contentId == sourceContentId && route.contentInstanceId == sourceContentInstanceId &&
 						route.routeGeneration == sourceRouteGeneration && route.workerIndex == sourceWorkerIndex &&
-						route.worker == sourceWorker)
+						route.worker == sourceWorker && route.pendingTargetContentId == targetContentId &&
+						route.pendingTargetContentInstanceId == targetContentInstanceId &&
+						route.pendingTargetWorkerIndex == targetWorkerIndex && route.pendingTargetWorker == targetWorker &&
+						route.pendingTargetRouteGeneration == targetRouteGeneration)
 					{
 						route.contentId = targetContentId;
 						route.contentInstanceId = targetContentInstanceId;
@@ -1447,6 +1591,22 @@ namespace ContentsRuntime::Routing
 					pendingPackets.size());
 			}
 
+			if (!routeCommitted)
+			{
+				if (targetWorker != nullptr && !targetWorker->EnqueueLeave({sessionId, targetRouteGeneration, targetContentInstanceId}))
+				{
+					m_impl->enqueueFailureCount.fetch_add(1, std::memory_order_relaxed);
+					TraceRuntime(m_impl->config,
+						sessionId,
+						"move target cleanup enqueue failed after route commit miss. sessionId={} targetContentInstanceId={} "
+						"targetRouteGeneration={}",
+						sessionId,
+						targetContentInstanceId,
+						targetRouteGeneration);
+				}
+				return;
+			}
+
 			if (callback)
 			{
 				callback();
@@ -1455,83 +1615,74 @@ namespace ContentsRuntime::Routing
 			replayPendingMovePackets(pendingPackets);
 		};
 
-		const bool useSameWorkerMoveFastPath = sourceWorker != nullptr && targetWorker != nullptr && sourceWorker == targetWorker;
-
-		if (useSameWorkerMoveFastPath)
-		{
-			RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
-			const bool transitionPosted = sourceWorker->EnqueueMoveTransition({sessionId, sourceRouteGeneration, sourceContentInstanceId},
-				{sessionId, targetRouteGeneration, targetContentInstanceId, nullptr, std::move(wrappedOnCompleted)});
-			{
-				TraceRuntime(m_impl->config,
-					sessionId,
-					"move same-worker fast-path enqueue. sessionId={} workerIndex={} sourceContentInstanceId={} "
-					"sourceRouteGeneration={} targetContentInstanceId={} targetRouteGeneration={} posted={}",
-					sessionId,
-					sourceWorker->GetWorkerIndex(),
-					sourceContentInstanceId,
-					sourceRouteGeneration,
-					targetContentInstanceId,
-					targetRouteGeneration,
-					(transitionPosted ? 1 : 0));
-			}
-			if (!transitionPosted)
-			{
-				cancelPendingMoveAndReplayToCurrentRoute("same-worker-fast-path-post-failed");
-				TraceRuntime(m_impl->config, sessionId, "move same-worker fast-path failed before route commit.");
-				return false;
-			}
-
-			TraceRuntime(m_impl->config, sessionId, "move completed successfully.");
-			return true;
-		}
-
-		if (sourceWorker != nullptr)
-		{
-			RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
-			const bool leavePosted = sourceWorker->EnqueueLeave({sessionId, sourceRouteGeneration, sourceContentInstanceId});
-			{
-				TraceRuntime(m_impl->config,
-					sessionId,
-					"move source leave enqueue. sessionId={} sourceWorkerIndex={} sourceContentInstanceId={} "
-					"sourceRouteGeneration={} posted={}",
-					sessionId,
-					sourceWorker->GetWorkerIndex(),
-					sourceContentInstanceId,
-					sourceRouteGeneration,
-					(leavePosted ? 1 : 0));
-			}
-			if (!leavePosted)
-			{
-				cancelPendingMoveAndReplayToCurrentRoute("source-leave-post-failed");
-				TraceRuntime(m_impl->config, sessionId, "move source leave failed before route commit.");
-				return false;
-			}
-		}
-
-		RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
 		Core::SContentLifecycleEvent targetEnterEvent{
 			sessionId, targetRouteGeneration, targetContentInstanceId, nullptr, std::move(wrappedOnCompleted)};
-		const bool enterPosted = targetWorker->EnqueueEnter(targetEnterEvent);
+
+		Core::SContentLifecycleEvent sourceLeaveEvent{sessionId, sourceRouteGeneration, sourceContentInstanceId};
+		sourceLeaveEvent.completionCallback = [this,
+												  sessionId,
+												  sourceWorker,
+												  targetWorker,
+												  targetWorkerIndex,
+												  targetContentInstanceId,
+												  targetRouteGeneration,
+												  isPendingMoveCurrent,
+												  failPendingMoveAfterSourceLeave,
+												  targetEnterEvent = std::move(targetEnterEvent)]() mutable
 		{
+			if (!isPendingMoveCurrent())
+			{
+				TraceRuntime(m_impl->config,
+					sessionId,
+					"move target enter skipped because pending route is no longer current. sessionId={} "
+					"targetContentInstanceId={} targetRouteGeneration={}",
+					sessionId,
+					targetContentInstanceId,
+					targetRouteGeneration);
+				return;
+			}
+
+			RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
+			const bool hasCompletionCallback = static_cast<bool>(targetEnterEvent.completionCallback);
+			const bool enterPosted = targetWorker->EnqueueEnter(std::move(targetEnterEvent));
 			TraceRuntime(m_impl->config,
 				sessionId,
-				"move target enter enqueue. sessionId={} targetWorkerIndex={} targetContentInstanceId={} "
-				"targetRouteGeneration={} hasCompletionCallback={} posted={}",
+				"move target enter enqueue after source leave. sessionId={} sourceWorkerIndex={} targetWorkerIndex={} "
+				"targetContentInstanceId={} targetRouteGeneration={} hasCompletionCallback={} posted={}",
 				sessionId,
-				targetWorker->GetWorkerIndex(),
+				sourceWorker->GetWorkerIndex(),
+				targetWorkerIndex,
 				targetContentInstanceId,
 				targetRouteGeneration,
-				(targetEnterEvent.completionCallback ? 1 : 0),
+				(hasCompletionCallback ? 1 : 0),
 				(enterPosted ? 1 : 0));
-		}
-		if (!enterPosted)
+			if (!enterPosted)
+			{
+				failPendingMoveAfterSourceLeave("target-enter-post-failed");
+			}
+		};
+
+		RunRaceInjection(m_impl->config, m_impl->raceInjectionCounter);
+		const bool leavePosted = sourceWorker->EnqueueLeave(std::move(sourceLeaveEvent));
+		TraceRuntime(m_impl->config,
+			sessionId,
+			"move source leave enqueue. sessionId={} sourceWorkerIndex={} sourceContentInstanceId={} sourceRouteGeneration={} "
+			"targetWorkerIndex={} sameWorker={} posted={}",
+			sessionId,
+			sourceWorker->GetWorkerIndex(),
+			sourceContentInstanceId,
+			sourceRouteGeneration,
+			targetWorkerIndex,
+			(sourceWorker == targetWorker ? 1 : 0),
+			(leavePosted ? 1 : 0));
+		if (!leavePosted)
 		{
-			cancelPendingMoveAndReplayToCurrentRoute("target-enter-post-failed");
-			TraceRuntime(m_impl->config, sessionId, "move target enter failed before route commit.");
+			cancelPendingMoveAndReplayToCurrentRoute("source-leave-post-failed");
+			TraceRuntime(m_impl->config, sessionId, "move source leave failed before route commit.");
 			return false;
 		}
-		TraceRuntime(m_impl->config, sessionId, "move completed successfully.");
+
+		TraceRuntime(m_impl->config, sessionId, "move transition accepted; target enter waits for source leave completion.");
 		return true;
 	}
 

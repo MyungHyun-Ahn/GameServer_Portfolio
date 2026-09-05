@@ -1,0 +1,50 @@
+# Generated from ConfigSchema/Server/WorldServer.schema.yaml
+# Edit schema defaults and regenerate with Generate-Configs.cmd.
+
+WorldServer:
+  # Allowed: Iocp, Rio
+  Backend: Iocp
+  # Allowed: Direct, OwnerThread
+  RioSendDispatchMode: OwnerThread
+  BindIp: 127.0.0.1
+  Port: 19200
+  WorkerThreadCount: 2
+  MaxSessionCount: 1024
+  RecvBufferSize: 4096
+  SocketSendBufferBytes: -1
+  RioSendRingSizeBytes: 65536
+  PacketKey: 55
+  ContentsWorkerThreadCount: 4
+  SectorExecutorInstanceCount: 4
+  SectorTaskPumpBatchSize: 16
+  MapContentShardCount: 4
+  MapTickFps: 20
+  MovementCorrectionTolerance: 64.0
+  GameDataDirectory: GameData
+  # Allowed: Disabled, Redis
+  AuthMode: Disabled
+  LoginRedisHost: 127.0.0.1
+  LoginRedisPort: 6379
+  LoginRedisPassword: ""
+  LoginRedisDatabase: 0
+  LoginRedisConnectTimeoutMilliseconds: 3000
+  WorldTicketKeyPrefix: "world:ticket:"
+  ActiveLoginKeyPrefix: "chat:active-login:"
+  CacheEnabled: false
+  CacheHost: 127.0.0.1
+  CachePort: 19103
+  CacheRpcPacketKey: 55
+  RpcServerInstanceId: 1
+  CacheServerInstanceId: 1
+  CacheRpcTimeoutMilliseconds: 3000
+  CacheReconnectMilliseconds: 1000
+  # Allowed: Debug, Info, Warn, Error
+  LogMinimumLevel: Info
+  LogOutputDirectory: ""
+  LogConsoleEnabled: true
+  LogFileEnabled: true
+  LogIncludeThreadId: true
+
+Debug:
+  Headless: false
+

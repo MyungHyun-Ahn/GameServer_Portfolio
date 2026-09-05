@@ -1,5 +1,6 @@
 param(
     [int]$Port = 19118,
+    [int]$CachePort = 19119,
     [switch]$SkipBuild
 )
 
@@ -8,7 +9,11 @@ $scriptDirectory = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repositoryRoot = Split-Path -Parent (Split-Path -Parent $scriptDirectory)
 $envFile = Join-Path $repositoryRoot ".env"
 $serverExecutable = Join-Path $repositoryRoot "Out\AuctionHouseServer\Debug\AuctionHouseServer.exe"
+$cacheExecutable = Join-Path $repositoryRoot "Out\CacheServer\Debug\CacheServer.exe"
 $clientExecutable = Join-Path $repositoryRoot "Out\AuctionDummyClient\Debug\AuctionDummyClient.exe"
+$cacheConfigTemplate = Join-Path $repositoryRoot "Config\Server\CacheServer.yaml"
+$serverConfigTemplate = Join-Path $repositoryRoot "Config\Server\AuctionHouseServer.yaml"
+. (Join-Path $repositoryRoot "scripts\common\ServerConfig.ps1")
 $primaryContainer = "gameserverportfolio-auction-db-primary"
 $replicaContainers = @(
     "gameserverportfolio-auction-db-replica",
@@ -47,28 +52,103 @@ function Wait-OutputMarker([string]$Path, [string]$Marker, $Process, [int]$Timeo
     throw "Timed out waiting for marker '$Marker'."
 }
 
+function Wait-ListeningPort(
+    [int]$ListenPort,
+    $Process,
+    [string]$Name,
+    [string]$StandardErrorPath,
+    [int]$TimeoutSeconds = 15)
+{
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline)
+    {
+        if ($Process.HasExited)
+        {
+            $errorOutput = Get-Content -LiteralPath $StandardErrorPath -Raw -ErrorAction SilentlyContinue
+            throw "$Name exited before entering Listen state. error=$errorOutput"
+        }
+        if ($null -ne (Get-NetTCPConnection -State Listen -LocalPort $ListenPort -ErrorAction SilentlyContinue))
+        {
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    throw "$Name did not enter Listen state on port $ListenPort."
+}
+
+function Wait-OutboundConnection(
+    [int]$RemotePort,
+    $Process,
+    [string]$Name,
+    [string]$StandardErrorPath,
+    [int]$TimeoutSeconds = 15)
+{
+    $deadline = (Get-Date).AddSeconds($TimeoutSeconds)
+    while ((Get-Date) -lt $deadline)
+    {
+        if ($Process.HasExited)
+        {
+            $errorOutput = Get-Content -LiteralPath $StandardErrorPath -Raw -ErrorAction SilentlyContinue
+            throw "$Name exited before connecting to CacheServer. error=$errorOutput"
+        }
+        $connection = Get-NetTCPConnection -State Established -RemotePort $RemotePort -ErrorAction SilentlyContinue |
+            Where-Object { $_.OwningProcess -eq $Process.Id } |
+            Select-Object -First 1
+        if ($null -ne $connection)
+        {
+            # Give the RPC Hello exchange a short interval after TCP establishment.
+            Start-Sleep -Milliseconds 500
+            return
+        }
+        Start-Sleep -Milliseconds 100
+    }
+    throw "$Name did not establish its CacheServer connection on port $RemotePort."
+}
+
+if ($Port -le 0 -or $Port -gt 65535 -or $CachePort -le 0 -or $CachePort -gt 65535)
+{
+    throw "Port and CachePort must be in range 1..65535."
+}
+if ($Port -eq $CachePort)
+{
+    throw "Port and CachePort must be different."
+}
+
 $rootPassword = Get-DotEnvValue "MYSQL_ROOT_PASSWORD"
-$env:MYSQL_PASSWORD = Get-DotEnvValue "MYSQL_PASSWORD"
+$appPassword = Get-DotEnvValue "MYSQL_PASSWORD"
+$env:MYSQL_PASSWORD = $appPassword
 & (Join-Path $repositoryRoot "Infra\Start-AuctionDatabases.ps1")
 $loginCompose = Join-Path $repositoryRoot "Infra\docker-compose.login-platform.yaml"
 docker compose --env-file $envFile -f $loginCompose up -d chat-redis
 if ($LASTEXITCODE -ne 0) { throw "Failed to start Redis." }
-Wait-ContainerHealthy "refactoringserver-chat-redis"
+Wait-ContainerHealthy "gameserverportfolio-chat-redis"
 
 if (-not $SkipBuild)
 {
-    $env:TEMP = "E:\Procademy\build-temp"
-    $env:TMP = $env:TEMP
-    New-Item -ItemType Directory -Path $env:TEMP -Force | Out-Null
-    $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
-    $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
-    $msbuild = Join-Path $visualStudioPath "MSBuild\Current\Bin\MSBuild.exe"
-    foreach ($project in @(
-        (Join-Path $repositoryRoot "Auction\AuctionHouseServer\AuctionHouseServer.vcxproj"),
-        (Join-Path $repositoryRoot "Auction\AuctionDummyClient\AuctionDummyClient.vcxproj")))
+    $buildTemp = Join-Path $repositoryRoot "Out\Temp"
+    $previousTemp = $env:TEMP
+    $previousTmp = $env:TMP
+    New-Item -ItemType Directory -Path $buildTemp -Force | Out-Null
+    try
     {
-        & $msbuild $project /t:Build /p:Configuration=Debug /p:Platform=x64 /m /nologo /v:minimal
-        if ($LASTEXITCODE -ne 0) { throw "Build failed: $project" }
+        $env:TEMP = $buildTemp
+        $env:TMP = $buildTemp
+        $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+        $visualStudioPath = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild -property installationPath
+        $msbuild = Join-Path $visualStudioPath "MSBuild\Current\Bin\MSBuild.exe"
+        foreach ($project in @(
+            (Join-Path $repositoryRoot "Cache\CacheServer\CacheServer.vcxproj"),
+            (Join-Path $repositoryRoot "Auction\AuctionHouseServer\AuctionHouseServer.vcxproj"),
+            (Join-Path $repositoryRoot "Auction\AuctionDummyClient\AuctionDummyClient.vcxproj")))
+        {
+            & $msbuild $project /t:Build /p:Configuration=Debug /p:Platform=x64 /m /nologo /v:minimal
+            if ($LASTEXITCODE -ne 0) { throw "Build failed: $project" }
+        }
+    }
+    finally
+    {
+        $env:TEMP = $previousTemp
+        $env:TMP = $previousTmp
     }
 }
 
@@ -104,25 +184,67 @@ foreach ($replicaContainer in $replicaContainers)
 }
 
 $ticket = "auction-reconnect-" + [guid]::NewGuid().ToString("N")
-docker exec refactoringserver-chat-redis redis-cli SET "chat:active-login:5101" "1" | Out-Null
-docker exec refactoringserver-chat-redis redis-cli SETEX "auction:ticket:$ticket" 60 "5101:1" | Out-Null
+docker exec gameserverportfolio-chat-redis redis-cli SET "chat:active-login:5101" "1" | Out-Null
+docker exec gameserverportfolio-chat-redis redis-cli SETEX "auction:ticket:$ticket" 60 "5101:1" | Out-Null
 
 $testDirectory = Join-Path $repositoryRoot ("Out\AuctionDatabaseReconnectTest\" + (Get-Date -Format "yyyyMMdd_HHmmss"))
 New-Item -ItemType Directory -Path $testDirectory -Force | Out-Null
 $serverStdout = Join-Path $testDirectory "server.stdout.log"
 $serverStderr = Join-Path $testDirectory "server.stderr.log"
+$cacheStdout = Join-Path $testDirectory "cache.stdout.log"
+$cacheStderr = Join-Path $testDirectory "cache.stderr.log"
 $clientStdout = Join-Path $testDirectory "client.stdout.log"
 $clientStderr = Join-Path $testDirectory "client.stderr.log"
+$cacheConfig = Join-Path $testDirectory "CacheServer.yaml"
+New-ServerConfigFile -TemplatePath $cacheConfigTemplate -DestinationPath $cacheConfig -Overrides @{
+    "CacheServer.Port" = $CachePort
+    "CacheServer.PlayerCacheShardCount" = 4
+    "CacheServer.DatabaseEnabled" = $true
+    "GameDatabase.Password" = (ConvertTo-ServerConfigYamlString $appPassword)
+    "CacheServer.ReplicaReconnectCooldownMilliseconds" = 100
+    "CacheServer.LogOutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "cache-logs"))
+    "Debug.RunSeconds" = 80
+} | Out-Null
+$serverConfig = Join-Path $testDirectory "AuctionHouseServer.yaml"
+New-ServerConfigFile -TemplatePath $serverConfigTemplate -DestinationPath $serverConfig -Overrides @{
+    "AuctionHouseServer.Port" = $Port
+    "AuctionHouseServer.RunSeconds" = 70
+    "Logging.OutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction-logs"))
+    "Diagnostics.TimingCsvPath" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction_timing.csv"))
+    "Authentication.Enabled" = $true
+    "CacheRpc.Port" = $CachePort
+    "CacheRpc.ReconnectMilliseconds" = 100
+    "AuctionDatabase.Enabled" = $true
+    "AuctionDatabase.Password" = (ConvertTo-ServerConfigYamlString $appPassword)
+    "AuctionDatabase.ReplicaReconnectCooldownMilliseconds" = 100
+} | Out-Null
 $serverProcess = $null
+$cacheProcess = $null
 $clientProcess = $null
 
 try
 {
+    foreach ($executable in @($cacheExecutable, $serverExecutable, $clientExecutable))
+    {
+        if (-not (Test-Path -LiteralPath $executable))
+        {
+            throw "Executable is missing: $executable"
+        }
+    }
+
+    $cacheProcess = Start-Process -FilePath $cacheExecutable `
+        -ArgumentList @("--config", $cacheConfig) `
+        -WorkingDirectory $testDirectory -RedirectStandardOutput $cacheStdout `
+        -RedirectStandardError $cacheStderr -WindowStyle Hidden -PassThru
+    Wait-ListeningPort -ListenPort $CachePort -Process $cacheProcess -Name "CacheServer" -StandardErrorPath $cacheStderr
+
     $serverProcess = Start-Process -FilePath $serverExecutable `
-        -ArgumentList @("--port", "$Port", "--run-seconds", "70", "--database-enabled", "--redis-auth-enabled", "--replica-reconnect-cooldown-ms", "100") `
+        -ArgumentList @("--config", $serverConfig) `
         -WorkingDirectory $testDirectory -RedirectStandardOutput $serverStdout `
         -RedirectStandardError $serverStderr -WindowStyle Hidden -PassThru
-    Start-Sleep -Seconds 1
+    Wait-ListeningPort -ListenPort $Port -Process $serverProcess -Name "AuctionHouseServer" -StandardErrorPath $serverStderr
+    Wait-OutboundConnection -RemotePort $CachePort -Process $serverProcess -Name "AuctionHouseServer" -StandardErrorPath $serverStderr
+
     $clientProcess = Start-Process -FilePath $clientExecutable `
         -ArgumentList @("--port", "$Port", "--reconnect-test", "--ticket", $ticket) `
         -WorkingDirectory $testDirectory -RedirectStandardOutput $clientStdout `
@@ -166,12 +288,17 @@ try
     if (($bidState | Out-String).Trim() -ne "2:3:2:1500") { throw "Recovered master write state invalid: $bidState" }
 
     Write-Host $clientOutput.Trim()
+    Write-Host "CACHE_RPC_RECOVERY_STATE ready=1 cachePort=$CachePort"
     Write-Host "REPLICA_RECOVERY_STATE sources=replica,replica,primary,replica cooldownMs=100"
     Write-Host "MASTER_RECOVERY_STATE failedRequest=DATABASE_UNAVAILABLE nextRequest=SUCCESS bidState=2:3:2:1500"
     Write-Host "Logs: $testDirectory"
 }
 finally
 {
+    if ($clientProcess -ne $null -and -not $clientProcess.HasExited) { Stop-Process -Id $clientProcess.Id -Force }
+    if ($serverProcess -ne $null -and -not $serverProcess.HasExited) { Stop-Process -Id $serverProcess.Id -Force }
+    if ($cacheProcess -ne $null -and -not $cacheProcess.HasExited) { Stop-Process -Id $cacheProcess.Id -Force }
+
     foreach ($container in @($primaryContainer) + $replicaContainers)
     {
         $running = docker inspect --format "{{.State.Running}}" $container 2>$null
@@ -189,6 +316,4 @@ finally
     {
         Write-Warning "Reconnect test data cleanup failed: $_"
     }
-    if ($clientProcess -ne $null -and -not $clientProcess.HasExited) { Stop-Process -Id $clientProcess.Id -Force }
-    if ($serverProcess -ne $null -and -not $serverProcess.HasExited) { Stop-Process -Id $serverProcess.Id -Force }
 }

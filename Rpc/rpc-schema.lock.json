@@ -1,0 +1,213 @@
+{
+  "version": 1,
+  "methods": [
+    {
+      "serviceId": 1,
+      "methodId": 1,
+      "service": "Cache",
+      "method": "CachePing",
+      "signature": "routing-key(userId)|request(sequence:uint64,userId:uint64,clientTimeUnixMs:uint64)|response(sequence:uint64,userId:uint64,clientTimeUnixMs:uint64,serverTimeUnixMs:uint64,shardIndex:uint32,shardCount:uint32,contentInstanceId:uint64,workerThreadId:uint32)|noti(sequence:uint64,userId:uint64,clientTimeUnixMs:uint64)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 2,
+      "service": "Cache",
+      "method": "LoadCacheUser",
+      "signature": "routing-key(userId)|request(sequence:uint64,userId:uint64)|response(sequence:uint64,userId:uint64,result:enum\u003Cuint8\u003E[Success=0,InvalidUserId=1,DatabaseError=2,InvalidSnapshot=3],loadedFromDatabase:uint8,shardIndex:uint32,shardCount:uint32,contentInstanceId:uint64,currencyCount:uint32,inventoryItemCount:uint32,loadedAtUnixMs:uint64)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 3,
+      "service": "Cache",
+      "method": "GetInventory",
+      "signature": "routing-key(userId)|request(userId:uint64,cursorItemInstanceId:uint64,limit:uint32)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3],items:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string,equipped:bool,tradable:bool,version:uint64}\u003E)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 4,
+      "service": "Cache",
+      "method": "GetMailList",
+      "signature": "routing-key(userId)|request(userId:uint64,cursorMailId:uint64,limit:uint32)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3],mails:vector\u003Cstruct{mailId:uint64,mailType:uint8,subject:string,state:uint8,expiresAtUnixMs:uint64,createdAtUnixMs:uint64}\u003E)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 5,
+      "service": "Cache",
+      "method": "GetMailDetail",
+      "signature": "routing-key(userId)|request(userId:uint64,mailId:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3],mail:struct{mailId:uint64,mailType:uint8,subject:string,body:string,state:uint8,expiresAtUnixMs:uint64,attachments:vector\u003Cstruct{attachmentId:uint64,attachmentType:uint8,itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string,currencyId:uint16,currencyAmount:uint64,state:uint8}\u003E})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 6,
+      "service": "Cache",
+      "method": "GetCurrency",
+      "signature": "routing-key(userId)|request(userId:uint64,currencyId:uint16)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3],balance:struct{currencyId:uint16,amount:uint64,version:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 7,
+      "service": "Cache",
+      "method": "GetInventoryItem",
+      "signature": "routing-key(userId)|request(userId:uint64,itemInstanceId:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3],item:struct{itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string,equipped:bool,tradable:bool,version:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 8,
+      "service": "Cache",
+      "method": "CreditCurrency",
+      "signature": "routing-key(userId)|request(userId:uint64,currencyId:uint16,amount:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],balance:struct{currencyId:uint16,amount:uint64,version:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 9,
+      "service": "Cache",
+      "method": "GrantInventoryItem",
+      "signature": "routing-key(userId)|request(userId:uint64,itemDataId:uint32,quantity:uint32,maxStack:uint32,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,tradable:bool)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],item:struct{itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string,equipped:bool,tradable:bool,version:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 10,
+      "service": "Cache",
+      "method": "ClaimMailAttachment",
+      "signature": "routing-key(userId)|request(userId:uint64,mailId:uint64,attachmentId:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],claim:struct{attachmentType:uint8,itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string,currencyId:uint16,currencyAmount:uint64,currencyBalance:uint64,currencyVersion:uint64,mailState:uint8})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 11,
+      "service": "Cache",
+      "method": "ConsumeInventoryItemForListing",
+      "signature": "routing-key(userId)|request(userId:uint64,itemInstanceId:uint64,expectedVersion:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],item:struct{itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string,equipped:bool,tradable:bool,version:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 12,
+      "service": "Cache",
+      "method": "DebitCurrency",
+      "signature": "routing-key(userId)|request(userId:uint64,currencyId:uint16,amount:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],balance:struct{currencyId:uint16,amount:uint64,version:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 13,
+      "service": "Cache",
+      "method": "SettleBuyout",
+      "signature": "routing-key(buyerUserId)|request(buyerUserId:uint64,sellerUserId:uint64,currencyId:uint16,additionalDebit:uint64,buyoutPrice:uint64,itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],settlement:struct{currencyBalance:struct{currencyId:uint16,amount:uint64,version:uint64},itemMailId:uint64,sellerMailId:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 14,
+      "service": "Cache",
+      "method": "CreateListingReturnMail",
+      "signature": "routing-key(sellerUserId)|request(sellerUserId:uint64,itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],mailId:uint64)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 15,
+      "service": "Cache",
+      "method": "SettleExpiration",
+      "signature": "routing-key(primaryUserId)|request(primaryUserId:uint64,sellerUserId:uint64,winnerUserId:uint64,currencyId:uint16,finalPrice:uint64,itemInstanceId:uint64,itemDataId:uint32,quantity:uint32,itemDataJson:string)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,NotFound=3,ItemVersionMismatch=4,ItemEquipped=5,InventoryFull=6,ItemInstanceConflict=7,CurrencyLimitExceeded=8,MailAttachmentNotClaimable=9,InsufficientCurrency=10,ConcurrentModification=11,OutcomeUnknown=12],settlement:struct{itemMailId:uint64,sellerMailId:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 16,
+      "service": "Cache",
+      "method": "GetPlayerWorldSnapshot",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,InsufficientStatPoints=5,LevelCap=6,UnauthorizedCaller=7,OutcomeUnknown=8],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 17,
+      "service": "Cache",
+      "method": "AllocatePlayerStat",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64,expectedStatVersion:uint64,addStr:uint32,addDex:uint32,addInt:uint32,addLuk:uint32)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,InsufficientStatPoints=5,LevelCap=6,UnauthorizedCaller=7,OutcomeUnknown=8],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 18,
+      "service": "Cache",
+      "method": "GrantPlayerExperience",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64,expectedProgressVersion:uint64,amount:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,InsufficientStatPoints=5,LevelCap=6,UnauthorizedCaller=7,OutcomeUnknown=8],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64})",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 19,
+      "service": "Cache",
+      "method": "EquipPlayerItem",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64,itemInstanceId:uint64,expectedItemVersion:uint64,expectedStatRevision:uint64,expectedEquipmentVersion:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,UnauthorizedCaller=5,OutcomeUnknown=6,ItemNotFound=7,ItemVersionMismatch=8,NotEquipment=9,EquipmentStateConflict=10],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64},itemVersion:uint64,equipped:bool)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 20,
+      "service": "Cache",
+      "method": "UnequipPlayerItem",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64,itemInstanceId:uint64,expectedItemVersion:uint64,expectedStatRevision:uint64,expectedEquipmentVersion:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,UnauthorizedCaller=5,OutcomeUnknown=6,ItemNotFound=7,ItemVersionMismatch=8,NotEquipment=9,EquipmentStateConflict=10],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64},itemVersion:uint64,equipped:bool)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 21,
+      "service": "Cache",
+      "method": "EquipPlayerItemV2",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64,itemInstanceId:uint64,expectedItemVersion:uint64,expectedStatRevision:uint64,expectedEquipmentVersion:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,UnauthorizedCaller=5,OutcomeUnknown=6,ItemNotFound=7,ItemVersionMismatch=8,NotEquipment=9,EquipmentStateConflict=10],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64},itemVersion:uint64,equipped:bool,stateInvalidated:bool)",
+      "reserved": false
+    },
+    {
+      "serviceId": 1,
+      "methodId": 22,
+      "service": "Cache",
+      "method": "UnequipPlayerItemV2",
+      "signature": "routing-key(userId)|request(userId:uint64,gameClientSessionId:uint64,ownerGeneration:uint64,itemInstanceId:uint64,expectedItemVersion:uint64,expectedStatRevision:uint64,expectedEquipmentVersion:uint64)|response(result:enum\u003Cuint8\u003E[Success=0,InvalidArgument=1,DatabaseError=2,CharacterDataError=3,ConcurrentModification=4,UnauthorizedCaller=5,OutcomeUnknown=6,ItemNotFound=7,ItemVersionMismatch=8,NotEquipment=9,EquipmentStateConflict=10],snapshot:struct{progress:struct{characterId:uint64,characterDataId:uint32,level:uint32,exp:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32,unspentStatPoints:uint32,progressVersion:uint64,statVersion:uint64},equippedItems:vector\u003Cstruct{itemInstanceId:uint64,itemDataId:uint32,itemVersion:uint64,strStat:uint32,dexStat:uint32,intStat:uint32,lukStat:uint32}\u003E,equipmentVersion:uint64,statRevision:uint64},itemVersion:uint64,equipped:bool,stateInvalidated:bool)",
+      "reserved": false
+    },
+    {
+      "serviceId": 100,
+      "methodId": 1,
+      "service": "UserPresence",
+      "method": "EnterUser",
+      "signature": "routing-key(userId)|request(userId:uint64,localClientSessionId:uint64)|response(userId:uint64,result:enum\u003Cuint8\u003E[Entered=0,AlreadyEntered=1,ReplacedPreviousGameServer=2,InvalidRequest=3,UnauthorizedCaller=4,UserLoadFailed=5,ServerBusy=6],ownerGeneration:uint64,leaseDurationMilliseconds:uint32)",
+      "reserved": false
+    },
+    {
+      "serviceId": 100,
+      "methodId": 2,
+      "service": "UserPresence",
+      "method": "LeaveUser",
+      "signature": "routing-key(userId)|request(userId:uint64,localClientSessionId:uint64,ownerGeneration:uint64)|response(result:enum\u003Cuint8\u003E[Left=0,AlreadyLeft=1,StaleOwner=2,InvalidRequest=3,UnauthorizedCaller=4])",
+      "reserved": false
+    },
+    {
+      "serviceId": 100,
+      "methodId": 3,
+      "service": "UserPresence",
+      "method": "RenewUser",
+      "signature": "routing-key(userId)|request(userId:uint64,localClientSessionId:uint64,ownerGeneration:uint64)|response(result:enum\u003Cuint8\u003E[Renewed=0,OwnerNotFound=1,StaleOwner=2,InvalidRequest=3,UnauthorizedCaller=4])",
+      "reserved": false
+    },
+    {
+      "serviceId": 100,
+      "methodId": 4,
+      "service": "UserPresence",
+      "method": "RevokeUser",
+      "signature": "routing-key(userId)|request(userId:uint64,localClientSessionId:uint64,ownerGeneration:uint64,reason:enum\u003Cuint8\u003E[Unknown=0,ReplacedByNewLogin=1,LeaseExpired=2])|response(result:enum\u003Cuint8\u003E[Revoked=0,UserNotFound=1,SessionMismatch=2,StaleOwner=3,InvalidRequest=4,UnauthorizedCaller=5])",
+      "reserved": false
+    }
+  ]
+}

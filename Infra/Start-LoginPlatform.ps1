@@ -6,11 +6,11 @@ param(
 $ErrorActionPreference = "Stop"
 
 $infraDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$refactoringServerDir = Split-Path -Parent $infraDir
-$loginServerDir = Join-Path $refactoringServerDir "LoginServer"
+$repositoryRoot = Split-Path -Parent $infraDir
+$loginServerDir = Join-Path $repositoryRoot "LoginServer"
 $composeFile = Join-Path $infraDir "docker-compose.login-platform.yaml"
 $schemaFile = Join-Path $loginServerDir "db\\schema.sql"
-$envFile = Join-Path $refactoringServerDir ".env"
+$envFile = Join-Path $repositoryRoot ".env"
 
 function Get-DotEnvValue {
     param(
@@ -96,11 +96,11 @@ if ($LASTEXITCODE -ne 0) {
     throw "docker compose up for account-mysql/chat-redis failed."
 }
 
-Wait-ContainerHealthy -ContainerName "refactoringserver-account-mysql"
-Wait-ContainerHealthy -ContainerName "refactoringserver-chat-redis"
+Wait-ContainerHealthy -ContainerName "gameserverportfolio-account-mysql"
+Wait-ContainerHealthy -ContainerName "gameserverportfolio-chat-redis"
 
 Write-Host "[LoginPlatform] Applying the account schema."
-Get-Content $schemaFile -Raw | docker exec -i -e "MYSQL_PWD=$rootPassword" refactoringserver-account-mysql mysql -uroot accountdb
+Get-Content $schemaFile -Raw | docker exec -i -e "MYSQL_PWD=$rootPassword" gameserverportfolio-account-mysql mysql -uroot accountdb
 if ($LASTEXITCODE -ne 0) {
     throw "Failed to apply account schema."
 }
@@ -117,7 +117,7 @@ if ($LASTEXITCODE -ne 0) {
     throw "docker compose up for login-server failed."
 }
 
-Wait-ContainerHealthy -ContainerName "refactoringserver-login-server"
+Wait-ContainerHealthy -ContainerName "gameserverportfolio-login-server"
 
 Write-Host "[LoginPlatform] Login platform is ready."
 Write-Host "  LoginServer: http://127.0.0.1:18080"

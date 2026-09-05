@@ -4,8 +4,8 @@
 
 #include "ContentsRuntime/Bridge/IContentBridge.h"
 #include "EchoServer/Contents/ContentTypes.h"
-#include "Generated/Packets/Chat/ChatPackets.h"
-#include "Generated/Packets/Login/LoginPackets.h"
+#include "Generated/Packets/Cpp/Chat/ChatPackets.h"
+#include "Generated/Packets/Cpp/Login/LoginPackets.h"
 
 #include <format>
 namespace EchoServer::Contents

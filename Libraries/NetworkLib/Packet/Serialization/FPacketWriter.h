@@ -102,6 +102,13 @@ namespace NetworkLib::Packet::Serialization
 		}
 
 		void Write(
+			const bool value)
+		{
+			const std::uint8_t wireValue = value ? 1 : 0;
+			WriteBytes(&wireValue, sizeof(wireValue));
+		}
+
+		void Write(
 			const std::string& value)
 		{
 			const std::uint32_t length = static_cast<std::uint32_t>(value.size());

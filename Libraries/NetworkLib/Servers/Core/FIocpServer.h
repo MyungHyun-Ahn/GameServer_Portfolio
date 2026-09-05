@@ -56,7 +56,8 @@ namespace NetworkLib::Core
 		bool PostRecv(NetworkLib::Session::FIocpSession& sessionContext);
 		bool PostSend(NetworkLib::Session::FIocpSession& sessionContext);
 		void CloseSession(NetworkLib::Session::FIocpSession& sessionContext);
-		void ReleaseSession(NetworkLib::Session::FIocpSession* sessionContext);
+		void ReleaseSession(NetworkLib::Session::FIocpSession* sessionContext) const;
+		NetworkLib::Session::FIocpSession* AcquireSessionBySlotIndex(std::uint32_t slotIndex) const;
 		NetworkLib::Session::FIocpSession* AcquireSession(std::uint64_t sessionId);
 		bool AttachAcceptedSocket(SOCKET clientSocket);
 		std::uint64_t ComposeSessionId(std::uint32_t slotIndex, std::uint32_t generation) const;
@@ -90,6 +91,7 @@ namespace NetworkLib::Core
 		std::vector<std::thread> m_workerThreads;
 		std::unique_ptr<std::atomic<NetworkLib::Session::FIocpSession*>[]> m_sessionSlots;
 		std::unique_ptr<std::atomic<std::uint32_t>[]> m_generations;
+		std::mutex m_sessionLifecycleMutex;
 		std::unique_ptr<SAcceptContext[]> m_acceptContexts;
 		std::uint32_t m_acceptContextCount = 0;
 		LPFN_ACCEPTEX m_acceptEx = nullptr;

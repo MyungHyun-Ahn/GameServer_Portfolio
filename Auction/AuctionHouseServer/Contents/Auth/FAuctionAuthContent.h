@@ -5,18 +5,30 @@ namespace GameData::Auction
 	class FAuctionPolicyTable;
 }
 
+namespace GameData::InventoryPolicy
+{
+	class FInventoryPolicyTable;
+}
+
+namespace GameData::MailPolicy
+{
+	class FMailPolicyTable;
+}
+
 namespace AuctionHouseServer::Contents
 {
-	class FAuctionUserRegistry;
+	class FAuctionSessionRegistry;
 
 	class FAuctionAuthContent final : public ContentsRuntime::Core::IContent
 	{
 	public:
 		FAuctionAuthContent(std::shared_ptr<Foundation::ILogger> logger,
 			ContentsRuntime::Core::FContentInstanceId contentInstanceId,
-			std::shared_ptr<FAuctionUserRegistry> userRegistry,
+			std::shared_ptr<FAuctionSessionRegistry> sessionRegistry,
 			std::shared_ptr<Connector::ILoginTicketStore> ticketStore,
 			std::shared_ptr<const GameData::Auction::FAuctionPolicyTable> auctionPolicyTable,
+			std::shared_ptr<const GameData::InventoryPolicy::FInventoryPolicyTable> inventoryPolicyTable,
+			std::shared_ptr<const GameData::MailPolicy::FMailPolicyTable> mailPolicyTable,
 			Database::SAuctionDatabaseConfig databaseConfig);
 
 		ContentsRuntime::Core::FContentId GetContentId() const noexcept override;
@@ -53,9 +65,11 @@ namespace AuctionHouseServer::Contents
 	private:
 		std::shared_ptr<Foundation::ILogger> m_logger;
 		ContentsRuntime::Core::FContentInstanceId m_contentInstanceId;
-		std::shared_ptr<FAuctionUserRegistry> m_userRegistry;
+		std::shared_ptr<FAuctionSessionRegistry> m_sessionRegistry;
 		std::shared_ptr<Connector::ILoginTicketStore> m_ticketStore;
 		std::shared_ptr<const GameData::Auction::FAuctionPolicyTable> m_auctionPolicyTable;
+		std::shared_ptr<const GameData::InventoryPolicy::FInventoryPolicyTable> m_inventoryPolicyTable;
+		std::shared_ptr<const GameData::MailPolicy::FMailPolicyTable> m_mailPolicyTable;
 		Database::SAuctionDatabaseConfig m_databaseConfig;
 	};
 }

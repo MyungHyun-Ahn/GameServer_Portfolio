@@ -24,6 +24,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="FoundationPch.cpp" />
     <ClCompile Include="Config\FConfigFileLoader.cpp">
       <Filter>Config</Filter>
     </ClCompile>
@@ -54,7 +55,6 @@
     <ClCompile Include="Diagnostics\Timing\FTimingThreadLocalCollector.cpp">
       <Filter>Diagnostics\Timing</Filter>
     </ClCompile>
-    <ClCompile Include="FoundationPch.cpp" />
     <ClCompile Include="Ids\FDefaultIncrementIdAllocator.cpp">
       <Filter>Ids</Filter>
     </ClCompile>
@@ -117,13 +117,13 @@
     <ClInclude Include="Diagnostics\Tls\FTlsCollectorRuntime.h">
       <Filter>Diagnostics\Tls</Filter>
     </ClInclude>
-    <ClInclude Include="FoundationPch.h" />
     <ClInclude Include="Ids\FDefaultIncrementIdAllocator.h">
       <Filter>Ids</Filter>
     </ClInclude>
     <ClInclude Include="Ids\IIdAllocator.h">
       <Filter>Ids</Filter>
     </ClInclude>
+    <ClInclude Include="FoundationPch.h" />
     <ClInclude Include="Logging\FCompositeLogger.h">
       <Filter>Logging</Filter>
     </ClInclude>
@@ -136,10 +136,10 @@
     <ClInclude Include="Logging\ILogger.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="Logging\LogFormatting.h">
+    <ClInclude Include="Logging\LoggingTypes.h">
       <Filter>Logging</Filter>
     </ClInclude>
-    <ClInclude Include="Logging\LoggingTypes.h">
+    <ClInclude Include="Logging\LogFormatting.h">
       <Filter>Logging</Filter>
     </ClInclude>
   </ItemGroup>

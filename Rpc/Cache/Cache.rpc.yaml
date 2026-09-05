@@ -1,0 +1,542 @@
+schema-version: 1
+namespace: Cache::Protocol
+output: Cache/CacheRpcMethods.h
+
+service:
+  name: Cache
+  id: 1
+  reserved-method-ids: []
+
+enums:
+  - name: ECacheUserLoadResult
+    underlying: uint8
+    values:
+      - { name: Success, value: 0 }
+      - { name: InvalidUserId, value: 1 }
+      - { name: DatabaseError, value: 2 }
+      - { name: InvalidSnapshot, value: 3 }
+
+  - name: ECacheQueryResult
+    underlying: uint8
+    values:
+      - { name: Success, value: 0 }
+      - { name: InvalidArgument, value: 1 }
+      - { name: DatabaseError, value: 2 }
+      - { name: NotFound, value: 3 }
+
+  - name: ECacheCommandResult
+    underlying: uint8
+    values:
+      - { name: Success, value: 0 }
+      - { name: InvalidArgument, value: 1 }
+      - { name: DatabaseError, value: 2 }
+      - { name: NotFound, value: 3 }
+      - { name: ItemVersionMismatch, value: 4 }
+      - { name: ItemEquipped, value: 5 }
+      - { name: InventoryFull, value: 6 }
+      - { name: ItemInstanceConflict, value: 7 }
+      - { name: CurrencyLimitExceeded, value: 8 }
+      - { name: MailAttachmentNotClaimable, value: 9 }
+      - { name: InsufficientCurrency, value: 10 }
+      - { name: ConcurrentModification, value: 11 }
+      - { name: OutcomeUnknown, value: 12 }
+
+  - name: EPlayerProgressResult
+    underlying: uint8
+    values:
+      - { name: Success, value: 0 }
+      - { name: InvalidArgument, value: 1 }
+      - { name: DatabaseError, value: 2 }
+      - { name: CharacterDataError, value: 3 }
+      - { name: ConcurrentModification, value: 4 }
+      - { name: InsufficientStatPoints, value: 5 }
+      - { name: LevelCap, value: 6 }
+      - { name: UnauthorizedCaller, value: 7 }
+      - { name: OutcomeUnknown, value: 8 }
+
+  - name: EPlayerEquipmentResult
+    underlying: uint8
+    values:
+      - { name: Success, value: 0 }
+      - { name: InvalidArgument, value: 1 }
+      - { name: DatabaseError, value: 2 }
+      - { name: CharacterDataError, value: 3 }
+      - { name: ConcurrentModification, value: 4 }
+      - { name: UnauthorizedCaller, value: 5 }
+      - { name: OutcomeUnknown, value: 6 }
+      - { name: ItemNotFound, value: 7 }
+      - { name: ItemVersionMismatch, value: 8 }
+      - { name: NotEquipment, value: 9 }
+      - { name: EquipmentStateConflict, value: 10 }
+
+structs:
+  - name: FInventoryItem
+    fields:
+      - { name: itemInstanceId, type: uint64 }
+      - { name: itemDataId, type: uint32 }
+      - { name: quantity, type: uint32 }
+      - { name: itemDataJson, type: string }
+      - { name: equipped, type: bool }
+      - { name: tradable, type: bool }
+      - { name: version, type: uint64 }
+
+  - name: FMailSummary
+    fields:
+      - { name: mailId, type: uint64 }
+      - { name: mailType, type: uint8 }
+      - { name: subject, type: string }
+      - { name: state, type: uint8 }
+      - { name: expiresAtUnixMs, type: uint64 }
+      - { name: createdAtUnixMs, type: uint64 }
+
+  - name: FMailAttachment
+    fields:
+      - { name: attachmentId, type: uint64 }
+      - { name: attachmentType, type: uint8 }
+      - { name: itemInstanceId, type: uint64 }
+      - { name: itemDataId, type: uint32 }
+      - { name: quantity, type: uint32 }
+      - { name: itemDataJson, type: string }
+      - { name: currencyId, type: uint16 }
+      - { name: currencyAmount, type: uint64 }
+      - { name: state, type: uint8 }
+
+  - name: FMailDetail
+    fields:
+      - { name: mailId, type: uint64 }
+      - { name: mailType, type: uint8 }
+      - { name: subject, type: string }
+      - { name: body, type: string }
+      - { name: state, type: uint8 }
+      - { name: expiresAtUnixMs, type: uint64 }
+      - { name: attachments, type: vector<FMailAttachment> }
+
+  - name: FCurrencyBalance
+    fields:
+      - { name: currencyId, type: uint16 }
+      - { name: amount, type: uint64 }
+      - { name: version, type: uint64 }
+
+  - name: FInventoryItemSnapshot
+    fields:
+      - { name: itemInstanceId, type: uint64 }
+      - { name: itemDataId, type: uint32 }
+      - { name: quantity, type: uint32 }
+      - { name: itemDataJson, type: string }
+      - { name: equipped, type: bool }
+      - { name: tradable, type: bool }
+      - { name: version, type: uint64 }
+      - { name: strStat, type: uint32 }
+      - { name: dexStat, type: uint32 }
+      - { name: intStat, type: uint32 }
+      - { name: lukStat, type: uint32 }
+
+  - name: FMailClaimResult
+    fields:
+      - { name: attachmentType, type: uint8 }
+      - { name: itemInstanceId, type: uint64 }
+      - { name: itemDataId, type: uint32 }
+      - { name: quantity, type: uint32 }
+      - { name: itemDataJson, type: string }
+      - { name: currencyId, type: uint16 }
+      - { name: currencyAmount, type: uint64 }
+      - { name: currencyBalance, type: uint64 }
+      - { name: currencyVersion, type: uint64 }
+      - { name: mailState, type: uint8 }
+
+  - name: FBuyoutSettlementResult
+    fields:
+      - { name: currencyBalance, type: FCurrencyBalance }
+      - { name: itemMailId, type: uint64 }
+      - { name: sellerMailId, type: uint64 }
+
+  - name: FExpirationSettlementResult
+    fields:
+      - { name: itemMailId, type: uint64 }
+      - { name: sellerMailId, type: uint64 }
+
+  - name: FPlayerProgressSnapshot
+    fields:
+      - { name: characterId, type: uint64 }
+      - { name: characterDataId, type: uint32 }
+      - { name: level, type: uint32 }
+      - { name: exp, type: uint64 }
+      - { name: strStat, type: uint32 }
+      - { name: dexStat, type: uint32 }
+      - { name: intStat, type: uint32 }
+      - { name: lukStat, type: uint32 }
+      - { name: unspentStatPoints, type: uint32 }
+      - { name: progressVersion, type: uint64 }
+      - { name: statVersion, type: uint64 }
+
+  - name: FEquippedItemSnapshot
+    fields:
+      - { name: itemInstanceId, type: uint64 }
+      - { name: itemDataId, type: uint32 }
+      - { name: itemVersion, type: uint64 }
+      - { name: strStat, type: uint32 }
+      - { name: dexStat, type: uint32 }
+      - { name: intStat, type: uint32 }
+      - { name: lukStat, type: uint32 }
+
+  - name: FPlayerWorldSnapshot
+    fields:
+      - { name: progress, type: FPlayerProgressSnapshot }
+      - { name: equippedItems, type: vector<FEquippedItemSnapshot> }
+      - { name: equipmentVersion, type: uint64 }
+      - { name: statRevision, type: uint64 }
+
+methods:
+  - name: CachePing
+    id: 1
+    routing-key: userId
+    request:
+      fields:
+        - { name: sequence, type: uint64 }
+        - { name: userId, type: uint64 }
+        - { name: clientTimeUnixMs, type: uint64 }
+    response:
+      fields:
+        - { name: sequence, type: uint64 }
+        - { name: userId, type: uint64 }
+        - { name: clientTimeUnixMs, type: uint64 }
+        - { name: serverTimeUnixMs, type: uint64 }
+        - { name: shardIndex, type: uint32 }
+        - { name: shardCount, type: uint32 }
+        - { name: contentInstanceId, type: uint64 }
+        - { name: workerThreadId, type: uint32 }
+    noti:
+      fields:
+        - { name: sequence, type: uint64 }
+        - { name: userId, type: uint64 }
+        - { name: clientTimeUnixMs, type: uint64 }
+
+  - name: LoadCacheUser
+    id: 2
+    routing-key: userId
+    request:
+      fields:
+        - { name: sequence, type: uint64 }
+        - { name: userId, type: uint64 }
+    response:
+      fields:
+        - { name: sequence, type: uint64 }
+        - { name: userId, type: uint64 }
+        - { name: result, type: ECacheUserLoadResult }
+        - { name: loadedFromDatabase, type: uint8 }
+        - { name: shardIndex, type: uint32 }
+        - { name: shardCount, type: uint32 }
+        - { name: contentInstanceId, type: uint64 }
+        - { name: currencyCount, type: uint32 }
+        - { name: inventoryItemCount, type: uint32 }
+        - { name: loadedAtUnixMs, type: uint64 }
+
+  - name: GetInventory
+    id: 3
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: cursorItemInstanceId, type: uint64 }
+        - { name: limit, type: uint32 }
+    response:
+      fields:
+        - { name: result, type: ECacheQueryResult }
+        - { name: items, type: vector<FInventoryItem> }
+
+  - name: GetMailList
+    id: 4
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: cursorMailId, type: uint64 }
+        - { name: limit, type: uint32 }
+    response:
+      fields:
+        - { name: result, type: ECacheQueryResult }
+        - { name: mails, type: vector<FMailSummary> }
+
+  - name: GetMailDetail
+    id: 5
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: mailId, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: ECacheQueryResult }
+        - { name: mail, type: FMailDetail }
+
+  - name: GetCurrency
+    id: 6
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: currencyId, type: uint16 }
+    response:
+      fields:
+        - { name: result, type: ECacheQueryResult }
+        - { name: balance, type: FCurrencyBalance }
+
+  - name: GetInventoryItem
+    id: 7
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: ECacheQueryResult }
+        - { name: item, type: FInventoryItemSnapshot }
+
+  - name: CreditCurrency
+    id: 8
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: currencyId, type: uint16 }
+        - { name: amount, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: balance, type: FCurrencyBalance }
+
+  - name: GrantInventoryItem
+    id: 9
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: quantity, type: uint32 }
+        - { name: maxStack, type: uint32 }
+        - { name: strStat, type: uint32 }
+        - { name: dexStat, type: uint32 }
+        - { name: intStat, type: uint32 }
+        - { name: lukStat, type: uint32 }
+        - { name: tradable, type: bool }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: item, type: FInventoryItemSnapshot }
+
+  - name: ClaimMailAttachment
+    id: 10
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: mailId, type: uint64 }
+        - { name: attachmentId, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: claim, type: FMailClaimResult }
+
+  - name: ConsumeInventoryItemForListing
+    id: 11
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedVersion, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: item, type: FInventoryItemSnapshot }
+
+  - name: DebitCurrency
+    id: 12
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: currencyId, type: uint16 }
+        - { name: amount, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: balance, type: FCurrencyBalance }
+
+  - name: SettleBuyout
+    id: 13
+    routing-key: buyerUserId
+    request:
+      fields:
+        - { name: buyerUserId, type: uint64 }
+        - { name: sellerUserId, type: uint64 }
+        - { name: currencyId, type: uint16 }
+        - { name: additionalDebit, type: uint64 }
+        - { name: buyoutPrice, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: quantity, type: uint32 }
+        - { name: itemDataJson, type: string }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: settlement, type: FBuyoutSettlementResult }
+
+  - name: CreateListingReturnMail
+    id: 14
+    routing-key: sellerUserId
+    request:
+      fields:
+        - { name: sellerUserId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: quantity, type: uint32 }
+        - { name: itemDataJson, type: string }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: mailId, type: uint64 }
+
+  - name: SettleExpiration
+    id: 15
+    routing-key: primaryUserId
+    request:
+      fields:
+        - { name: primaryUserId, type: uint64 }
+        - { name: sellerUserId, type: uint64 }
+        - { name: winnerUserId, type: uint64 }
+        - { name: currencyId, type: uint16 }
+        - { name: finalPrice, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemDataId, type: uint32 }
+        - { name: quantity, type: uint32 }
+        - { name: itemDataJson, type: string }
+    response:
+      fields:
+        - { name: result, type: ECacheCommandResult }
+        - { name: settlement, type: FExpirationSettlementResult }
+
+  - name: GetPlayerWorldSnapshot
+    id: 16
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: EPlayerProgressResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+
+  - name: AllocatePlayerStat
+    id: 17
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+        - { name: expectedStatVersion, type: uint64 }
+        - { name: addStr, type: uint32 }
+        - { name: addDex, type: uint32 }
+        - { name: addInt, type: uint32 }
+        - { name: addLuk, type: uint32 }
+    response:
+      fields:
+        - { name: result, type: EPlayerProgressResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+
+  - name: GrantPlayerExperience
+    id: 18
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+        - { name: expectedProgressVersion, type: uint64 }
+        - { name: amount, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: EPlayerProgressResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+
+  - name: EquipPlayerItem
+    id: 19
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+        - { name: expectedStatRevision, type: uint64 }
+        - { name: expectedEquipmentVersion, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: EPlayerEquipmentResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+        - { name: itemVersion, type: uint64 }
+        - { name: equipped, type: bool }
+
+  - name: UnequipPlayerItem
+    id: 20
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+        - { name: expectedStatRevision, type: uint64 }
+        - { name: expectedEquipmentVersion, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: EPlayerEquipmentResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+        - { name: itemVersion, type: uint64 }
+        - { name: equipped, type: bool }
+
+  - name: EquipPlayerItemV2
+    id: 21
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+        - { name: expectedStatRevision, type: uint64 }
+        - { name: expectedEquipmentVersion, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: EPlayerEquipmentResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+        - { name: itemVersion, type: uint64 }
+        - { name: equipped, type: bool }
+        - { name: stateInvalidated, type: bool }
+
+  - name: UnequipPlayerItemV2
+    id: 22
+    routing-key: userId
+    request:
+      fields:
+        - { name: userId, type: uint64 }
+        - { name: gameClientSessionId, type: uint64 }
+        - { name: ownerGeneration, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+        - { name: expectedStatRevision, type: uint64 }
+        - { name: expectedEquipmentVersion, type: uint64 }
+    response:
+      fields:
+        - { name: result, type: EPlayerEquipmentResult }
+        - { name: snapshot, type: FPlayerWorldSnapshot }
+        - { name: itemVersion, type: uint64 }
+        - { name: equipped, type: bool }
+        - { name: stateInvalidated, type: bool }

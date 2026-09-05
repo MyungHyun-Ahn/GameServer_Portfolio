@@ -2,6 +2,14 @@
 
 namespace NetworkLib::Packet::Serialization
 {
+	enum class EContentPacketKind : std::uint8_t
+	{
+		Request = 0,
+		Response = 1,
+		Notification = 2,
+		Broadcast = 3
+	};
+
 	class IContentPacket
 	{
 	public:
@@ -25,5 +33,11 @@ namespace NetworkLib::Packet::Serialization
 
 		virtual void Serialize(FPacketWriter& writer) const = 0;
 		virtual bool Deserialize(FPacketReader& reader) = 0;
+	};
+
+	class IResponsePacket : public IContentPacket
+	{
+	public:
+		~IResponsePacket() override = default;
 	};
 }

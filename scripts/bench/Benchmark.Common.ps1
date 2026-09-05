@@ -830,7 +830,11 @@ function Wait-BenchmarkServerReady
         [System.Diagnostics.Process]$Process,
         [Parameter(Mandatory = $true)]
         [int]$TimeoutSeconds,
-        [int]$StableDelayMilliseconds = 1500
+        [Parameter(Mandatory = $true)]
+        [string]$ReadyLogPath,
+        [Parameter(Mandatory = $true)]
+        [string]$ReadyPattern,
+        [int]$PollIntervalMilliseconds = 100
     )
 
     $deadline = (Get-Date).AddSeconds([Math]::Max(1, $TimeoutSeconds))
@@ -842,9 +846,24 @@ function Wait-BenchmarkServerReady
             return $false
         }
 
-        Start-Sleep -Milliseconds $StableDelayMilliseconds
-        $Process.Refresh()
-        return -not $Process.HasExited
+        if (Test-Path -LiteralPath $ReadyLogPath)
+        {
+            try
+            {
+                $readyLog = Get-Content -LiteralPath $ReadyLogPath -Raw -ErrorAction Stop
+                if (-not [string]::IsNullOrEmpty($readyLog) -and $readyLog -match $ReadyPattern)
+                {
+                    return $true
+                }
+            }
+            catch
+            {
+                # The redirected stdout file can be momentarily unavailable while
+                # the server is flushing the ready marker. Retry until timeout.
+            }
+        }
+
+        Start-Sleep -Milliseconds ([Math]::Max(10, $PollIntervalMilliseconds))
     }
 
     return $false

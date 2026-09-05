@@ -12,6 +12,8 @@ $serverProject = Join-Path $repositoryRoot "Auction\AuctionHouseServer\AuctionHo
 $clientProject = Join-Path $repositoryRoot "Auction\AuctionDummyClient\AuctionDummyClient.vcxproj"
 $serverExecutable = Join-Path $repositoryRoot "Out\AuctionHouseServer\Debug\AuctionHouseServer.exe"
 $clientExecutable = Join-Path $repositoryRoot "Out\AuctionDummyClient\Debug\AuctionDummyClient.exe"
+$serverConfigTemplate = Join-Path $repositoryRoot "Config\Server\AuctionHouseServer.yaml"
+. (Join-Path $repositoryRoot "scripts\common\ServerConfig.ps1")
 
 if ($Port -le 0 -or $Port -gt 65535)
 {
@@ -55,13 +57,20 @@ $serverStandardOutput = Join-Path $testDirectory "server.stdout.log"
 $serverStandardError = Join-Path $testDirectory "server.stderr.log"
 $clientStandardOutput = Join-Path $testDirectory "client.stdout.log"
 $clientStandardError = Join-Path $testDirectory "client.stderr.log"
+$serverConfig = Join-Path $testDirectory "AuctionHouseServer.yaml"
+New-ServerConfigFile -TemplatePath $serverConfigTemplate -DestinationPath $serverConfig -Overrides @{
+    "AuctionHouseServer.Port" = $Port
+    "AuctionHouseServer.RunSeconds" = 5
+    "Logging.OutputDirectory" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "logs"))
+    "Diagnostics.TimingCsvPath" = (ConvertTo-ServerConfigYamlString (Join-Path $testDirectory "auction_timing.csv"))
+} | Out-Null
 
 $serverProcess = $null
 try
 {
     $serverProcess = Start-Process `
         -FilePath $serverExecutable `
-        -ArgumentList @("--port", "$Port", "--run-seconds", "5") `
+        -ArgumentList @("--config", $serverConfig) `
         -WorkingDirectory $testDirectory `
         -RedirectStandardOutput $serverStandardOutput `
         -RedirectStandardError $serverStandardError `

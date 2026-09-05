@@ -6,6 +6,7 @@ namespace Connector
 	{
 		std::uint32_t userId = 0;
 		std::uint64_t loginVersion = 0;
+		std::uint32_t targetServerInstanceId = 0;
 		std::string loginId;
 		bool valid = false;
 	};

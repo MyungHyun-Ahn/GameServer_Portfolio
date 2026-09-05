@@ -1,0 +1,71 @@
+content: World
+
+messages:
+  - name: WorldAuth
+    rq:
+      opcode: 4998
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: ticket, type: string }
+    rp:
+      opcode: 4999
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: userId, type: uint64 }
+  - name: EquipItem
+    rq:
+      opcode: 5007
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+    rp:
+      opcode: 5008
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemVersion, type: uint64 }
+        - { name: equipped, type: bool }
+        - { name: finalStr, type: uint32 }
+        - { name: finalDex, type: uint32 }
+        - { name: finalInt, type: uint32 }
+        - { name: finalLuk, type: uint32 }
+        - { name: currentHp, type: uint32 }
+        - { name: maxHp, type: uint32 }
+        - { name: currentMp, type: uint32 }
+        - { name: maxMp, type: uint32 }
+        - { name: attack, type: uint32 }
+        - { name: defense, type: uint32 }
+        - { name: moveSpeedMilli, type: uint32 }
+        - { name: equipmentVersion, type: uint64 }
+        - { name: statRevision, type: uint64 }
+  - name: UnequipItem
+    rq:
+      opcode: 5009
+      fields:
+        - { name: requestId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: expectedItemVersion, type: uint64 }
+    rp:
+      opcode: 5010
+      fields:
+        - { name: resultCode, type: uint16 }
+        - { name: requestId, type: uint64 }
+        - { name: itemInstanceId, type: uint64 }
+        - { name: itemVersion, type: uint64 }
+        - { name: equipped, type: bool }
+        - { name: finalStr, type: uint32 }
+        - { name: finalDex, type: uint32 }
+        - { name: finalInt, type: uint32 }
+        - { name: finalLuk, type: uint32 }
+        - { name: currentHp, type: uint32 }
+        - { name: maxHp, type: uint32 }
+        - { name: currentMp, type: uint32 }
+        - { name: maxMp, type: uint32 }
+        - { name: attack, type: uint32 }
+        - { name: defense, type: uint32 }
+        - { name: moveSpeedMilli, type: uint32 }
+        - { name: equipmentVersion, type: uint64 }
+        - { name: statRevision, type: uint64 }

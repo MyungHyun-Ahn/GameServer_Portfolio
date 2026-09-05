@@ -70,6 +70,17 @@ namespace AuctionHouseServer::Database
 		return m_connection.Execute(sql.str(), outError);
 	}
 
+	bool FAuctionRepository::DeletePendingListing(
+		const std::uint64_t listingId,
+		const std::uint64_t sellerUserId,
+		const std::uint64_t expectedVersion,
+		std::string& outError)
+	{
+		std::ostringstream sql;
+		sql << "CALL sp_ad_d_listing_pending(" << listingId << ',' << sellerUserId << ',' << expectedVersion << ')';
+		return m_connection.Execute(sql.str(), outError);
+	}
+
 	bool FAuctionRepository::SearchListings(
 		const SListingSearchQuery& query,
 		std::vector<SListingSummary>& outListings,
@@ -292,11 +303,13 @@ namespace AuctionHouseServer::Database
 		const std::uint64_t bidderUserId,
 		const std::uint64_t bidAmount,
 		const std::uint64_t expectedListingVersion,
+		const std::uint64_t minimumBidIncrement,
 		SBidPrepareResult& outResult,
 		std::string& outError)
 	{
 		std::ostringstream sql;
-		sql << "CALL sp_ad_cu_bid_prepare(" << listingId << ',' << bidderUserId << ',' << bidAmount << ',' << expectedListingVersion << ')';
+		sql << "CALL sp_ad_cu_bid_prepare(" << listingId << ',' << bidderUserId << ',' << bidAmount << ',' << expectedListingVersion << ','
+			<< minimumBidIncrement << ')';
 		std::vector<Connector::MySql::SMySqlResultSet> resultSets;
 		if (!m_connection.ExecuteQuery(sql.str(), resultSets, outError))
 		{
@@ -317,33 +330,43 @@ namespace AuctionHouseServer::Database
 
 	bool FAuctionRepository::CompleteBid(
 		const std::uint64_t listingId,
-		const std::uint64_t bidId,
 		const std::uint64_t bidderUserId,
+		const std::uint64_t bidAmount,
 		const std::uint64_t expectedListingVersion,
+		std::uint64_t& outBidId,
 		std::uint64_t& outListingVersion,
 		std::string& outError)
 	{
 		std::ostringstream sql;
-		sql << "CALL sp_ad_u_bid_complete(" << listingId << ',' << bidId << ',' << bidderUserId << ',' << expectedListingVersion << ')';
+		sql << "CALL sp_ad_u_bid_complete(" << listingId << ',' << bidderUserId << ',' << bidAmount << ',' << expectedListingVersion << ')';
 		std::vector<Connector::MySql::SMySqlResultSet> resultSets;
 		if (!m_connection.ExecuteQuery(sql.str(), resultSets, outError))
 		{
 			return false;
 		}
 		const auto* resultSet = FindFirstRows(resultSets);
-		return resultSet != nullptr && resultSet->rows.size() == 1 && !resultSet->rows[0].empty() &&
-			   ParseUnsigned(resultSet->rows[0][0], outListingVersion);
+		return resultSet != nullptr && resultSet->rows.size() == 1 && resultSet->rows[0].size() >= 2 &&
+			   ParseUnsigned(resultSet->rows[0][0], outBidId) && ParseUnsigned(resultSet->rows[0][1], outListingVersion);
+	}
+
+	bool FAuctionRepository::RevertBid(
+		const std::uint64_t listingId,
+		const std::uint64_t expectedListingVersion,
+		std::string& outError)
+	{
+		std::ostringstream sql;
+		sql << "CALL sp_ad_u_bid_revert(" << listingId << ',' << expectedListingVersion << ')';
+		return m_connection.Execute(sql.str(), outError);
 	}
 
 	bool FAuctionRepository::GetOutbidClaimable(
 		const std::uint64_t bidderUserId,
-		const std::uint32_t limit,
 		std::vector<SOutbidClaimable>& outBids,
 		std::string& outError)
 	{
 		outBids.clear();
 		std::ostringstream sql;
-		sql << "CALL sp_ad_r_outbid_claimable(" << bidderUserId << ',' << limit << ')';
+		sql << "CALL sp_ad_r_outbid_claimable(" << bidderUserId << ')';
 		std::vector<Connector::MySql::SMySqlResultSet> resultSets;
 		if (!m_connection.ExecuteQuery(sql.str(), resultSets, outError))
 		{
@@ -427,6 +450,16 @@ namespace AuctionHouseServer::Database
 			   ParseUnsigned(resultSet->rows[0][0], outListingVersion);
 	}
 
+	bool FAuctionRepository::RevertBuyout(
+		const std::uint64_t listingId,
+		const std::uint64_t expectedListingVersion,
+		std::string& outError)
+	{
+		std::ostringstream sql;
+		sql << "CALL sp_ad_u_buyout_revert(" << listingId << ',' << expectedListingVersion << ')';
+		return m_connection.Execute(sql.str(), outError);
+	}
+
 	bool FAuctionRepository::PrepareListingCancel(
 		const std::uint64_t listingId,
 		const std::uint64_t sellerUserId,
@@ -467,6 +500,17 @@ namespace AuctionHouseServer::Database
 		const auto* resultSet = FindFirstRows(resultSets);
 		return resultSet != nullptr && resultSet->rows.size() == 1 && !resultSet->rows[0].empty() &&
 			   ParseUnsigned(resultSet->rows[0][0], outListingVersion);
+	}
+
+	bool FAuctionRepository::RevertListingCancel(
+		const std::uint64_t listingId,
+		const std::uint64_t sellerUserId,
+		const std::uint64_t expectedListingVersion,
+		std::string& outError)
+	{
+		std::ostringstream sql;
+		sql << "CALL sp_ad_u_cancel_revert(" << listingId << ',' << sellerUserId << ',' << expectedListingVersion << ')';
+		return m_connection.Execute(sql.str(), outError);
 	}
 
 	bool FAuctionRepository::GetExpiredListingCandidates(
@@ -539,6 +583,16 @@ namespace AuctionHouseServer::Database
 		const auto* resultSet = FindFirstRows(resultSets);
 		return resultSet != nullptr && resultSet->rows.size() == 1 && !resultSet->rows[0].empty() &&
 			   ParseUnsigned(resultSet->rows[0][0], outListingVersion);
+	}
+
+	bool FAuctionRepository::RevertExpiration(
+		const std::uint64_t listingId,
+		const std::uint64_t expectedListingVersion,
+		std::string& outError)
+	{
+		std::ostringstream sql;
+		sql << "CALL sp_ad_u_expire_revert(" << listingId << ',' << expectedListingVersion << ')';
+		return m_connection.Execute(sql.str(), outError);
 	}
 
 	bool FAuctionRepository::GetMyBids(

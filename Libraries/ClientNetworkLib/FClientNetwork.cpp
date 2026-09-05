@@ -697,6 +697,13 @@ namespace ClientNetworkLib
 					packetEvents.push_back(std::move(packetEvent));
 				}
 
+				if (!shouldClose && PacketFramer.HasInvalidPacketHeader(session->InboundBuffer))
+				{
+					closeMessage = "oversized packet header rejected.";
+					closeEventType = EClientEventType::SessionError;
+					shouldClose = true;
+				}
+
 				if (!shouldClose)
 				{
 					if (!PostRecvLocked(*session, closeMessage, closeErrorCode))
